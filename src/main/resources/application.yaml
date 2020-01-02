@@ -1,0 +1,9 @@
+spring:
+  profiles.active: local
+
+server:
+    port: 8080
+
+migration-helper:
+  job:
+    enabled: TestJob
