@@ -15,31 +15,35 @@ public interface LibraryVersionMapper {
 
     @Insert("<script>" +
             "insert into " + tableName + " " +
-            "(group_id, artifact_id, version) values " +
+            "(group_artifact_id, version, downloaded, parsed) values " +
             "<foreach collection='list' item='e' separator=','>" +
-            "(#{e.groupId}, #{e.artifactId}, #{e.version})" +
-            "</foreach>" +
+            "(#{e.groupArtifactId}, #{e.version}, #{e.downloaded}, #{e.parsed})" +
+            "</foreach> " +
+            "on duplicate key update id=id" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(List<LibraryVersion> entities);
 
-    @Select("<script>" +
-            "select * from " + tableName + " where " +
-            "group_id = #{groupId} and " +
-            "artifact_id = #{artifactId}" +
+    @Update("<script>" +
+            "update " + tableName + " set " +
+            "downloaded = #{e.downloaded}, parsed = #{e.parsed} " +
+            "where id = #{e.id} " +
             "</script>")
-    List<LibraryVersion> findByGroupIdAndArtifactId(
-            @Param("groupId") String groupId,
-            @Param("artifactId") String artifactId);
+    int update(@Param("e") LibraryVersion entity);
 
     @Select("<script>" +
             "select * from " + tableName + " where " +
-            "group_id = #{groupId} and " +
-            "artifact_id = #{artifactId} and " +
+            "group_artifact_id = #{groupArtifactId} " +
+            "</script>")
+    List<LibraryVersion> findByGroupArtifactId(
+            @Param("groupArtifactId") long groupArtifactId);
+
+    @Select("<script>" +
+            "select * from " + tableName + " where " +
+            "group_artifact_id = #{groupArtifactId} and " +
             "version = #{version}" +
             "</script>")
-    LibraryVersion findByGroupIdAndArtifactIdAndVersion(
-            @Param("groupId") String groupId,
-            @Param("artifactId") String artifactId,
+    LibraryVersion findByGroupArtifactIdAndVersion(
+            @Param("groupArtifactId") long groupArtifactId,
             @Param("version") String version);
 }

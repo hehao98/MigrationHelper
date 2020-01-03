@@ -7,11 +7,13 @@ public class LibraryVersion {
 
     private long id;
 
-    private String groupId;
-
-    private String artifactId;
+    private long groupArtifactId;
 
     private String version;
+
+    private boolean downloaded;
+
+    private boolean parsed;
 
     public long getId() {
         return id;
@@ -22,21 +24,12 @@ public class LibraryVersion {
         return this;
     }
 
-    public String getGroupId() {
-        return groupId;
+    public long getGroupArtifactId() {
+        return groupArtifactId;
     }
 
-    public LibraryVersion setGroupId(String groupId) {
-        this.groupId = groupId;
-        return this;
-    }
-
-    public String getArtifactId() {
-        return artifactId;
-    }
-
-    public LibraryVersion setArtifactId(String artifactId) {
-        this.artifactId = artifactId;
+    public LibraryVersion setGroupArtifactId(long groupArtifactId) {
+        this.groupArtifactId = groupArtifactId;
         return this;
     }
 
@@ -46,6 +39,24 @@ public class LibraryVersion {
 
     public LibraryVersion setVersion(String version) {
         this.version = version;
+        return this;
+    }
+
+    public boolean isDownloaded() {
+        return downloaded;
+    }
+
+    public LibraryVersion setDownloaded(boolean downloaded) {
+        this.downloaded = downloaded;
+        return this;
+    }
+
+    public boolean isParsed() {
+        return parsed;
+    }
+
+    public LibraryVersion setParsed(boolean parsed) {
+        this.parsed = parsed;
         return this;
     }
 }
