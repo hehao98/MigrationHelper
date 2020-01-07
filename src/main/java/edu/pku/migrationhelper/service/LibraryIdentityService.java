@@ -1,8 +1,11 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.LibrarySignatureMap;
 import edu.pku.migrationhelper.data.LibraryVersion;
+import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
+import edu.pku.migrationhelper.mapper.LibrarySignatureMapMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -38,10 +41,16 @@ public class LibraryIdentityService {
     private HttpClient httpClient = HttpClients.createDefault();
 
     @Autowired
+    private JarAnalysisService jarAnalysisService;
+
+    @Autowired
     private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
 
     @Autowired
     private LibraryVersionMapper libraryVersionMapper;
+
+    @Autowired
+    private LibrarySignatureMapMapper librarySignatureMapMapper;
 
     @Value("${migration-helper.library-identity.download-path}")
     private String downloadPath;
@@ -104,20 +113,28 @@ public class LibraryIdentityService {
                     libraryVersionMapper.update(versionData);
                 }
                 LOG.info("start parse library id = {}", versionData.getId());
-                parseLibraryJar(groupId, artifactId, version);
+                parseLibraryJar(groupId, artifactId, version, versionData.getId());
                 versionData.setParsed(true);
                 libraryVersionMapper.update(versionData);
+                LOG.info("download and parse library success id = {}", versionData.getId());
             } catch (Exception e) {
                 LOG.error("download and parse library fail groupId = {}, artifactId = {}, version = {}",
                         groupId, artifactId, version);
                 LOG.error("download and parse library fail", e);
             }
-            LOG.info("download and parse library success id = {}", versionData.getId());
         }
     }
 
-    public void parseLibraryJar(String groupId, String artifactId, String version) {
-        //TODO
+    public void parseLibraryJar(String groupId, String artifactId, String version, long versionId) throws Exception {
+        String jarPath = generateJarDownloadPath(groupId, artifactId, version);
+        List<MethodSignature> signatures = jarAnalysisService.analyzeJar(jarPath);
+        List<LibrarySignatureMap> mapList = new ArrayList<>(signatures.size());
+        for (MethodSignature signature : signatures) {
+            mapList.add(new LibrarySignatureMap()
+                    .setLibraryVersionId(versionId)
+                    .setMethodSignatureId(signature.getId()));
+        }
+        librarySignatureMapMapper.insert(mapList);
     }
 
     public void downloadLibraryFromMaven(String groupId, String artifactId, String version, OutputStream output) throws IOException {

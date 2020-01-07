@@ -5,7 +5,7 @@ spring:
       url: jdbc:mysql://localhost:3306/migration_helper
       username: root
       password: kylinsql
-      driver-class-name: com.mysql.jdbc.Driver
+      driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
     port: 8080
