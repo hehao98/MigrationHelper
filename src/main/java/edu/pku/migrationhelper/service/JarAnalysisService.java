@@ -5,6 +5,7 @@ import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.Type;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.MemorySensitiveClassPathRepository;
@@ -91,7 +92,7 @@ public class JarAnalysisService {
             String methodName = method.getName();
             paramList.delete(0, paramList.length());
             for (Type parameterType : method.getArgumentTypes()) {
-                paramList.append(parameterType.getSignature());
+                paramList.append(Utility.typeSignatureToString(parameterType.getSignature(), false));
                 paramList.append(",");
             }
             String paramListString = "";
