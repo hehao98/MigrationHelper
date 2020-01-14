@@ -33,8 +33,8 @@ public class JavaCodeAnalysisService {
                 if(element instanceof CtExecutableReference) {
                     CtExecutableReference executableReference = (CtExecutableReference) element;
                     MethodSignature methodSignature = new MethodSignature();
-                    methodSignature.setPackageName(executableReference.getType().getPackage().getSimpleName());
-                    methodSignature.setClassName(executableReference.getType().getSimpleName());
+                    methodSignature.setPackageName(executableReference.getDeclaringType().getPackage().getSimpleName());
+                    methodSignature.setClassName(executableReference.getDeclaringType().getSimpleName());
                     methodSignature.setMethodName(executableReference.getSimpleName());
                     stringBuilder.delete(0, stringBuilder.length());
                     for (Object parameter : executableReference.getParameters()) {
