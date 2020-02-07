@@ -55,4 +55,15 @@ public interface MethodSignatureMapper {
             @Param("className") String className,
             @Param("methodName") String methodName,
             @Param("paramList") String paramList);
+
+    @Select("<script>" +
+            "select id from " + tableName + " where " +
+            "package_name = #{packageName} and " +
+            "class_name = #{className} and " +
+            "method_name = #{methodName} " +
+            "</script>")
+    List<Long> findIds(
+            @Param("packageName") String packageName,
+            @Param("className") String className,
+            @Param("methodName") String methodName);
 }

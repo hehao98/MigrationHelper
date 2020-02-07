@@ -46,4 +46,16 @@ public interface LibraryVersionMapper {
     LibraryVersion findByGroupArtifactIdAndVersion(
             @Param("groupArtifactId") long groupArtifactId,
             @Param("version") String version);
+
+    @Select("<script>" +
+            "select v.* from " + tableName + " as v join " + LibraryGroupArtifactMapper.tableName + " as ga " +
+            "on v.group_artifact_id = ga.id where " +
+            "ga.group_id = #{groupId} and " +
+            "ga.artifact_id = #{artifactId} and " +
+            "v.version = #{version}" +
+            "</script>")
+    LibraryVersion findByGroupIdAndArtifactIdAndVersion(
+            @Param("groupId") String groupId,
+            @Param("artifactId") String artifactId,
+            @Param("version") String version);
 }

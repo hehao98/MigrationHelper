@@ -43,25 +43,24 @@
     </build>
 
     <dependencies>
-        <!--&lt;!&ndash; https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>org.eclipse.jgit</groupId>-->
-            <!--<artifactId>org.eclipse.jgit</artifactId>-->
-            <!--<version>5.6.0.201912101111-r</version>-->
-        <!--</dependency>-->
-        <!--&lt;!&ndash; https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit.archive &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>org.eclipse.jgit</groupId>-->
-            <!--<artifactId>org.eclipse.jgit.archive</artifactId>-->
-            <!--<version>5.6.0.201912101111-r</version>-->
-        <!--</dependency>-->
-        <!--&lt;!&ndash; https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils &ndash;&gt;-->
-        <!--<dependency>-->
-            <!--<groupId>io.github.java-diff-utils</groupId>-->
-            <!--<artifactId>java-diff-utils</artifactId>-->
-            <!--<version>4.5</version>-->
-        <!--</dependency>-->
-
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>5.6.0.201912101111-r</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit.archive -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit.archive</artifactId>
+            <version>5.6.0.201912101111-r</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.github.java-diff-utils/java-diff-utils -->
+        <dependency>
+            <groupId>io.github.java-diff-utils</groupId>
+            <artifactId>java-diff-utils</artifactId>
+            <version>4.5</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

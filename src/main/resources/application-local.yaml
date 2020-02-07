@@ -13,3 +13,5 @@ server:
 migration-helper:
   library-identity:
     download-path: jar-download
+  git-repository-analysis:
+    repository-path: git-repository
