@@ -1,8 +1,8 @@
 package edu.pku.migrationhelper.service;
 
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -27,8 +26,9 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
     @Value("${migration-helper.git-repository-analysis.repository-path}")
     private String repositoryPath;
 
-    public static class GitRepository implements AbstractRepository {
+    public static class GitRepository extends AbstractRepository {
         public Repository repository;
+
     }
 
     @Override
@@ -38,6 +38,7 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
             GitRepository gitRepository = new GitRepository();
             File repositoryDir = new File(repositoryPath);
             repositoryDir = new File(repositoryDir, repositoryName);
+            repositoryDir = new File(repositoryDir, ".git");
             gitRepository.repository = builder
                     .setGitDir(repositoryDir)
                     .readEnvironment()
@@ -59,12 +60,9 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
     public void forEachCommit(AbstractRepository repo, Consumer<String> commitIdConsumer) {
         GitRepository gitRepository = (GitRepository) repo;
         Repository repository = gitRepository.repository;
-        Collection<Ref> allRefs = repository.getAllRefs().values();
-        try (RevWalk revWalk = new RevWalk( repository )) {
-            for( Ref ref : allRefs ) {
-                revWalk.markStart( revWalk.parseCommit( ref.getObjectId() ));
-            }
-            for( RevCommit commit : revWalk ) {
+        try(Git git = new Git(repository)) {
+            Iterable<RevCommit> commits = git.log().all().call();
+            for( RevCommit commit : commits ) {
                 commitIdConsumer.accept(commit.name());
             }
         } catch (Exception e) {
@@ -88,9 +86,15 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
                     while(treeWalk.next()) {
                         BlobInCommit bic = new BlobInCommit();
                         bic.fileName = treeWalk.getPathString();
-                        bic.blobId = treeWalk.getNameString();
+                        bic.blobId = treeWalk.getObjectId(0).getName();
                         result.add(bic);
                     }
+                }
+            }
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("getBlobsInCommit result commitId = {}", commitId);
+                for (BlobInCommit blobInCommit : result) {
+                    LOG.debug("blobId = {}, fileName = {}", blobInCommit.blobId, blobInCommit.fileName);
                 }
             }
             return result;

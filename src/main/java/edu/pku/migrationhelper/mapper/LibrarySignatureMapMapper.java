@@ -28,7 +28,7 @@ public interface LibrarySignatureMapMapper {
             "select library_version_id from " + tableName + " where " +
             "<choose>" +
             "<when test = 'signatureIds == null || signatureIds.size() == 0'> false </when>" +
-            "<otherwise> library_signature_id in (<foreach collection='signatureIds' item='e' separator=','>#{e}</foreach>) </otherwise>" +
+            "<otherwise> method_signature_id in (<foreach collection='signatureIds' item='e' separator=','>#{e}</foreach>) </otherwise>" +
             "</choose>" +
             "</script>")
     List<Long> findVersionIds(@Param("signatureIds") Collection<Long> signatureIds);

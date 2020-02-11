@@ -4,6 +4,7 @@ import edu.pku.migrationhelper.data.LibraryVersion;
 import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
+import edu.pku.migrationhelper.service.GitRepositoryAnalysisService;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.JavaCodeAnalysisService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
@@ -43,11 +44,15 @@ public class TestJob implements CommandLineRunner {
     @Autowired
     private JavaCodeAnalysisService javaCodeAnalysisService;
 
+    @Autowired
+    private GitRepositoryAnalysisService gitRepositoryAnalysisService;
+
     @Override
     public void run(String... args) throws Exception {
 //        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit");
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
-        testJavaCodeAnalysis();
+//        testJavaCodeAnalysis();
+        testAnalyzeBlob();
     }
 
     public void testJavaCodeAnalysis() throws Exception {
@@ -70,5 +75,9 @@ public class TestJob implements CommandLineRunner {
             throw new RuntimeException("res != len");
         }
         return new String(buf);
+    }
+
+    public void testAnalyzeBlob() throws Exception {
+        gitRepositoryAnalysisService.analyzeRepositoryLibrary("jgit-cookbook");
     }
 }

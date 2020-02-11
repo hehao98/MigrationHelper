@@ -8,6 +8,7 @@ import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.reference.CtExecutableReference;
+import spoon.reflect.reference.CtPackageReference;
 import spoon.reflect.reference.CtTypeReference;
 
 import java.util.HashSet;
@@ -38,12 +39,12 @@ public class JavaCodeAnalysisService {
                     for (CtElement directChild : invocation.getDirectChildren()) {
                         if(directChild instanceof CtVariableAccess) {
                             CtVariableAccess expression = (CtVariableAccess) directChild;
-                            methodSignature.setPackageName(expression.getType().getPackage().getSimpleName());
+                            methodSignature.setPackageName(getTypePackageName(expression.getType()));
                             methodSignature.setClassName(expression.getType().getSimpleName());
                             break;
                         } else if (directChild instanceof CtTypeAccess) {
                             CtTypeAccess expression = (CtTypeAccess) directChild;
-                            methodSignature.setPackageName(expression.getAccessedType().getPackage().getSimpleName());
+                            methodSignature.setPackageName(getTypePackageName(expression.getAccessedType()));
                             methodSignature.setClassName(expression.getAccessedType().getSimpleName());
                             break;
                         }
@@ -51,7 +52,7 @@ public class JavaCodeAnalysisService {
 
                     CtExecutableReference executableReference = invocation.getExecutable();
                     if(methodSignature.getPackageName() == null) {
-                        methodSignature.setPackageName(executableReference.getDeclaringType().getPackage().getSimpleName());
+                        methodSignature.setPackageName(getTypePackageName(executableReference.getDeclaringType()));
                         methodSignature.setClassName(executableReference.getDeclaringType().getSimpleName());
                     }
                     methodSignature.setMethodName(executableReference.getSimpleName());
@@ -59,7 +60,7 @@ public class JavaCodeAnalysisService {
                     for (Object parameter : executableReference.getParameters()) {
                         CtTypeReference<?> p = (CtTypeReference<?>) parameter;
                         if(p.getPackage() != null) {
-                            stringBuilder.append(p.getPackage().getSimpleName());
+                            stringBuilder.append(getTypePackageName(p));
                             stringBuilder.append(".");
                         }
                         stringBuilder.append(p.getSimpleName());
@@ -89,4 +90,10 @@ public class JavaCodeAnalysisService {
         return result;
     }
 
+    private String getTypePackageName(CtTypeReference tr) {
+        if(tr == null) return "";
+        CtPackageReference pr = tr.getPackage();
+        if(pr == null) return "";
+        return pr.getSimpleName();
+    }
 }

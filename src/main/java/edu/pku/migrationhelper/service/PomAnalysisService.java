@@ -1,11 +1,13 @@
 package edu.pku.migrationhelper.service;
 
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,8 @@ import java.util.List;
 @Service
 public class PomAnalysisService {
 
+    Logger LOG = LoggerFactory.getLogger(getClass());
+
     public static class LibraryInfo {
         public String groupId;
         public String artifactId;
@@ -23,10 +27,11 @@ public class PomAnalysisService {
 
     public List<LibraryInfo> analyzePom(String pom) throws Exception {
         SAXReader reader = new SAXReader();
-        Document document = reader.read(pom);
+        Document document = reader.read(new ByteArrayInputStream(pom.getBytes()));
         List<Node> libraryNodes = document.selectNodes("/project/dependencies/dependency");
         List<LibraryInfo> result = new ArrayList<>(libraryNodes.size());
         for (Node node : libraryNodes) {
+            LOG.debug("pom dependency: ", node.getStringValue());
             LibraryInfo info = new LibraryInfo();
             Node tmp = node.selectSingleNode("groupId");
             if(tmp != null) {
@@ -41,6 +46,12 @@ public class PomAnalysisService {
                 info.version = tmp.getStringValue().trim();
             }
             result.add(info);
+        }
+        if(LOG.isDebugEnabled()) {
+            LOG.debug("analyzePom result");
+            for (LibraryInfo info : result) {
+                LOG.debug("groupId = {}, artifactId = {}, version = {}", info.groupId, info.artifactId, info.version);
+            }
         }
         return result;
     }
