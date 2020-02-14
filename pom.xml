@@ -19,6 +19,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring.boot.version}</version>
                 <configuration>
+                    <includeSystemScope>true</includeSystemScope>
                     <executable>true</executable>
                 </configuration>
                 <executions>
@@ -43,6 +44,13 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>tokyocabinet</groupId>
+            <artifactId>tokyocabinet-java</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/3rd/tokyocabinet.jar</systemPath>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
         <dependency>
             <groupId>org.eclipse.jgit</groupId>

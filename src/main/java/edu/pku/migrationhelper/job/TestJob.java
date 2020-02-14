@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import tokyocabinet.HDB;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,10 +50,11 @@ public class TestJob implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit");
+//        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit");
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
 //        testAnalyzeBlob();
+        testTokyoCabinet();
     }
 
     public void testJavaCodeAnalysis() throws Exception {
@@ -79,5 +81,50 @@ public class TestJob implements CommandLineRunner {
 
     public void testAnalyzeBlob() throws Exception {
         gitRepositoryAnalysisService.analyzeRepositoryLibrary("jgit-cookbook");
+    }
+
+    public void testTokyoCabinet() throws Exception {
+        // create the object
+        HDB hdb = new HDB();
+
+        // open the database
+        if(!hdb.open("db/test_tc.tch", HDB.OWRITER | HDB.OCREAT)){
+            int ecode = hdb.ecode();
+            LOG.error("open error: " + hdb.errmsg(ecode));
+        }
+
+        // store records
+        if(!hdb.put("foo", "hop") ||
+                !hdb.put("bar", "step") ||
+                !hdb.put("baz", "jump")){
+            int ecode = hdb.ecode();
+            LOG.error("put error: " + hdb.errmsg(ecode));
+        }
+
+        // retrieve records
+        String value = hdb.get("foo");
+        if(value != null){
+            LOG.info(value);
+        } else {
+            int ecode = hdb.ecode();
+            LOG.error("get error: " + hdb.errmsg(ecode));
+        }
+
+        // traverse records
+        hdb.iterinit();
+        String key;
+        while((key = hdb.iternext2()) != null){
+            value = hdb.get(key);
+            if(value != null){
+                LOG.info(key + ":" + value);
+            }
+        }
+
+        // close the database
+        if(!hdb.close()){
+            int ecode = hdb.ecode();
+            LOG.error("close error: " + hdb.errmsg(ecode));
+        }
+
     }
 }
