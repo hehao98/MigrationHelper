@@ -15,12 +15,12 @@ public interface BlobInfoMapper {
     String tableName = "blob_info";
 
     @Insert("<script>" +
-            "insert into " + tableName + " " +
+            "insert or ignore into " + tableName + " " +
             "(blob_id, blob_type, library_signature_ids, library_version_ids) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.blobId}, #{e.blobType}, #{e.librarySignatureIds}, #{e.libraryVersionIds})" +
             "</foreach> " +
-            "on duplicate key update blob_id = blob_id" +
+//            "on duplicate key update blob_id = blob_id" +
             "</script>")
     int insert(List<BlobInfo> entities);
 

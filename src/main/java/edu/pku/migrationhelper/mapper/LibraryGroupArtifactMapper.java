@@ -14,12 +14,12 @@ public interface LibraryGroupArtifactMapper {
     String tableName = "library_group_artifact";
 
     @Insert("<script>" +
-            "insert into " + tableName + " " +
+            "insert or ignore into " + tableName + " " +
             "(group_id, artifact_id, version_extracted) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.groupId}, #{e.artifactId}, #{e.versionExtracted})" +
             "</foreach> " +
-            "on duplicate key update id=id" +
+//            "on duplicate key update id=id" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(List<LibraryGroupArtifact> entities);

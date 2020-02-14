@@ -101,7 +101,8 @@ public class LibraryIdentityService {
                 }
                 LOG.info("start download and parse library id = {}", versionData.getId());
                 File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
-                if (!versionData.isDownloaded() || !jarFile.exists()) {
+//                if (!versionData.isDownloaded() || !jarFile.exists()) {
+                if (!jarFile.exists()) {
                     LOG.info("library need download id = {}", versionData.getId());
                     if (jarFile.exists()) {
                         jarFile.delete();
@@ -138,7 +139,7 @@ public class LibraryIdentityService {
     }
 
     public void downloadLibraryFromMaven(String groupId, String artifactId, String version, OutputStream output) throws IOException {
-        String url = "http://central.maven.org/maven2/"
+        String url = "https://repo1.maven.org/maven2/"
                 + groupId.replace(".", "/") + "/"
                 + artifactId + "/" + version + "/"
                 + artifactId + "-" + version + ".jar";
@@ -149,7 +150,7 @@ public class LibraryIdentityService {
     }
 
     public List<String> extractAllVersionsFromMaven(String groupId, String artifactId) throws IOException, DocumentException {
-        String url = "http://central.maven.org/maven2/"
+        String url = "https://repo1.maven.org/maven2/"
                 + groupId.replace(".", "/") + "/"
                 + artifactId + "/maven-metadata.xml";
         HttpResponse response = executeHttpRequest(new HttpGet(url));

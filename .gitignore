@@ -27,3 +27,4 @@ target
 # Project-specific files:
 /jar-download
 /git-repository
+/db

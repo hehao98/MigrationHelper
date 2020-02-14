@@ -15,12 +15,12 @@ public interface CommitInfoMapper {
     String tableName = "commit_info";
 
     @Insert("<script>" +
-            "insert into " + tableName + " " +
+            "insert or ignore into " + tableName + " " +
             "(commit_id, code_library_version_ids, pom_library_version_ids) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.commitId}, #{e.codeLibraryVersionIds}, #{e.pomLibraryVersionIds})" +
             "</foreach> " +
-            "on duplicate key update commit_id = commit_id" +
+//            "on duplicate key update commit_id = commit_id" +
             "</script>")
     int insert(List<CommitInfo> entities);
 

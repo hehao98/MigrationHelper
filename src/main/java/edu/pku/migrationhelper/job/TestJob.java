@@ -49,10 +49,10 @@ public class TestJob implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit");
+        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit");
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
-        testAnalyzeBlob();
+//        testAnalyzeBlob();
     }
 
     public void testJavaCodeAnalysis() throws Exception {

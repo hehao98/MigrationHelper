@@ -14,12 +14,12 @@ public interface LibraryVersionMapper {
     String tableName = "library_version";
 
     @Insert("<script>" +
-            "insert into " + tableName + " " +
+            "insert or ignore into " + tableName + " " +
             "(group_artifact_id, version, downloaded, parsed) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.groupArtifactId}, #{e.version}, #{e.downloaded}, #{e.parsed})" +
             "</foreach> " +
-            "on duplicate key update id=id" +
+//            "on duplicate key update id=id" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insert(List<LibraryVersion> entities);

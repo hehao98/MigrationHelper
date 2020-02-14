@@ -1,11 +1,18 @@
 spring:
   profiles: local
   datasource:
+    # MySQL
+#    dbcp2:
+#      url: jdbc:mysql://localhost:3306/migration_helper
+#      username: root
+#      password: kylinsql
+#      driver-class-name: com.mysql.cj.jdbc.Driver
+    # SQLite
     dbcp2:
-      url: jdbc:mysql://localhost:3306/migration_helper
+      url: jdbc:sqlite:db/migration_helper.db
       username: root
       password: kylinsql
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: org.sqlite.JDBC
 
 server:
     port: 8080
