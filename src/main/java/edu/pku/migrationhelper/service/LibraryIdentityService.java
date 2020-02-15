@@ -26,9 +26,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -160,6 +158,29 @@ public class LibraryIdentityService {
         List<String> result = new ArrayList<>(versionNodes.size());
         versionNodes.forEach(e -> result.add(e.getStringValue().trim()));
         return result;
+    }
+
+    public boolean extractGroupArtifactFromMavenMeta(String metaUrl) throws IOException, DocumentException {
+        HttpResponse response = executeHttpRequest(new HttpGet(metaUrl));
+        SAXReader reader = new SAXReader();
+        Document document = reader.read(response.getEntity().getContent());
+        Node groupNode = document.selectSingleNode("/metadata/groupId");
+        Node artifactNode = document.selectSingleNode("/metadata/artifactId");
+        if(groupNode == null || artifactNode == null) {
+            return false;
+        }
+        String groupId = groupNode.getStringValue().trim();
+        String artifactId = artifactNode.getStringValue().trim();
+        LibraryGroupArtifact libraryGroupArtifact = libraryGroupArtifactMapper
+                .findByGroupIdAndArtifactId(groupId, artifactId);
+        if(libraryGroupArtifact == null) {
+            libraryGroupArtifact = new LibraryGroupArtifact()
+                    .setGroupId(groupId)
+                    .setArtifactId(artifactId)
+                    .setVersionExtracted(false);
+            libraryGroupArtifactMapper.insert(Collections.singletonList(libraryGroupArtifact));
+        }
+        return true;
     }
 
     private HttpResponse executeHttpRequest(HttpUriRequest request) throws IOException {
