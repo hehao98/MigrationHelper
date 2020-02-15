@@ -14,7 +14,7 @@ public interface LibraryVersionMapper {
     String tableName = "library_version";
 
     @Insert("<script>" +
-            "insert or ignore into " + tableName + " " +
+            "insert  ignore into " + tableName + " " +
             "(group_artifact_id, version, downloaded, parsed) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.groupArtifactId}, #{e.version}, #{e.downloaded}, #{e.parsed})" +

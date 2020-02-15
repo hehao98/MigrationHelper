@@ -11,7 +11,7 @@ public interface MethodSignatureMapper {
     String tableName = "method_signature";
 
     @Insert("<script>" +
-            "insert or ignore into " + tableName + " " +
+            "insert  ignore into " + tableName + " " +
             "(package_name, class_name, method_name, param_list) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.packageName}, #{e.className}, #{e.methodName}, #{e.paramList})" +
@@ -22,7 +22,7 @@ public interface MethodSignatureMapper {
     int insert(List<MethodSignature> entities);
 
     @Insert("<script>" +
-            "insert or ignore into " + tableName + " " +
+            "insert  ignore into " + tableName + " " +
             "(package_name, class_name, method_name, param_list) values " +
             "(#{e.packageName}, #{e.className}, #{e.methodName}, #{e.paramList})" +
 //            "on duplicate key update id=id" +

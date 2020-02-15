@@ -15,7 +15,7 @@ public interface LibrarySignatureMapMapper {
     String tableName = "library_signature_map";
 
     @Insert("<script>" +
-            "insert or ignore into " + tableName + " " +
+            "insert  ignore into " + tableName + " " +
             "(library_version_id, method_signature_id) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.libraryVersionId}, #{e.methodSignatureId})" +

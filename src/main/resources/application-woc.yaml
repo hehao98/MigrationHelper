@@ -1,0 +1,24 @@
+spring:
+  profiles: woc
+  datasource:
+    # MySQL
+    dbcp2:
+      url: jdbc:mysql://localhost:5330/migration_helper
+      username: root
+      password: if48SrV7#e
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    # SQLite
+#    dbcp2:
+#      url: jdbc:sqlite:db/migration_helper.db
+#      username: root
+#      password: kylinsql
+#      driver-class-name: org.sqlite.JDBC
+
+server:
+    port: 8080
+
+migration-helper:
+  library-identity:
+    download-path: jar-download
+  git-repository-analysis:
+    repository-path: git-repository

@@ -15,7 +15,7 @@ public interface BlobInfoMapper {
     String tableName = "blob_info";
 
     @Insert("<script>" +
-            "insert or ignore into " + tableName + " " +
+            "insert  ignore into " + tableName + " " +
             "(blob_id, blob_type, library_signature_ids, library_version_ids) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.blobId}, #{e.blobType}, #{e.librarySignatureIds}, #{e.libraryVersionIds})" +

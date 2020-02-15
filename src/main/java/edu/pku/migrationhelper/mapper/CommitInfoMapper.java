@@ -15,7 +15,7 @@ public interface CommitInfoMapper {
     String tableName = "commit_info";
 
     @Insert("<script>" +
-            "insert or ignore into " + tableName + " " +
+            "insert  ignore into " + tableName + " " +
             "(commit_id, code_library_version_ids, pom_library_version_ids) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.commitId}, #{e.codeLibraryVersionIds}, #{e.pomLibraryVersionIds})" +

@@ -14,7 +14,7 @@ public interface LibraryGroupArtifactMapper {
     String tableName = "library_group_artifact";
 
     @Insert("<script>" +
-            "insert or ignore into " + tableName + " " +
+            "insert  ignore into " + tableName + " " +
             "(group_id, artifact_id, version_extracted) values " +
             "<foreach collection='list' item='e' separator=','>" +
             "(#{e.groupId}, #{e.artifactId}, #{e.versionExtracted})" +
