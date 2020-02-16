@@ -115,6 +115,7 @@ public class LibraryIdentityService {
                 parseLibraryJar(groupId, artifactId, version, versionData.getId());
                 versionData.setParsed(true);
                 libraryVersionMapper.update(versionData);
+                jarFile.delete();
                 LOG.info("download and parse library success id = {}", versionData.getId());
             } catch (Exception e) {
                 LOG.error("download and parse library fail groupId = {}, artifactId = {}, version = {}",

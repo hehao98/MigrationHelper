@@ -6,4 +6,4 @@ server:
 
 migration-helper:
   job:
-    enabled: MavenArtifactExtractJob
+    enabled: LioJarParseJob

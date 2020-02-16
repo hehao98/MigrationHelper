@@ -2,6 +2,7 @@ package edu.pku.migrationhelper.mapper;
 
 import edu.pku.migrationhelper.data.BlobInfo;
 import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
@@ -10,6 +11,7 @@ import java.util.List;
 /**
  * Created by xuyul on 2020/2/7.
  */
+@Mapper
 public interface BlobInfoMapper {
 
     String tableName = "blob_info";

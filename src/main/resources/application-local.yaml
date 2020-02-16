@@ -19,8 +19,12 @@ server:
 
 migration-helper:
   thread-pool:
-    thread-count: 64
+    thread-count: 4
   library-identity:
     download-path: jar-download
   git-repository-analysis:
     repository-path: git-repository
+  libraries-io-import:
+    project-with-repository-path: db/projects_with_repository.csv
+  lio-jar-parse:
+    limit-count: 1000
