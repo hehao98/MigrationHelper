@@ -5,6 +5,8 @@ import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -22,6 +24,8 @@ import java.util.List;
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LibrariesIoImportJob")
 public class LibrariesIoImportJob implements CommandLineRunner {
 
+    Logger LOG = LoggerFactory.getLogger(getClass());
+
     @Value("${migration-helper.libraries-io-import.project-with-repository-path}")
     private String projectWithRepositoryPath;
 
@@ -30,6 +34,7 @@ public class LibrariesIoImportJob implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        LOG.info("start import libraries.io project with repository");
         FileReader fileReader = new FileReader(projectWithRepositoryPath);
         CSVParser parser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(fileReader);
         int insertLimit = 100;
@@ -37,19 +42,19 @@ public class LibrariesIoImportJob implements CommandLineRunner {
         for (CSVRecord record : parser) {
             if ("Maven".equals(record.get("Platform")) && "Java".equals(record.get("Language"))) {
                 LioProjectWithRepository p = new LioProjectWithRepository();
-                p.setId(Long.parseLong(record.get("ID")));
+                p.setId(getRecordLong(record, "ID"));
                 p.setPlatform(record.get("Platform"));
                 p.setLanguage(record.get("Language"));
                 p.setName(record.get("Name"));
                 p.setRepositoryUrl(record.get("Repository URL"));
-                p.setRepositoryId(Long.parseLong(record.get("Repository ID")));
-                p.setSourceRank(Integer.parseInt(record.get("SourceRank")));
-                p.setRepositoryStarCount(Integer.parseInt(record.get("Repository Stars Count")));
-                p.setRepositoryForkCount(Integer.parseInt(record.get("Repository Forks Count")));
-                p.setRepositoryWatchersCount(Integer.parseInt(record.get("Repository Watchers Count")));
-                p.setRepositorySourceRank(Integer.parseInt(record.get("Repository SourceRank")));
-                p.setDependentProjectsCount(Integer.parseInt(record.get("Dependent Projects Count")));
-                p.setDependentRepositoriesCount(Integer.parseInt(record.get("Dependent Repositories Count")));
+                p.setRepositoryId(getRecordLong(record, "Repository ID"));
+                p.setSourceRank(getRecordInt(record, "SourceRank"));
+                p.setRepositoryStarCount(getRecordInt(record, "Repository Stars Count"));
+                p.setRepositoryForkCount(getRecordInt(record, "Repository Forks Count"));
+                p.setRepositoryWatchersCount(getRecordInt(record, "Repository Watchers Count"));
+                p.setRepositorySourceRank(getRecordInt(record, "Repository SourceRank"));
+                p.setDependentProjectsCount(getRecordInt(record, "Dependent Projects Count"));
+                p.setDependentRepositoriesCount(getRecordInt(record, "Dependent Repositories Count"));
                 results.add(p);
             }
             if (results.size() >= insertLimit) {
@@ -59,6 +64,23 @@ public class LibrariesIoImportJob implements CommandLineRunner {
         }
         if(results.size() > 0) {
             lioProjectWithRepositoryMapper.insert(results);
+        }
+        LOG.info("import success");
+    }
+
+    private long getRecordLong(CSVRecord record, String key) {
+        try {
+            return Long.parseLong(record.get(key));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private int getRecordInt(CSVRecord record, String key) {
+        try {
+            return Integer.parseInt(record.get(key));
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 }

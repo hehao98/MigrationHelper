@@ -9,7 +9,9 @@ import edu.pku.migrationhelper.mapper.LibrarySignatureMapMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.HttpClients;
 import org.dom4j.Document;
@@ -53,6 +55,15 @@ public class LibraryIdentityService {
     @Value("${migration-helper.library-identity.download-path}")
     private String downloadPath;
 
+    @Value("${migration-helper.library-identity.cool-down-ms}")
+    private int coolDownMs = 3000;
+
+    private long lastHttpRequestTime = 0;
+
+    private boolean lastHttpRequestFail = false;
+
+    private Timer httpTimer = new Timer("library-identity-http-timer");
+
     public void parseGroupArtifact(String groupId, String artifactId) throws Exception {
         // create or find library information
         LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper
@@ -93,12 +104,12 @@ public class LibraryIdentityService {
         List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
         for (LibraryVersion versionData : versionDatas) {
             String version = versionData.getVersion();
+            File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
             try {
                 if (versionData.isParsed()) {
                     continue;
                 }
                 LOG.info("start download and parse library id = {}", versionData.getId());
-                File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
 //                if (!versionData.isDownloaded() || !jarFile.exists()) {
                 if (!jarFile.exists()) {
                     LOG.info("library need download id = {}", versionData.getId());
@@ -115,12 +126,13 @@ public class LibraryIdentityService {
                 parseLibraryJar(groupId, artifactId, version, versionData.getId());
                 versionData.setParsed(true);
                 libraryVersionMapper.update(versionData);
-                jarFile.delete();
                 LOG.info("download and parse library success id = {}", versionData.getId());
             } catch (Exception e) {
                 LOG.error("download and parse library fail groupId = {}, artifactId = {}, version = {}",
                         groupId, artifactId, version);
                 LOG.error("download and parse library fail", e);
+            } finally {
+                jarFile.delete();
             }
         }
     }
@@ -134,7 +146,9 @@ public class LibraryIdentityService {
                     .setLibraryVersionId(versionId)
                     .setMethodSignatureId(signature.getId()));
         }
-        librarySignatureMapMapper.insert(mapList);
+        if(mapList.size() > 0) {
+            librarySignatureMapMapper.insert(mapList);
+        }
     }
 
     public void downloadLibraryFromMaven(String groupId, String artifactId, String version, OutputStream output) throws IOException {
@@ -184,10 +198,34 @@ public class LibraryIdentityService {
         return true;
     }
 
-    private HttpResponse executeHttpRequest(HttpUriRequest request) throws IOException {
+    private synchronized HttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
+        long currTime = System.currentTimeMillis();
+        if(lastHttpRequestFail && currTime - lastHttpRequestTime < coolDownMs) {
+            long sleepMs = coolDownMs - (currTime - lastHttpRequestTime);
+            if(sleepMs < 0) sleepMs = 0;
+            if(sleepMs > 100000) sleepMs = 100000;
+            try {
+                Thread.sleep(sleepMs);
+            } catch (InterruptedException ie) {
+                // ignore
+            }
+        }
+        lastHttpRequestTime = currTime;
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if(request != null) {
+                    request.abort();
+                }
+            }
+        };
+        httpTimer.schedule(timerTask, 10000);
         HttpResponse response = httpClient.execute(request);
         if(response.getStatusLine().getStatusCode() != 200) {
+            lastHttpRequestFail = true;
             throw new IOException("http status code " + response.getStatusLine().getStatusCode());
+        } else {
+            lastHttpRequestFail = false;
         }
         return response;
     }

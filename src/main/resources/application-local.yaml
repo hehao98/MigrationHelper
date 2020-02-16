@@ -22,6 +22,7 @@ migration-helper:
     thread-count: 4
   library-identity:
     download-path: jar-download
+    cool-down-ms: 3000
   git-repository-analysis:
     repository-path: git-repository
   libraries-io-import:

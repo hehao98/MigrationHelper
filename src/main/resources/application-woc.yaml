@@ -19,9 +19,10 @@ server:
 
 migration-helper:
   thread-pool:
-    thread-count: 64
+    thread-count: 16
   library-identity:
     download-path: jar-download
+    cool-down-ms: 3000
   git-repository-analysis:
     repository-path: git-repository
   libraries-io-import:
