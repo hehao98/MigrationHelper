@@ -30,6 +30,9 @@ public class LioJarParseJob implements CommandLineRunner {
     @Value("${migration-helper.lio-jar-parse.limit-count}")
     private int limitCount;
 
+    @Value("${migration-helper.lio-jar-parse.extract-version-only}")
+    private boolean extractVersionOnly = false;
+
     @Autowired
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
 
@@ -77,7 +80,7 @@ public class LioJarParseJob implements CommandLineRunner {
                 return;
             }
             try {
-                libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1]);
+                libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1], extractVersionOnly);
             } catch (Exception e) {
                 LOG.error("parse jar fail, id = " + projectId, e);
             }

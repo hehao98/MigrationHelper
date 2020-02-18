@@ -38,7 +38,10 @@ public class LibraryIdentityService {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private HttpClient httpClient = HttpClients.createDefault();
+    private HttpClient httpClient = HttpClients.custom()
+            .setMaxConnPerRoute(100)
+            .setMaxConnTotal(100)
+            .build();
 
     @Autowired
     private JarAnalysisService jarAnalysisService;
@@ -64,7 +67,7 @@ public class LibraryIdentityService {
 
     private Timer httpTimer = new Timer("library-identity-http-timer");
 
-    public void parseGroupArtifact(String groupId, String artifactId) throws Exception {
+    public void parseGroupArtifact(String groupId, String artifactId, boolean extractVersionOnly) throws Exception {
         // create or find library information
         LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper
                 .findByGroupIdAndArtifactId(groupId, artifactId);
@@ -100,7 +103,13 @@ public class LibraryIdentityService {
                 // go on to download and parse is ok
             }
         }
+
+        if(extractVersionOnly) {
+            return;
+        }
+
         // download and parse each version of library
+        Map<String, MethodSignature> signatureCache = new HashMap<>();
         List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
         for (LibraryVersion versionData : versionDatas) {
             String version = versionData.getVersion();
@@ -123,7 +132,7 @@ public class LibraryIdentityService {
                     libraryVersionMapper.update(versionData);
                 }
                 LOG.info("start parse library id = {}", versionData.getId());
-                parseLibraryJar(groupId, artifactId, version, versionData.getId());
+                parseLibraryJar(groupId, artifactId, version, versionData.getId(), signatureCache);
                 versionData.setParsed(true);
                 libraryVersionMapper.update(versionData);
                 LOG.info("download and parse library success id = {}", versionData.getId());
@@ -137,14 +146,19 @@ public class LibraryIdentityService {
         }
     }
 
-    public void parseLibraryJar(String groupId, String artifactId, String version, long versionId) throws Exception {
+    public void parseLibraryJar(String groupId, String artifactId, String version, long versionId, Map<String, MethodSignature> signatureCache) throws Exception {
         String jarPath = generateJarDownloadPath(groupId, artifactId, version);
-        List<MethodSignature> signatures = jarAnalysisService.analyzeJar(jarPath);
-        List<LibrarySignatureMap> mapList = new ArrayList<>(signatures.size());
+        List<MethodSignature> signatures = jarAnalysisService.analyzeJar(jarPath, signatureCache);
+        int insertLimit = 1000;
+        List<LibrarySignatureMap> mapList = new ArrayList<>(insertLimit);
         for (MethodSignature signature : signatures) {
             mapList.add(new LibrarySignatureMap()
                     .setLibraryVersionId(versionId)
                     .setMethodSignatureId(signature.getId()));
+            if(mapList.size() >= insertLimit) {
+                librarySignatureMapMapper.insert(mapList);
+                mapList.clear();
+            }
         }
         if(mapList.size() > 0) {
             librarySignatureMapMapper.insert(mapList);
@@ -156,61 +170,76 @@ public class LibraryIdentityService {
                 + groupId.replace(".", "/") + "/"
                 + artifactId + "/" + version + "/"
                 + artifactId + "-" + version + ".jar";
-        HttpResponse response = executeHttpRequest(new HttpGet(url));
-        response.getEntity().writeTo(output);
-        output.flush();
-        output.close();
+        HttpGet request = new HttpGet(url);
+        try {
+            HttpResponse response = executeHttpRequest(request);
+            response.getEntity().writeTo(output);
+            output.flush();
+            output.close();
+        } finally {
+            request.releaseConnection();
+        }
     }
 
     public List<String> extractAllVersionsFromMaven(String groupId, String artifactId) throws IOException, DocumentException {
         String url = "https://repo1.maven.org/maven2/"
                 + groupId.replace(".", "/") + "/"
                 + artifactId + "/maven-metadata.xml";
-        HttpResponse response = executeHttpRequest(new HttpGet(url));
-        SAXReader reader = new SAXReader();
-        Document document = reader.read(response.getEntity().getContent());
-        List<Node> versionNodes = document.selectNodes("/metadata/versioning/versions/version");
-        List<String> result = new ArrayList<>(versionNodes.size());
-        versionNodes.forEach(e -> result.add(e.getStringValue().trim()));
-        return result;
+        HttpGet request = new HttpGet(url);
+        try {
+            HttpResponse response = executeHttpRequest(new HttpGet(url));
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(response.getEntity().getContent());
+            List<Node> versionNodes = document.selectNodes("/metadata/versioning/versions/version");
+            List<String> result = new ArrayList<>(versionNodes.size());
+            versionNodes.forEach(e -> result.add(e.getStringValue().trim()));
+            return result;
+        } finally {
+            request.releaseConnection();
+        }
     }
 
     public boolean extractGroupArtifactFromMavenMeta(String metaUrl) throws IOException, DocumentException {
-        HttpResponse response = executeHttpRequest(new HttpGet(metaUrl));
-        SAXReader reader = new SAXReader();
-        Document document = reader.read(response.getEntity().getContent());
-        Node groupNode = document.selectSingleNode("/metadata/groupId");
-        Node artifactNode = document.selectSingleNode("/metadata/artifactId");
-        if(groupNode == null || artifactNode == null) {
-            return false;
+        HttpGet request = new HttpGet(metaUrl);
+        try {
+            HttpResponse response = executeHttpRequest(new HttpGet(metaUrl));
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(response.getEntity().getContent());
+            Node groupNode = document.selectSingleNode("/metadata/groupId");
+            Node artifactNode = document.selectSingleNode("/metadata/artifactId");
+            if (groupNode == null || artifactNode == null) {
+                return false;
+            }
+            String groupId = groupNode.getStringValue().trim();
+            String artifactId = artifactNode.getStringValue().trim();
+            LibraryGroupArtifact libraryGroupArtifact = libraryGroupArtifactMapper
+                    .findByGroupIdAndArtifactId(groupId, artifactId);
+            if (libraryGroupArtifact == null) {
+                libraryGroupArtifact = new LibraryGroupArtifact()
+                        .setGroupId(groupId)
+                        .setArtifactId(artifactId)
+                        .setVersionExtracted(false);
+                libraryGroupArtifactMapper.insert(Collections.singletonList(libraryGroupArtifact));
+            }
+            return true;
+        } finally {
+            request.releaseConnection();
         }
-        String groupId = groupNode.getStringValue().trim();
-        String artifactId = artifactNode.getStringValue().trim();
-        LibraryGroupArtifact libraryGroupArtifact = libraryGroupArtifactMapper
-                .findByGroupIdAndArtifactId(groupId, artifactId);
-        if(libraryGroupArtifact == null) {
-            libraryGroupArtifact = new LibraryGroupArtifact()
-                    .setGroupId(groupId)
-                    .setArtifactId(artifactId)
-                    .setVersionExtracted(false);
-            libraryGroupArtifactMapper.insert(Collections.singletonList(libraryGroupArtifact));
-        }
-        return true;
     }
 
-    private synchronized HttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
-        long currTime = System.currentTimeMillis();
-        if(lastHttpRequestFail && currTime - lastHttpRequestTime < coolDownMs) {
-            long sleepMs = coolDownMs - (currTime - lastHttpRequestTime);
-            if(sleepMs < 0) sleepMs = 0;
-            if(sleepMs > 100000) sleepMs = 100000;
-            try {
-                Thread.sleep(sleepMs);
-            } catch (InterruptedException ie) {
-                // ignore
-            }
-        }
-        lastHttpRequestTime = currTime;
+    private HttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
+//        long currTime = System.currentTimeMillis();
+//        if(lastHttpRequestFail && currTime - lastHttpRequestTime < coolDownMs) {
+//            long sleepMs = coolDownMs - (currTime - lastHttpRequestTime);
+//            if(sleepMs < 0) sleepMs = 0;
+//            if(sleepMs > 100000) sleepMs = 100000;
+//            try {
+//                Thread.sleep(sleepMs);
+//            } catch (InterruptedException ie) {
+//                // ignore
+//            }
+//        }
+//        lastHttpRequestTime = currTime;
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -219,7 +248,7 @@ public class LibraryIdentityService {
                 }
             }
         };
-        httpTimer.schedule(timerTask, 10000);
+        httpTimer.schedule(timerTask, 30000);
         HttpResponse response = httpClient.execute(request);
         if(response.getStatusLine().getStatusCode() != 200) {
             lastHttpRequestFail = true;
