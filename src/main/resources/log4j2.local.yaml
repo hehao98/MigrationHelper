@@ -1,0 +1,23 @@
+Configutation:
+  Appenders:
+    Console:
+      name: console
+      target: SYSTEM_OUT
+      PatternLayout:
+        Pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} %level [%t] %c{1.} : %m%n"
+  Loggers:
+    Root:
+      level: warn
+      AppenderRef:
+        - ref: console
+    Logger:
+      - name: edu.pku.migrationhelper
+        additivity: false
+        level: debug
+        AppenderRef:
+          - ref: console
+      - name: edu.pku.migrationhelper.mapper
+        additivity: false
+        level: info
+        AppenderRef:
+          - ref: console

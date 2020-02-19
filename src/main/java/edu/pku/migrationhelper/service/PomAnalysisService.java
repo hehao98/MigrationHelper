@@ -26,12 +26,13 @@ public class PomAnalysisService {
     }
 
     public List<LibraryInfo> analyzePom(String pom) throws Exception {
+        LOG.debug(pom);
         SAXReader reader = new SAXReader();
         Document document = reader.read(new ByteArrayInputStream(pom.getBytes()));
-        List<Node> libraryNodes = document.selectNodes("/project/dependencies/dependency");
+        List<Node> libraryNodes = document.selectNodes("/*[local-name()='project']/*[local-name()='dependencies']/*[local-name()='dependency']");
+        LOG.debug("dependency count = {}", libraryNodes.size());
         List<LibraryInfo> result = new ArrayList<>(libraryNodes.size());
         for (Node node : libraryNodes) {
-            LOG.debug("pom dependency: ", node.getStringValue());
             LibraryInfo info = new LibraryInfo();
             Node tmp = node.selectSingleNode("groupId");
             if(tmp != null) {

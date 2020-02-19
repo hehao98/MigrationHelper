@@ -4,10 +4,7 @@ import edu.pku.migrationhelper.data.LibraryVersion;
 import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
-import edu.pku.migrationhelper.service.GitRepositoryAnalysisService;
-import edu.pku.migrationhelper.service.JarAnalysisService;
-import edu.pku.migrationhelper.service.JavaCodeAnalysisService;
-import edu.pku.migrationhelper.service.LibraryIdentityService;
+import edu.pku.migrationhelper.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +45,13 @@ public class TestJob implements CommandLineRunner {
     @Autowired
     private GitRepositoryAnalysisService gitRepositoryAnalysisService;
 
+    @Autowired
+    private PomAnalysisService pomAnalysisService;
+
     @Override
     public void run(String... args) throws Exception {
-        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
+        testPomAnalysis();
+//        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
 //        testAnalyzeBlob();
@@ -126,5 +127,17 @@ public class TestJob implements CommandLineRunner {
             LOG.error("close error: " + hdb.errmsg(ecode));
         }
 
+    }
+
+    public void testPomAnalysis() throws Exception {
+        File pomFile = new File("pom.xml");
+        FileInputStream fis = new FileInputStream(pomFile);
+        byte[] content = new byte[(int)pomFile.length()];
+        fis.read(content);
+        List<PomAnalysisService.LibraryInfo> libraryInfoList = pomAnalysisService.analyzePom(new String(content));
+        for (PomAnalysisService.LibraryInfo libraryInfo : libraryInfoList) {
+            LOG.info("groupId = {}, artifactId = {}, version = {}",
+                    libraryInfo.groupId, libraryInfo.artifactId, libraryInfo.version);
+        }
     }
 }
