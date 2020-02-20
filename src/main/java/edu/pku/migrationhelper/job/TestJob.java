@@ -1,7 +1,8 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.LibraryVersion;
-import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.mapper.BlobInfoMapper;
+import edu.pku.migrationhelper.mapper.CommitInfoMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
 import edu.pku.migrationhelper.service.*;
@@ -48,14 +49,21 @@ public class TestJob implements CommandLineRunner {
     @Autowired
     private PomAnalysisService pomAnalysisService;
 
+    @Autowired
+    private BlobInfoMapper blobInfoMapper;
+
+    @Autowired
+    private CommitInfoMapper commitInfoMapper;
+
     @Override
     public void run(String... args) throws Exception {
-        testPomAnalysis();
+//        testPomAnalysis();
 //        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
-//        testAnalyzeBlob();
+        testAnalyzeBlob();
 //        testTokyoCabinet();
+//        testBlobCommitMapper();
     }
 
     public void testJavaCodeAnalysis() throws Exception {
@@ -139,5 +147,16 @@ public class TestJob implements CommandLineRunner {
             LOG.info("groupId = {}, artifactId = {}, version = {}",
                     libraryInfo.groupId, libraryInfo.artifactId, libraryInfo.version);
         }
+    }
+
+    public void testBlobCommitMapper() throws Exception {
+        BlobInfo blobInfo = blobInfoMapper.findByBlobId("1233e8228ca2254ecc6388e908205a124830e11c");
+        CommitInfo commitInfo = commitInfoMapper.findByCommitId("a70f55fdfce8e34b212c04f52b05c329cc6ee82d");
+        LibraryVersion libraryVersion = libraryVersionMapper.findByGroupIdAndArtifactIdAndVersion(
+                "org.eclipse.jgit", "org.eclipse.jgit", "3.4.0.201405051725-m7");
+        LOG.info("blob = {}, commit = {}, libraryVersion = {}",
+                blobInfo == null ? null : blobInfo.getBlobId(),
+                commitInfo == null ? null : commitInfo.getCommitId(),
+                libraryVersion == null ? null : libraryVersion.getGroupArtifactId());
     }
 }

@@ -27,7 +27,7 @@ migration-helper:
     download-path: jar-download
     cool-down-ms: 3000
   git-repository-analysis:
-    repository-path: git-repository
+    repository-path: ../
   libraries-io-import:
     project-with-repository-path: db/projects_with_repository.csv
   lio-jar-parse:

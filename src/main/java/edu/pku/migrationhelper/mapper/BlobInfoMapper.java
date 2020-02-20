@@ -17,12 +17,13 @@ public interface BlobInfoMapper {
     String tableName = "blob_info";
 
     @Insert("<script>" +
-            "insert  ignore into " + tableName + " " +
-            "(blob_id, blob_type, library_signature_ids, library_version_ids) values " +
+            "insert into " + tableName + " " +
+            "(blob_id, blob_type, library_signature_ids, library_version_ids, library_group_artifact_ids) values " +
             "<foreach collection='list' item='e' separator=','>" +
-            "(#{e.blobId}, #{e.blobType}, #{e.librarySignatureIds}, #{e.libraryVersionIds})" +
+            "(#{e.blobId}, #{e.blobType}, #{e.librarySignatureIds}, #{e.libraryVersionIds}, #{e.libraryGroupArtifactIds})" +
             "</foreach> " +
-//            "on duplicate key update blob_id = blob_id" +
+            "on duplicate key update blob_type = values(blob_type), library_signature_ids = values(library_signature_ids), " +
+            "library_version_ids = values(library_version_ids), library_group_artifact_ids = values(library_group_artifact_ids)" +
             "</script>")
     int insert(List<BlobInfo> entities);
 

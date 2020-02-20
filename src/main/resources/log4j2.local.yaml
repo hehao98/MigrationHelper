@@ -7,7 +7,7 @@ Configutation:
         Pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} %level [%t] %c{1.} : %m%n"
   Loggers:
     Root:
-      level: warn
+      level: info
       AppenderRef:
         - ref: console
     Logger:

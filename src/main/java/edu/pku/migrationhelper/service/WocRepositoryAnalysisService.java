@@ -26,6 +26,11 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     }
 
     @Override
+    public List<String> getCommitParents(AbstractRepository repository, String commitId) {
+        return null;
+    }
+
+    @Override
     public List<BlobInCommit> getBlobsInCommit(AbstractRepository repository, String commitId) {
         return null;
     }

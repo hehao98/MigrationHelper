@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -64,6 +65,25 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
             Iterable<RevCommit> commits = git.log().all().call();
             for( RevCommit commit : commits ) {
                 commitIdConsumer.accept(commit.name());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<String> getCommitParents(AbstractRepository repo, String commitId) {
+        try {
+            GitRepository gitRepository = (GitRepository) repo;
+            Repository repository = gitRepository.repository;
+            try (RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit commit = revWalk.parseCommit(ObjectId.fromString(commitId));
+                RevCommit[] parents = commit.getParents();
+                List<String> result = new ArrayList<>(parents.length);
+                for (RevCommit parent : parents) {
+                    result.add(parent.name());
+                }
+                return result;
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

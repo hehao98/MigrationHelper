@@ -44,6 +44,17 @@ public interface MethodSignatureMapper {
             @Param("paramList") String paramList);
 
     @Select("<script>" +
+            "select * from " + tableName + " where " +
+            "package_name = #{packageName} and " +
+            "class_name = #{className} and " +
+            "method_name = #{methodName} " +
+            "</script>")
+    List<MethodSignature> findList(
+            @Param("packageName") String packageName,
+            @Param("className") String className,
+            @Param("methodName") String methodName);
+
+    @Select("<script>" +
             "select id from " + tableName + " where " +
             "package_name = #{packageName} and " +
             "class_name = #{className} and " +

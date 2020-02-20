@@ -22,7 +22,7 @@ public class DataSourceConfiguration {
 
     @Bean(name = "dataSource")
     @ConfigurationProperties("spring.datasource.dbcp2")
-    public BasicDataSource dataSource() {
+    public DataSource dataSource() {
         return new BasicDataSource();
     }
 
@@ -30,14 +30,6 @@ public class DataSourceConfiguration {
     public DataSourceTransactionManager dbOneTransactionManager(
             @Qualifier("dataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
-    }
-
-    @Bean(name = "sqlSessionFactory")
-    @ConditionalOnMissingBean(name = "sqlSessionFactory")
-    public SqlSessionFactory dbOneSqlSessionFactory(@Qualifier("dataSource") DataSource dataSource) throws Exception {
-        final SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
-        sessionFactory.setDataSource(dataSource);
-        return sessionFactory.getObject();
     }
 
 }

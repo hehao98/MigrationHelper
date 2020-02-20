@@ -40,12 +40,12 @@ public class JavaCodeAnalysisService {
                         if(directChild instanceof CtVariableAccess) {
                             CtVariableAccess expression = (CtVariableAccess) directChild;
                             methodSignature.setPackageName(getTypePackageName(expression.getType()));
-                            methodSignature.setClassName(expression.getType().getSimpleName());
+                            methodSignature.setClassName(getTypeName(expression.getType()));
                             break;
                         } else if (directChild instanceof CtTypeAccess) {
                             CtTypeAccess expression = (CtTypeAccess) directChild;
                             methodSignature.setPackageName(getTypePackageName(expression.getAccessedType()));
-                            methodSignature.setClassName(expression.getAccessedType().getSimpleName());
+                            methodSignature.setClassName(getTypeName(expression.getAccessedType()));
                             break;
                         }
                     }
@@ -53,7 +53,7 @@ public class JavaCodeAnalysisService {
                     CtExecutableReference executableReference = invocation.getExecutable();
                     if(methodSignature.getPackageName() == null) {
                         methodSignature.setPackageName(getTypePackageName(executableReference.getDeclaringType()));
-                        methodSignature.setClassName(executableReference.getDeclaringType().getSimpleName());
+                        methodSignature.setClassName(getTypeName(executableReference.getDeclaringType()));
                     }
                     methodSignature.setMethodName(executableReference.getSimpleName());
                     stringBuilder.delete(0, stringBuilder.length());
@@ -88,6 +88,11 @@ public class JavaCodeAnalysisService {
             });
         }
         return result;
+    }
+
+    private String getTypeName(CtTypeReference tr) {
+        if(tr == null) return "";
+        return tr.getSimpleName();
     }
 
     private String getTypePackageName(CtTypeReference tr) {

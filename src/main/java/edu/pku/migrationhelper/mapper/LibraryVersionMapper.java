@@ -3,6 +3,7 @@ package edu.pku.migrationhelper.mapper;
 import edu.pku.migrationhelper.data.LibraryVersion;
 import org.apache.ibatis.annotations.*;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,4 +59,13 @@ public interface LibraryVersionMapper {
             @Param("groupId") String groupId,
             @Param("artifactId") String artifactId,
             @Param("version") String version);
+
+    @Select("<script>" +
+            "select group_artifact_id from " + tableName + " where " +
+            "<choose>" +
+            "<when test = 'versionIds == null || versionIds.size() == 0'> false </when>" +
+            "<otherwise> id in (<foreach collection='versionIds' item='e' separator=','>#{e}</foreach>) </otherwise>" +
+            "</choose>" +
+            "</script>")
+    List<Long> findGroupArtifactIds(@Param("versionIds") Collection<Long> versionIds);
 }

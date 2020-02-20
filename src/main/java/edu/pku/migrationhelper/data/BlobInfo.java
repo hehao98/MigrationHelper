@@ -15,9 +15,11 @@ public class BlobInfo {
 
     private BlobType blobType;
 
-    private String librarySignatureIds;
+    private String librarySignatureIds = "";
 
-    private String libraryVersionIds;
+    private String libraryVersionIds = "";
+
+    private String libraryGroupArtifactIds = "";
 
     public String getBlobId() {
         return blobId;
@@ -52,6 +54,15 @@ public class BlobInfo {
 
     public BlobInfo setLibraryVersionIds(String libraryVersionIds) {
         this.libraryVersionIds = libraryVersionIds;
+        return this;
+    }
+
+    public String getLibraryGroupArtifactIds() {
+        return libraryGroupArtifactIds;
+    }
+
+    public BlobInfo setLibraryGroupArtifactIds(String libraryGroupArtifactIds) {
+        this.libraryGroupArtifactIds = libraryGroupArtifactIds;
         return this;
     }
 }

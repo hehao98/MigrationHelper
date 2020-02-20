@@ -26,7 +26,6 @@ public class PomAnalysisService {
     }
 
     public List<LibraryInfo> analyzePom(String pom) throws Exception {
-        LOG.debug(pom);
         SAXReader reader = new SAXReader();
         Document document = reader.read(new ByteArrayInputStream(pom.getBytes()));
         List<Node> libraryNodes = document.selectNodes("/*[local-name()='project']/*[local-name()='dependencies']/*[local-name()='dependency']");
@@ -34,15 +33,15 @@ public class PomAnalysisService {
         List<LibraryInfo> result = new ArrayList<>(libraryNodes.size());
         for (Node node : libraryNodes) {
             LibraryInfo info = new LibraryInfo();
-            Node tmp = node.selectSingleNode("groupId");
+            Node tmp = node.selectSingleNode("*[local-name()='groupId']");
             if(tmp != null) {
                 info.groupId = tmp.getStringValue().trim();
             }
-            tmp = node.selectSingleNode("artifactId");
+            tmp = node.selectSingleNode("*[local-name()='artifactId']");
             if(tmp != null) {
                 info.artifactId = tmp.getStringValue().trim();
             }
-            tmp = node.selectSingleNode("version");
+            tmp = node.selectSingleNode("*[local-name()='version']");
             if(tmp != null) {
                 info.version = tmp.getStringValue().trim();
             }

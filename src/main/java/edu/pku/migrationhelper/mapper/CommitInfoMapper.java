@@ -17,12 +17,20 @@ public interface CommitInfoMapper {
     String tableName = "commit_info";
 
     @Insert("<script>" +
-            "insert  ignore into " + tableName + " " +
-            "(commit_id, code_library_version_ids, pom_library_version_ids) values " +
+            "insert into " + tableName + " " +
+            "(commit_id, method_change_ids, " +
+            "code_library_version_ids, code_group_artifact_ids, code_delete_group_artifact_ids, code_add_group_artifact_ids, " +
+            "pom_library_version_ids, pom_group_artifact_ids, pom_delete_group_artifact_ids, pom_add_group_artifact_ids) values " +
             "<foreach collection='list' item='e' separator=','>" +
-            "(#{e.commitId}, #{e.codeLibraryVersionIds}, #{e.pomLibraryVersionIds})" +
+            "(#{e.commitId}, #{e.methodChangeIds}, " +
+            "#{e.codeLibraryVersionIds}, #{e.codeGroupArtifactIds}, #{e.codeDeleteGroupArtifactIds}, #{e.codeAddGroupArtifactIds}, " +
+            "#{e.pomLibraryVersionIds}, #{e.pomGroupArtifactIds}, #{e.pomDeleteGroupArtifactIds}, #{e.pomAddGroupArtifactIds})" +
             "</foreach> " +
-//            "on duplicate key update commit_id = commit_id" +
+            "on duplicate key update method_change_ids = values(method_change_ids), " +
+            "code_library_version_ids = values(code_library_version_ids), code_group_artifact_ids = values(code_group_artifact_ids), " +
+            "code_delete_group_artifact_ids = values(code_delete_group_artifact_ids), code_add_group_artifact_ids = values(code_add_group_artifact_ids), " +
+            "pom_library_version_ids = values(pom_library_version_ids), pom_group_artifact_ids = values(pom_group_artifact_ids), " +
+            "pom_delete_group_artifact_ids = values(pom_delete_group_artifact_ids), pom_add_group_artifact_ids = values(pom_add_group_artifact_ids)" +
             "</script>")
     int insert(List<CommitInfo> entities);
 
