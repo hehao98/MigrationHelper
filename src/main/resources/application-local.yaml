@@ -32,6 +32,13 @@ migration-helper:
     download-path: jar-download
   git-repository-analysis:
     repository-path: ../
+  woc-repository-analysis:
+    p2cBase: /da0_data/basemaps/p2cFullQ.
+    c2pcBase: /da0_data/basemaps/c2pcFullQ.
+    c2bBase: /da0_data/basemaps/c2bFullQ.
+    b2fBase: /da0_data/basemaps/b2fFullQ.
+    blobIndexBase: /fast/All.sha1o/sha1.blob_
+    blobContentBase: /data/All.blobs/blob_
   libraries-io-import:
     project-with-repository-path: db/projects_with_repository.csv
   lio-jar-parse:

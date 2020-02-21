@@ -37,6 +37,7 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
         try {
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
             GitRepository gitRepository = new GitRepository();
+            gitRepository.repositoryName = repositoryName;
             File repositoryDir = new File(repositoryPath);
             repositoryDir = new File(repositoryDir, repositoryName);
             repositoryDir = new File(repositoryDir, ".git");

@@ -52,6 +52,18 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/3rd/tokyocabinet.jar</systemPath>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.ning/compress-lzf -->
+        <dependency>
+            <groupId>com.ning</groupId>
+            <artifactId>compress-lzf</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.twitter/util-hashing -->
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>util-hashing_2.13</artifactId>
+            <version>20.1.0</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
         <dependency>
             <groupId>org.apache.commons</groupId>

@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -19,7 +21,7 @@ import java.util.concurrent.ExecutorService;
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LioJarParseJob")
-public class LioJarParseJob implements CommandLineRunner {
+public class LioJarParseJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -38,8 +40,8 @@ public class LioJarParseJob implements CommandLineRunner {
     @Autowired
     private LibraryIdentityService libraryIdentityService;
 
-    @Override
-    public void run(String... args) throws Exception {
+    @EventListener(ApplicationReadyEvent.class)
+    public void run() throws Exception {
         Set<Long> idSet = new HashSet<>();
         List<Long> needParseIds = new LinkedList<>();
         Iterator<Long>[] idsArray = new Iterator[7];

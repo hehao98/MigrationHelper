@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import tokyocabinet.HDB;
 
@@ -24,7 +26,7 @@ import java.util.List;
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "TestJob")
-public class TestJob implements CommandLineRunner {
+public class TestJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -55,11 +57,11 @@ public class TestJob implements CommandLineRunner {
     @Autowired
     private CommitInfoMapper commitInfoMapper;
 
-    @Override
-    public void run(String... args) throws Exception {
-//        testPomAnalysis();
+    @EventListener(ApplicationReadyEvent.class)
+    public void run() throws Exception {
+        testPomAnalysis();
 //        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
-        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
+//        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
 //        testAnalyzeBlob();

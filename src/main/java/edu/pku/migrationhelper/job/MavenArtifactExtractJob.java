@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -21,7 +23,7 @@ import java.util.concurrent.ExecutorService;
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "MavenArtifactExtractJob")
-public class MavenArtifactExtractJob implements CommandLineRunner {
+public class MavenArtifactExtractJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -31,8 +33,8 @@ public class MavenArtifactExtractJob implements CommandLineRunner {
     @Autowired
     private LibraryIdentityService libraryIdentityService;
 
-    @Override
-    public void run(String... args) throws Exception {
+    @EventListener(ApplicationReadyEvent.class)
+    public void run() throws Exception {
         String rootUrl = "https://repo1.maven.org/maven2/";
         executorService.submit(new SinglePageAnalysis(rootUrl, 0));
     }

@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.FileReader;
@@ -22,7 +24,7 @@ import java.util.List;
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LibrariesIoImportJob")
-public class LibrariesIoImportJob implements CommandLineRunner {
+public class LibrariesIoImportJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -32,8 +34,8 @@ public class LibrariesIoImportJob implements CommandLineRunner {
     @Autowired
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
 
-    @Override
-    public void run(String... args) throws Exception {
+    @EventListener(ApplicationReadyEvent.class)
+    public void run() throws Exception {
         LOG.info("start import libraries.io project with repository");
         FileReader fileReader = new FileReader(projectWithRepositoryPath);
         CSVParser parser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(fileReader);

@@ -44,6 +44,7 @@ public abstract class RepositoryAnalysisService {
     protected LibraryGroupArtifactMapper libraryGroupArtifactMapper;
 
     public static abstract class AbstractRepository {
+        public String repositoryName;
         public Map<String, BlobInfo> blobCache = new HashMap<>();
         public Map<String, CommitInfo> commitCache = new HashMap<>();
     }
