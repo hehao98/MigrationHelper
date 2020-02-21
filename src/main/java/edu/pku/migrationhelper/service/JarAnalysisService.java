@@ -61,6 +61,7 @@ public class JarAnalysisService {
     public void analyzeClass(JavaClass clz, Repository repository, List<MethodSignature> result, Map<String, MethodSignature> signatureCache) {
         String packageName = clz.getPackageName();
         String className = clz.getClassName();
+        if(packageName == null) packageName = "";
         className = className.substring(className.lastIndexOf('.') + 1);
         MethodSignature ms = new MethodSignature()
                 .setPackageName(packageName)
@@ -73,6 +74,7 @@ public class JarAnalysisService {
             for (String interfaceName : clz.getInterfaceNames()) {
                 try {
                     JavaClass interfaceClass = repository.loadClass(interfaceName);
+                    if(interfaceClass == null) continue;
                     analyzeClassMethods(interfaceClass, packageName, className, result, signatureCache);
                 } catch (ClassNotFoundException e) {
                     // ignore when we can't find the class in this repository
@@ -91,6 +93,7 @@ public class JarAnalysisService {
         StringBuilder paramList = new StringBuilder();
         for (Method method : clz.getMethods()) {
             String methodName = method.getName();
+            if(methodName == null) continue;
             paramList.delete(0, paramList.length());
             for (Type parameterType : method.getArgumentTypes()) {
                 paramList.append(Utility.typeSignatureToString(parameterType.getSignature(), false));
@@ -122,24 +125,39 @@ public class JarAnalysisService {
             }
         }
 
-        // there will be many duplicate records when analyzing different versions of the same library
-        // insertOne is time-consuming, so we do findId first
-        Long id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
-        if(id == null) {
-            methodSignatureMapper.insertOne(ms);
-            id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
-        }
-        ms.setId(id);
-        result.add(ms);
+        try {
+            // there will be many duplicate records when analyzing different versions of the same library
+            // insertOne is time-consuming, so we do findId first
+            Long id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            if (id == null) {
+                methodSignatureMapper.insertOne(ms);
+                if (ms.getId() == 0) {
+                    id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+                    if (id == null) { // maybe caused by no transaction
+                        id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+                    }
+                } else {
+                    id = ms.getId();
+                }
+            }
+            ms.setId(id);
+            result.add(ms);
 
-        if(signatureCache !=  null) {
-            MethodSignature cacheValue = new MethodSignature()
-                    .setId(ms.getId())
-                    .setPackageName(ms.getPackageName())
-                    .setClassName(ms.getClassName())
-                    .setMethodName(ms.getMethodName())
-                    .setParamList(ms.getParamList());
-            signatureCache.put(cacheKey, cacheValue);
+            if (signatureCache != null) {
+                MethodSignature cacheValue = new MethodSignature()
+                        .setId(ms.getId())
+                        .setPackageName(ms.getPackageName())
+                        .setClassName(ms.getClassName())
+                        .setMethodName(ms.getMethodName())
+                        .setParamList(ms.getParamList());
+                signatureCache.put(cacheKey, cacheValue);
+            }
+        } finally {
+
         }
+//        } catch (Exception e) {
+//            LOG.error("save method signature fail", e);
+             // ignore sql exception (usually data too long for some column)
+//        }
     }
 }

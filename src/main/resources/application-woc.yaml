@@ -24,8 +24,12 @@ migration-helper:
   thread-pool:
     thread-count: 16
   library-identity:
+    maven-url-base:
+      - https://repo1.maven.org/maven2/
+#      - https://app.camunda.com/nexus/content/groups/public/
+#      - https://repo.maven.apache.org/maven2/
+#      - https://maven.aliyun.com/nexus/content/groups/public/
     download-path: jar-download
-    cool-down-ms: 3000
   git-repository-analysis:
     repository-path: git-repository
   libraries-io-import:

@@ -44,6 +44,7 @@ CREATE TABLE `library_version` (
                                  `version` varchar(63) DEFAULT NULL,
                                  `downloaded` bit(1) NOT NULL,
                                  `parsed` bit(1) NOT NULL,
+                                 `parse_error` bit(1) NOT NULL,
                                  PRIMARY KEY (`id`),
                                  UNIQUE KEY `unique` (`group_artifact_id`,`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

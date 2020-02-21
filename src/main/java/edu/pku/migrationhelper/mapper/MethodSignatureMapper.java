@@ -22,7 +22,7 @@ public interface MethodSignatureMapper {
     int insert(List<MethodSignature> entities);
 
     @Insert("<script>" +
-            "insert  ignore into " + tableName + " " +
+            "insert into " + tableName + " " +
             "(package_name, class_name, method_name, param_list) values " +
             "(#{e.packageName}, #{e.className}, #{e.methodName}, #{e.paramList})" +
 //            "on duplicate key update id=id" +

@@ -15,6 +15,8 @@ public class LibraryVersion {
 
     private boolean parsed;
 
+    private boolean parseError = false;
+
     public long getId() {
         return id;
     }
@@ -57,6 +59,15 @@ public class LibraryVersion {
 
     public LibraryVersion setParsed(boolean parsed) {
         this.parsed = parsed;
+        return this;
+    }
+
+    public boolean isParseError() {
+        return parseError;
+    }
+
+    public LibraryVersion setParseError(boolean parseError) {
+        this.parseError = parseError;
         return this;
     }
 }

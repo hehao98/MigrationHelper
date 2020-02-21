@@ -16,9 +16,9 @@ public interface LibraryVersionMapper {
 
     @Insert("<script>" +
             "insert  ignore into " + tableName + " " +
-            "(group_artifact_id, version, downloaded, parsed) values " +
+            "(group_artifact_id, version, downloaded, parsed, parse_error) values " +
             "<foreach collection='list' item='e' separator=','>" +
-            "(#{e.groupArtifactId}, #{e.version}, #{e.downloaded}, #{e.parsed})" +
+            "(#{e.groupArtifactId}, #{e.version}, #{e.downloaded}, #{e.parsed}, #{e.parseError})" +
             "</foreach> " +
 //            "on duplicate key update id=id" +
             "</script>")
@@ -27,7 +27,7 @@ public interface LibraryVersionMapper {
 
     @Update("<script>" +
             "update " + tableName + " set " +
-            "downloaded = #{e.downloaded}, parsed = #{e.parsed} " +
+            "downloaded = #{e.downloaded}, parsed = #{e.parsed}, parse_error = #{e.parseError} " +
             "where id = #{e.id} " +
             "</script>")
     int update(@Param("e") LibraryVersion entity);

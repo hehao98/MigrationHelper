@@ -11,8 +11,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -41,16 +40,37 @@ public class LioJarParseJob implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Set<Long> needParseIds = new HashSet<>();
-        needParseIds.addAll(lioProjectWithRepositoryMapper.selectIdOrderByDependentProjectsCountLimit(limitCount));
-        needParseIds.addAll(lioProjectWithRepositoryMapper.selectIdOrderByDependentRepositoriesCountLimit(limitCount));
-        needParseIds.addAll(lioProjectWithRepositoryMapper.selectIdOrderByRepositoryForkCountLimit(limitCount));
-        needParseIds.addAll(lioProjectWithRepositoryMapper.selectIdOrderByRepositoryStarCountLimit(limitCount));
-        needParseIds.addAll(lioProjectWithRepositoryMapper.selectIdOrderByRepositoryWatchersCountLimit(limitCount));
-        needParseIds.addAll(lioProjectWithRepositoryMapper.selectIdOrderBySourceRankLimit(limitCount));
-        needParseIds.addAll(lioProjectWithRepositoryMapper.selectIdOrderByRepositorySourceRankLimit(limitCount));
+        Set<Long> idSet = new HashSet<>();
+        List<Long> needParseIds = new LinkedList<>();
+        Iterator<Long>[] idsArray = new Iterator[7];
+        idsArray[0] = lioProjectWithRepositoryMapper.selectIdOrderByDependentProjectsCountLimit(limitCount).iterator();
+        idsArray[1] = lioProjectWithRepositoryMapper.selectIdOrderByDependentRepositoriesCountLimit(limitCount).iterator();
+        idsArray[2] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryForkCountLimit(limitCount).iterator();
+        idsArray[3] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryStarCountLimit(limitCount).iterator();
+        idsArray[4] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryWatchersCountLimit(limitCount).iterator();
+        idsArray[5] = lioProjectWithRepositoryMapper.selectIdOrderBySourceRankLimit(limitCount).iterator();
+        idsArray[6] = lioProjectWithRepositoryMapper.selectIdOrderByRepositorySourceRankLimit(limitCount).iterator();
+        while (true) {
+            boolean remain = false;
+            for(int i = 0; i < idsArray.length; ++i) {
+                if(idsArray[i].hasNext()) {
+                    remain = true;
+                    long id = idsArray[i].next();
+                    if(!idSet.contains(id)) {
+                        needParseIds.add(id);
+                        idSet.add(id);
+                    }
+                }
+            }
+            if(!remain) break;
+        }
+
+        int i = 0;
+        int size = needParseIds.size();
+        LOG.info("{} libraries to parse", size);
         for (Long id : needParseIds) {
-            executorService.submit(new SingleProjectParse(id));
+            executorService.submit(new SingleProjectParse(id, size - i));
+            ++i;
         }
     }
 
@@ -58,12 +78,16 @@ public class LioJarParseJob implements CommandLineRunner {
 
         private long projectId;
 
-        public SingleProjectParse(long projectId) {
+        private long jobId;
+
+        public SingleProjectParse(long projectId, long jobId) {
             this.projectId = projectId;
+            this.jobId = jobId;
         }
 
         @Override
         public void run() {
+            LOG.info("parse job start jobId = {}, projectId = {}", jobId, projectId);
             LioProjectWithRepository p = lioProjectWithRepositoryMapper.findById(projectId);
             if (p == null) {
                LOG.error("project not found, id = {}", projectId);
