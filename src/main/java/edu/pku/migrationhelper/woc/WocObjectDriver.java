@@ -1,7 +1,5 @@
 package edu.pku.migrationhelper.woc;
 
-import com.ning.compress.lzf.LZFDecoder;
-import com.ning.compress.lzf.LZFException;
 import edu.pku.migrationhelper.util.LZFUtils;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
@@ -74,8 +72,8 @@ public class WocObjectDriver {
     public String getLZFString(String key, long offset, int length) throws IOException {
         byte[] raw = getRaw(key, offset, length);
         try {
-            return new String(LZFUtils.decompressFromPerl(raw));
-        } catch (LZFException e) {
+            return new String(LZFUtils.lzfDecompressFromPerl(raw));
+        } catch (LZFUtils.LZFException e) {
             throw new IOException(e);
         }
     }

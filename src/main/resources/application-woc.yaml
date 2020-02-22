@@ -38,6 +38,8 @@ migration-helper:
     c2bBase: /da0_data/basemaps/c2bFullQ.
     b2fBase: /da0_data/basemaps/b2fFullQ.
     blobIndexBase: /fast/All.sha1o/sha1.blob_
+    commitIndexBase: /fast/All.sha1c/commit_
+    treeIndexBase: /fast/All.sha1c/tree_
     blobContentBase: /data/All.blobs/blob_
   libraries-io-import:
     project-with-repository-path: db/projects_with_repository_fields-1.6.0-2020-01-12.csv

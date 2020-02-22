@@ -6,6 +6,8 @@ import edu.pku.migrationhelper.mapper.CommitInfoMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
 import edu.pku.migrationhelper.service.*;
+import edu.pku.migrationhelper.util.LZFUtils;
+import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +61,8 @@ public class TestJob {
 
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
-        testPomAnalysis();
+        testLZF();
+//        testPomAnalysis();
 //        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
@@ -85,7 +88,7 @@ public class TestJob {
         int len = (int) file.length();
         byte[] buf = new byte[len];
         int res = fileInputStream.read(buf, 0, len);
-        if(res != len) {
+        if (res != len) {
             throw new RuntimeException("res != len");
         }
         return new String(buf);
@@ -100,22 +103,22 @@ public class TestJob {
         HDB hdb = new HDB();
 
         // open the database
-        if(!hdb.open("db/test_tc.tch", HDB.OWRITER | HDB.OCREAT)){
+        if (!hdb.open("db/test_tc.tch", HDB.OWRITER | HDB.OCREAT)) {
             int ecode = hdb.ecode();
             LOG.error("open error: " + hdb.errmsg(ecode));
         }
 
         // store records
-        if(!hdb.put("foo", "hop") ||
+        if (!hdb.put("foo", "hop") ||
                 !hdb.put("bar", "step") ||
-                !hdb.put("baz", "jump")){
+                !hdb.put("baz", "jump")) {
             int ecode = hdb.ecode();
             LOG.error("put error: " + hdb.errmsg(ecode));
         }
 
         // retrieve records
         String value = hdb.get("foo");
-        if(value != null){
+        if (value != null) {
             LOG.info(value);
         } else {
             int ecode = hdb.ecode();
@@ -125,15 +128,15 @@ public class TestJob {
         // traverse records
         hdb.iterinit();
         String key;
-        while((key = hdb.iternext2()) != null){
+        while ((key = hdb.iternext2()) != null) {
             value = hdb.get(key);
-            if(value != null){
+            if (value != null) {
                 LOG.info(key + ":" + value);
             }
         }
 
         // close the database
-        if(!hdb.close()){
+        if (!hdb.close()) {
             int ecode = hdb.ecode();
             LOG.error("close error: " + hdb.errmsg(ecode));
         }
@@ -143,7 +146,7 @@ public class TestJob {
     public void testPomAnalysis() throws Exception {
         File pomFile = new File("pom.xml");
         FileInputStream fis = new FileInputStream(pomFile);
-        byte[] content = new byte[(int)pomFile.length()];
+        byte[] content = new byte[(int) pomFile.length()];
         fis.read(content);
         List<PomAnalysisService.LibraryInfo> libraryInfoList = pomAnalysisService.analyzePom(new String(content));
         for (PomAnalysisService.LibraryInfo libraryInfo : libraryInfoList) {
@@ -161,5 +164,42 @@ public class TestJob {
                 blobInfo == null ? null : blobInfo.getBlobId(),
                 commitInfo == null ? null : commitInfo.getCommitId(),
                 libraryVersion == null ? null : libraryVersion.getGroupArtifactId());
+    }
+
+    public void testLZF() throws Exception {
+        printFirstNByte("lzf_test/1.bin", 50);
+        printFirstNByte("lzf_test/2.bin", 50);
+        printFirstNByte("lzf_test/3.bin", 50);
+        printFirstNByte("lzf_test/4.bin", 50);
+        testLZF0("lzf_test/1.bin");
+        testLZF0("lzf_test/2.bin");
+        testLZF0("lzf_test/3.bin");
+        testLZF0("lzf_test/4.bin");
+    }
+
+    public void testLZF0(String fileName) throws Exception {
+        System.out.println(fileName);
+        File file = new File(fileName);
+        int length = (int) file.length();
+        byte[] content = new byte[length];
+        FileInputStream fis = new FileInputStream(file);
+        fis.read(content);
+        fis.close();
+        content = LZFUtils.lzfDecompressFromPerl(content);
+        System.out.println(new String(content));
+    }
+
+    public void printFirstNByte(String fileName, int n) throws Exception {
+        System.out.println(fileName);
+        byte[] content = new byte[n];
+        FileInputStream fis = new FileInputStream(fileName);
+        int len = fis.read(content);
+        fis.close();
+        for (int i = 0; i < len; i++) {
+            System.out.print("0x");
+            System.out.print(HexUtils.toHexString(new byte[]{content[i]}));
+            System.out.print(',');
+        }
+        System.out.println("");
     }
 }

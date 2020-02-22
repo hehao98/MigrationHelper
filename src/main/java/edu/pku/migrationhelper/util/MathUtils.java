@@ -8,6 +8,8 @@ import java.util.List;
  */
 public class MathUtils {
 
+    private static final char[] hex = "0123456789abcdef".toCharArray();
+
     /**
      * translate from python version oscar.py unber(s)
      * Perl BER unpacking
@@ -35,6 +37,20 @@ public class MathUtils {
             }
         }
         return result;
+    }
+
+    public static String toHexString(byte[] bytes, int offset, int length) {
+        if (null == bytes) {
+            return null;
+        } else {
+            StringBuilder sb = new StringBuilder(length << 1);
+
+            for(int i = 0; i < length; ++i) {
+                sb.append(hex[(bytes[offset + i] & 240) >> 4]).append(hex[bytes[offset + i] & 15]);
+            }
+
+            return sb.toString();
+        }
     }
 
 }

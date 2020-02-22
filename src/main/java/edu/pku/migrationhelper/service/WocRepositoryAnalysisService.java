@@ -1,15 +1,15 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.util.MathUtils;
 import edu.pku.migrationhelper.woc.WocHdbDriver;
 import edu.pku.migrationhelper.woc.WocObjectDriver;
+import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -21,30 +21,49 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     public static class WocRepository extends AbstractRepository {
         public WocObjectDriver blobDriver;
+        public Map<String, List<BlobInCommit>> treeCache = new HashMap<>();
     }
 
     private WocHdbDriver p2c;
 
     private WocHdbDriver c2pc;
 
-    private WocHdbDriver c2b;
+//    private WocHdbDriver c2b;
 
-    private WocHdbDriver b2f;
+//    private WocHdbDriver b2f;
 
     private WocHdbDriver blobIndex;
+
+    private WocHdbDriver commitIndex;
+
+    private WocHdbDriver treeIndex;
 
     @PostConstruct
     public void postConstruct() {
         p2c = new WocHdbDriver(p2cBase, 32, WocHdbDriver.ContentType.Text, WocHdbDriver.ContentType.SHA1List);
         c2pc = new WocHdbDriver(c2pcBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
-        c2b = new WocHdbDriver(c2bBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
-        b2f = new WocHdbDriver(b2fBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
+//        c2b = new WocHdbDriver(c2bBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
+//        b2f = new WocHdbDriver(b2fBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         blobIndex = new WocHdbDriver(blobIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.BerNumberList);
+        commitIndex = new WocHdbDriver(commitIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
+        treeIndex = new WocHdbDriver(treeIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         p2c.openDatabaseFile();
         c2pc.openDatabaseFile();
-        c2b.openDatabaseFile();
-        b2f.openDatabaseFile();
+//        c2b.openDatabaseFile();
+//        b2f.openDatabaseFile();
         blobIndex.openDatabaseFile();
+        commitIndex.openDatabaseFile();
+        treeIndex.openDatabaseFile();
+    }
+
+    public void closeAllWocDatabase() {
+        p2c.closeDatabaseFile();
+        c2pc.closeDatabaseFile();
+//        c2b.closeDatabaseFile();
+//        b2f.closeDatabaseFile();
+        blobIndex.closeDatabaseFile();
+        commitIndex.closeDatabaseFile();
+        treeIndex.closeDatabaseFile();
     }
 
     @Override
@@ -82,25 +101,46 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     @Override
     public List<BlobInCommit> getBlobsInCommit(AbstractRepository repo, String commitId) {
-        List<String> blobIds = c2b.getSHA1ListValue(commitId);
-        if(blobIds == null) return Collections.emptyList();
-        List<BlobInCommit> result = new ArrayList<>(blobIds.size());
-        for (String blobId : blobIds) {
-            BlobInCommit bic = new BlobInCommit();
-            bic.blobId = blobId;
-            String fileNames = b2f.getValue(blobId);
-            if(fileNames == null) {
-                bic.fileName = "";
-            } else {
-                String[] fileNameList = fileNames.split(";");
-                if(fileNameList.length > 0) {
-                    bic.fileName = fileNameList[0];
-                } else {
-                    bic.fileName = fileNames;
-                }
+        String commitContent = commitIndex.getValue(commitId);
+        String[] attrLine = commitContent.split("\n");
+        String treeId = null;
+        for (String line : attrLine) {
+            if(line.startsWith("tree")) {
+                treeId = line.substring(5, 45);
+                break;
             }
-            result.add(bic);
         }
+        if (treeId == null) return Collections.emptyList();
+        return getBlobsInTree((WocRepository) repo, treeId, "");
+    }
+
+    public List<BlobInCommit> getBlobsInTree(WocRepository repository, String treeId, String parentPath) {
+        if(repository.treeCache.containsKey(treeId)) {
+            return new ArrayList<>(repository.treeCache.get(treeId));
+        }
+        List<BlobInCommit> result = new LinkedList<>();
+        byte[] treeContent = treeIndex.getValueBytes(treeId);
+        int p = 0, len = treeContent.length;
+        while(p < len) {
+            int start = p;
+            while(p < len && treeContent[p++] != 0x20);
+            String mode = new String(treeContent, start, p - start - 1);
+            boolean isTree = "40000".equals(mode);
+            start = p;
+            while(p < len && treeContent[p++] != 0x00);
+            String fileName = new String(treeContent, start, p - start - 1);
+            String objectId = MathUtils.toHexString(treeContent, p, 20);
+            p += 20;
+            if(isTree) {
+                result.addAll(getBlobsInTree(repository, objectId, parentPath + fileName + "/"));
+            } else {
+                BlobInCommit bic = new BlobInCommit();
+                bic.fileName = parentPath + fileName;
+                bic.blobId = objectId;
+                result.add(bic);
+            }
+        }
+        repository.treeCache.put(treeId, new ArrayList<>(result));
         return result;
     }
 
@@ -131,6 +171,10 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     private String b2fBase;
 
     private String blobIndexBase;
+
+    private String commitIndexBase;
+
+    private String treeIndexBase;
 
     private String blobContentBase;
 
@@ -176,6 +220,24 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     public WocRepositoryAnalysisService setBlobIndexBase(String blobIndexBase) {
         this.blobIndexBase = blobIndexBase;
+        return this;
+    }
+
+    public String getCommitIndexBase() {
+        return commitIndexBase;
+    }
+
+    public WocRepositoryAnalysisService setCommitIndexBase(String commitIndexBase) {
+        this.commitIndexBase = commitIndexBase;
+        return this;
+    }
+
+    public String getTreeIndexBase() {
+        return treeIndexBase;
+    }
+
+    public WocRepositoryAnalysisService setTreeIndexBase(String treeIndexBase) {
+        this.treeIndexBase = treeIndexBase;
         return this;
     }
 

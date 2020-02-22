@@ -1,7 +1,5 @@
 package edu.pku.migrationhelper.woc;
 
-import com.ning.compress.lzf.LZFDecoder;
-import com.ning.compress.lzf.LZFException;
 import com.twitter.hashing.KeyHasher;
 import edu.pku.migrationhelper.util.LZFUtils;
 import edu.pku.migrationhelper.util.MathUtils;
@@ -87,6 +85,26 @@ public class WocHdbDriver {
         return hdb.get(getKeyBytes(key));
     }
 
+    public byte[] getValueBytes(String key) {
+        byte[] value = getRaw(key);
+        if(value == null) return null;
+        switch (valueType) {
+            case Text:
+                return value;
+            case LZFText:
+                try {
+                    return LZFUtils.lzfDecompressFromPerl(value);
+                } catch (LZFUtils.LZFException e) {
+                    throw new RuntimeException(e);
+                }
+            case SHA1:
+            case SHA1List:
+                return HexUtils.toHexString(value).getBytes();
+            default:
+                throw new RuntimeException("valueType not supported: " + valueType);
+        }
+    }
+
     public String getValue(String key) {
         byte[] value = getRaw(key);
         if(value == null) return null;
@@ -95,8 +113,8 @@ public class WocHdbDriver {
                 return new String(value);
             case LZFText:
                 try {
-                    return new String(LZFUtils.decompressFromPerl(value));
-                } catch (LZFException e) {
+                    return new String(LZFUtils.lzfDecompressFromPerl(value));
+                } catch (LZFUtils.LZFException e) {
                     throw new RuntimeException(e);
                 }
             case SHA1:
