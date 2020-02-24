@@ -39,6 +39,8 @@ migration-helper:
     b2fBase: /da0_data/basemaps/b2fFullQ.
     blobIndexBase: /fast/All.sha1o/sha1.blob_
     blobContentBase: /data/All.blobs/blob_
+  woc-repo-analysis-job:
+    repository-list-file: repositories.csv
   libraries-io-import:
     project-with-repository-path: db/projects_with_repository.csv
   lio-jar-parse:

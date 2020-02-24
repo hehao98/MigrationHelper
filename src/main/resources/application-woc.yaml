@@ -22,7 +22,7 @@ server:
 
 migration-helper:
   thread-pool:
-    thread-count: 16
+    thread-count: 8
   library-identity:
     maven-url-base:
       - https://repo1.maven.org/maven2/
@@ -41,6 +41,8 @@ migration-helper:
     commitIndexBase: /fast/All.sha1c/commit_
     treeIndexBase: /fast/All.sha1c/tree_
     blobContentBase: /data/All.blobs/blob_
+  woc-repo-analysis-job:
+    repository-list-file: repositories.csv
   libraries-io-import:
     project-with-repository-path: db/projects_with_repository_fields-1.6.0-2020-01-12.csv
   lio-jar-parse:

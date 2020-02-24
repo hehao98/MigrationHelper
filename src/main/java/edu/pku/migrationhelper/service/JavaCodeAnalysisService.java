@@ -11,10 +11,7 @@ import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtPackageReference;
 import spoon.reflect.reference.CtTypeReference;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by xuyul on 2020/1/13.
@@ -25,12 +22,14 @@ public class JavaCodeAnalysisService {
     // TODO
     // 标识符识别的方法，难以鉴别带有继承关系的参数，比如用子类作为参数去调用一个以父类为参数的API，会识别成调用了一个以子类为参数的API，最终导致无法查到到
     public List<MethodSignature> analyzeJavaCode(String javaCode) {
+        if(javaCode == null || "".equals(javaCode)) return Collections.emptyList();
         CtClass<?> ctClass = Launcher.parseClass(javaCode);
         Set<String> existSignature = new HashSet<>();
         List<MethodSignature> result = new LinkedList<>();
         StringBuilder stringBuilder = new StringBuilder();
         for (CtMethod<?> method : ctClass.getAllMethods()) {
             CtBlock<?> methodBody = method.getBody();
+            if(methodBody == null) continue;
             Iterable<CtElement> it = methodBody.asIterable();
             it.forEach(element -> {
                 if(element instanceof CtInvocation) {
