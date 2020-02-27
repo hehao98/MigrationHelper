@@ -4,6 +4,7 @@ import edu.pku.migrationhelper.util.MathUtils;
 import edu.pku.migrationhelper.woc.WocHdbDriver;
 import edu.pku.migrationhelper.woc.WocObjectDriver;
 import org.apache.tomcat.util.buf.HexUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,9 @@ import java.util.function.Consumer;
 @Service
 @ConfigurationProperties(prefix = "migration-helper.woc-repository-analysis")
 public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
+
+    @Value("${migration-helper.woc.enabled}")
+    private boolean wocEnabled = false;
 
     public static class WocRepository extends AbstractRepository {
         public WocObjectDriver blobDriver;
@@ -40,6 +44,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     @PostConstruct
     public void postConstruct() {
+        if(!wocEnabled) return;
         p2c = new WocHdbDriver(p2cBase, 32, WocHdbDriver.ContentType.Text, WocHdbDriver.ContentType.SHA1List);
         c2pc = new WocHdbDriver(c2pcBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
 //        c2b = new WocHdbDriver(c2bBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);

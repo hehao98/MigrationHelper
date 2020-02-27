@@ -9,5 +9,7 @@ server:
     port: 8080
 
 migration-helper:
+  woc:
+    enabled: false
   job:
-    enabled: WocRepoAnalysisJob
+    enabled: DataExportJob

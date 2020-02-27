@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,4 +40,18 @@ public interface CommitInfoMapper {
             "commit_id = #{commitId}" +
             "</script>")
     CommitInfo findByCommitId(@Param("commitId") String commitId);
+
+    @Select("<script>" +
+            "select * from " + tableName + " order by commit_id limit #{offset}, #{limit} " +
+            "</script>")
+    List<CommitInfo> findList(@Param("offset") long offset, @Param("limit") int limit);
+
+    @Select("<script>" +
+            "select count(*) from " + tableName + " where " +
+            "<choose>" +
+            "<when test = 'idIn == null || idIn.size() == 0'> false </when>" +
+            "<otherwise> commit_id in (<foreach collection='idIn' item='e' separator=','>#{e}</foreach>) </otherwise>" +
+            "</choose>" +
+            "</script>")
+    Long countIdIn(@Param("idIn") Collection<String> idIn);
 }

@@ -82,4 +82,9 @@ public interface LioProjectWithRepositoryMapper {
             "limit #{limit}" +
             "</script>")
     List<Long> selectIdOrderByDependentRepositoriesCountLimit(@Param("limit") int limit);
+
+    @Select("<script>" +
+            "select * from " + tableName + " order by id limit #{offset}, #{limit} " +
+            "</script>")
+    List<LioProjectWithRepository> findList(@Param("offset") long offset, @Param("limit") int limit);
 }

@@ -32,4 +32,9 @@ public interface BlobInfoMapper {
             "blob_id = #{blobId}" +
             "</script>")
     BlobInfo findByBlobId(@Param("blobId") String blobId);
+
+    @Select("<script>" +
+            "select * from " + tableName + " order by blob_id limit #{offset}, #{limit} " +
+            "</script>")
+    List<BlobInfo> findList(@Param("offset") long offset, @Param("limit") int limit);
 }

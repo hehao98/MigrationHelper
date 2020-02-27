@@ -21,6 +21,8 @@ server:
     port: 8080
 
 migration-helper:
+  woc:
+    enabled: true
   thread-pool:
     thread-count: 8
   library-identity:

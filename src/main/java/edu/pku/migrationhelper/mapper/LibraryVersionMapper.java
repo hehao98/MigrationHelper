@@ -68,4 +68,14 @@ public interface LibraryVersionMapper {
             "</choose>" +
             "</script>")
     List<Long> findGroupArtifactIds(@Param("versionIds") Collection<Long> versionIds);
+
+    public static class CountData {
+        public long groupArtifactId;
+        public long count;
+    }
+
+    @Select("<script>" +
+            "select group_artifact_id, count(*) as `count` from " + tableName + " group by group_artifact_id " +
+            "</script>")
+    List<CountData> countByGroupArtifact();
 }

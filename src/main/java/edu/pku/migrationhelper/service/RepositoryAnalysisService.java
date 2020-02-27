@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.util.JsonUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,24 +95,77 @@ public abstract class RepositoryAnalysisService {
         repository.commitCache.put(commitInfo.getCommitId(), commitInfo);
     }
 
+    public int getRepositoryAnalyzeStatus(String repositoryName) {
+        AbstractRepository repository = openRepository(repositoryName);
+        if(repository == null) {
+            return 0;
+        }
+        try {
+            int limit = 100;
+            MutableBoolean successExist = new MutableBoolean(false);
+            MutableBoolean missingExist = new MutableBoolean(false);
+            List<String> commitList = new ArrayList<>(limit);
+            forEachCommit(repository, commitId -> {
+                if (successExist.booleanValue() && missingExist.booleanValue()) {
+                    return;
+                }
+                commitList.add(commitId);
+                if (commitList.size() >= limit) {
+                    long count = commitInfoMapper.countIdIn(commitList);
+                    if (count < commitList.size()) {
+                        missingExist.setTrue();
+                    }
+                    if (count > 0) {
+                        successExist.setTrue();
+                    }
+                    commitList.clear();
+                }
+            });
+            if (successExist.booleanValue() && missingExist.booleanValue()) {
+                return 2;
+            }
+            if (commitList.size() > 0) {
+                long count = commitInfoMapper.countIdIn(commitList);
+                if (count > 0) {
+                    successExist.setTrue();
+                }
+                if (count < commitList.size()) {
+                    missingExist.setTrue();
+                }
+            }
+            if (!successExist.booleanValue()) {
+                return 0;
+            }
+            if (successExist.booleanValue() && !missingExist.booleanValue()) {
+                return 1;
+            }
+            return 2;
+        } finally {
+            closeRepository(repository);
+        }
+    }
+
     public void analyzeRepositoryLibrary(String repositoryName) {
         AbstractRepository repository = openRepository(repositoryName);
         if(repository == null) {
             throw new RuntimeException("open repository fail");
         }
-        forEachCommit(repository, commitId -> {
-            CommitInfo thisCommit = analyzeCommitSelfInfo(repository, commitId);
-            List<String> parentIds = getCommitParents(repository, commitId);
-            if(parentIds.size() == 1) {
-                CommitInfo parentCommit = analyzeCommitSelfInfo(repository, parentIds.get(0));
-                thisCommit = analyzeCommitDiff(repository, thisCommit, parentCommit);
-            } else if (parentIds.size() == 0) {
-                thisCommit = analyzeCommitDiff(repository, thisCommit, null);
-            } else {
-                // ignore merge commit
-            }
-        });
-        closeRepository(repository);
+        try {
+            forEachCommit(repository, commitId -> {
+                CommitInfo thisCommit = analyzeCommitSelfInfo(repository, commitId);
+                List<String> parentIds = getCommitParents(repository, commitId);
+                if (parentIds.size() == 1) {
+                    CommitInfo parentCommit = analyzeCommitSelfInfo(repository, parentIds.get(0));
+                    thisCommit = analyzeCommitDiff(repository, thisCommit, parentCommit);
+                } else if (parentIds.size() == 0) {
+                    thisCommit = analyzeCommitDiff(repository, thisCommit, null);
+                } else {
+                    // ignore merge commit
+                }
+            });
+        } finally {
+            closeRepository(repository);
+        }
     }
 
     private CommitInfo analyzeCommitDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
