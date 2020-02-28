@@ -96,17 +96,22 @@ public class DataExportJob implements CommandLineRunner {
 
     public void exportBlobInfo(FileWriter writer) throws Exception {
         outputLine(writer, "blobId", "blobType", "signatureCount", "groupArtifactCount");
+        int tableNum = 0;
         long blobId = 0;
         int limit = 1000;
         boolean end = false;
         while(!end) {
             LOG.info("start export blobId = {}", blobId + 1);
-            List<BlobInfo> blobList = blobInfoMapper.findList(blobId, limit);
+            List<BlobInfo> blobList = blobInfoMapper.findList(tableNum, blobId, limit);
             end = blobList.size() < limit;
+            if(end && tableNum < 127) {
+                end = false;
+                tableNum++;
+            }
             for (BlobInfo blobInfo : blobList) {
                 outputLine(writer, ++blobId, blobInfo.getBlobType(),
-                        countJsonArray(blobInfo.getLibrarySignatureIds()),
-                        countJsonArray(blobInfo.getLibraryGroupArtifactIds()));
+                        blobInfo.getLibrarySignatureIdList().size(),
+                        blobInfo.getLibraryGroupArtifactIdList().size());
             }
         }
     }
@@ -116,20 +121,25 @@ public class DataExportJob implements CommandLineRunner {
                 "codeGa", "pomGa", "codeGaDiff", "pomGaDiff",
                 "codeAddGa", "pomAddGa", "codeAddGaDiff", "pomAddGaDiff",
                 "codeDelGa", "pomDelGa", "codeDelGaDiff", "pomDelGaDiff");
+        int tableNum = 0;
         long commitId = 0;
         int limit = 1000;
         boolean end = false;
         while(!end) {
             LOG.info("start export commitId = {}", commitId + 1);
-            List<CommitInfo> commitList = commitInfoMapper.findList(commitId, limit);
+            List<CommitInfo> commitList = commitInfoMapper.findList(tableNum, commitId, limit);
             end = commitList.size() < limit;
+            if(end && tableNum < 127) {
+                end = false;
+                tableNum++;
+            }
             for (CommitInfo commitInfo : commitList) {
-                Set<Long> codeGa = readJsonArrayAsSet(commitInfo.getCodeGroupArtifactIds());
-                Set<Long> pomGa = readJsonArrayAsSet(commitInfo.getPomGroupArtifactIds());
-                Set<Long> codeAddGa = readJsonArrayAsSet(commitInfo.getCodeAddGroupArtifactIds());
-                Set<Long> pomAddGa = readJsonArrayAsSet(commitInfo.getPomAddGroupArtifactIds());
-                Set<Long> codeDelGa = readJsonArrayAsSet(commitInfo.getCodeDeleteGroupArtifactIds());
-                Set<Long> pomDelGa = readJsonArrayAsSet(commitInfo.getPomDeleteGroupArtifactIds());
+                Set<Long> codeGa = new HashSet<>(commitInfo.getCodeGroupArtifactIdList());
+                Set<Long> pomGa = new HashSet<>(commitInfo.getPomGroupArtifactIdList());
+                Set<Long> codeAddGa = new HashSet<>(commitInfo.getCodeAddGroupArtifactIdList());
+                Set<Long> pomAddGa = new HashSet<>(commitInfo.getPomAddGroupArtifactIdList());
+                Set<Long> codeDelGa = new HashSet<>(commitInfo.getCodeDeleteGroupArtifactIdList());
+                Set<Long> pomDelGa = new HashSet<>(commitInfo.getPomDeleteGroupArtifactIdList());
                 outputLine(writer, ++commitId,
                         codeGa.size(), pomGa.size(), calcDiff(codeGa, pomGa), calcDiff(pomGa, codeGa),
                         codeAddGa.size(), pomAddGa.size(), calcDiff(codeAddGa, pomAddGa), calcDiff(pomAddGa, codeAddGa),

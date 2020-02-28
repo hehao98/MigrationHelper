@@ -13,6 +13,10 @@ public class LibraryGroupArtifact {
 
     private boolean versionExtracted;
 
+    private boolean parsed;
+
+    private boolean parseError = false;
+
     public long getId() {
         return id;
     }
@@ -46,6 +50,24 @@ public class LibraryGroupArtifact {
 
     public LibraryGroupArtifact setVersionExtracted(boolean versionExtracted) {
         this.versionExtracted = versionExtracted;
+        return this;
+    }
+
+    public boolean isParsed() {
+        return parsed;
+    }
+
+    public LibraryGroupArtifact setParsed(boolean parsed) {
+        this.parsed = parsed;
+        return this;
+    }
+
+    public boolean isParseError() {
+        return parseError;
+    }
+
+    public LibraryGroupArtifact setParseError(boolean parseError) {
+        this.parseError = parseError;
         return this;
     }
 }

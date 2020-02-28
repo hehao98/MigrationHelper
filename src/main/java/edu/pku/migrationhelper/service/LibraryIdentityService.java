@@ -1,18 +1,12 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.LibraryGroupArtifact;
-import edu.pku.migrationhelper.data.LibrarySignatureMap;
-import edu.pku.migrationhelper.data.LibraryVersion;
-import edu.pku.migrationhelper.data.MethodSignature;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
-import edu.pku.migrationhelper.mapper.LibrarySignatureMapMapper;
-import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
+import com.twitter.hashing.KeyHasher;
+import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.mapper.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.HttpClients;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -21,7 +15,6 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +30,8 @@ import java.util.*;
 @Service
 @ConfigurationProperties(prefix = "migration-helper.library-identity")
 public class LibraryIdentityService {
+
+    public static final int MAX_SIGNATURE_BIT = 35;
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -55,7 +50,13 @@ public class LibraryIdentityService {
     private LibraryVersionMapper libraryVersionMapper;
 
     @Autowired
-    private LibrarySignatureMapMapper librarySignatureMapMapper;
+    private MethodSignatureMapper methodSignatureMapper;
+
+    @Autowired
+    private LibrarySignatureToVersionMapper librarySignatureToVersionMapper;
+
+    @Autowired
+    private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
 
 //    @Value("${migration-helper.library-identity.maven-url-base}")
     private List<String> mavenUrlBase;
@@ -91,14 +92,18 @@ public class LibraryIdentityService {
             groupArtifact = new LibraryGroupArtifact()
                     .setGroupId(groupId)
                     .setArtifactId(artifactId)
-                    .setVersionExtracted(false);
+                    .setVersionExtracted(false)
+                    .setParsed(false)
+                    .setParseError(false);
             libraryGroupArtifactMapper.insert(Collections.singletonList(groupArtifact));
             groupArtifact = libraryGroupArtifactMapper
                     .findByGroupIdAndArtifactId(groupId, artifactId);
         }
+        if(groupArtifact.isParsed()) return;
         long groupArtifactId = groupArtifact.getId();
         LOG.info("parse group artifact start id = {}, groupId = {}, artifactId = {}",
                 groupArtifactId, groupId, artifactId);
+
         // extract all library versions if version data not exist
         if(!groupArtifact.isVersionExtracted()) {
             LOG.info("start extract library versions id = {}", groupArtifactId);
@@ -109,7 +114,8 @@ public class LibraryIdentityService {
                         .setGroupArtifactId(groupArtifactId)
                         .setVersion(version)
                         .setDownloaded(false)
-                        .setParsed(false)));
+                        .setParsed(false)
+                        .setParseError(false)));
                 libraryVersionMapper.insert(versionDatas);
                 groupArtifact.setVersionExtracted(true);
                 libraryGroupArtifactMapper.update(groupArtifact);
@@ -126,12 +132,22 @@ public class LibraryIdentityService {
 
         // download and parse each version of library
         Map<String, MethodSignature> signatureCache = new HashMap<>();
+        Map<Long, Set<Long>> version2Signature = new HashMap<>();
         List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
+        boolean containError = false;
         for (LibraryVersion versionData : versionDatas) {
+            long versionId = versionData.getId();
             String version = versionData.getVersion();
             File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
             try {
                 if (versionData.isParsed() || versionData.isParseError()) {
+                    if(versionData.isParseError()) {
+                        containError = true;
+                    }
+                    LibraryVersionToSignature v2s = getVersionToSignature(versionId);
+                    if(v2s != null) {
+                        version2Signature.put(versionId, new HashSet<>(v2s.getSignatureIdList()));
+                    }
                     continue;
                 }
                 LOG.info("start download and parse library id = {}", versionData.getId());
@@ -148,7 +164,10 @@ public class LibraryIdentityService {
                     libraryVersionMapper.update(versionData);
                 }
                 LOG.info("start parse library id = {}", versionData.getId());
-                parseLibraryJar(groupId, artifactId, version, versionData.getId(), signatureCache);
+                List<MethodSignature> signatureList = parseLibraryJar(groupId, artifactId, version, signatureCache);
+                Set<Long> signatureIds = new HashSet<>();
+                signatureList.forEach(e -> signatureIds.add(e.getId()));
+                version2Signature.put(versionId, signatureIds);
                 versionData.setParsed(true);
                 versionData.setParseError(false);
                 libraryVersionMapper.update(versionData);
@@ -166,24 +185,193 @@ public class LibraryIdentityService {
                 }
             }
         }
+
+        // save version2Signature, signature2Version and groupArtifact
+        try {
+            Map<Long, Set<Long>> signature2Version = new HashMap<>();
+            version2Signature.forEach((versionId, signatureIds) -> {
+                signatureIds.forEach(sid -> signature2Version
+                        .computeIfAbsent(sid, k -> new HashSet<>())
+                        .add(versionId));
+                LibraryVersionToSignature v2s = getVersionToSignature(versionId);
+                if(v2s == null) {
+                    v2s = new LibraryVersionToSignature()
+                            .setVersionId(versionId);
+                }
+                if(v2s.getSignatureIdList() != null) {
+                    signatureIds.addAll(v2s.getSignatureIdList());
+                }
+                v2s.setSignatureIdList(new ArrayList<>(signatureIds));
+                saveVersionToSignature(v2s);
+            });
+            signature2Version.forEach((signatureId, versionIds) -> {
+                LibrarySignatureToVersion s2v = getSignatureToVersion(signatureId);
+                if(s2v == null) {
+                    s2v = new LibrarySignatureToVersion()
+                            .setSignatureId(signatureId);
+                }
+                Set<Long> gaIds = new HashSet<>();
+                gaIds.add(groupArtifactId);
+                if(s2v.getGroupArtifactIdList() != null) {
+                    gaIds.addAll(s2v.getGroupArtifactIdList());
+                }
+                s2v.setGroupArtifactIdList(new ArrayList<>(gaIds));
+                if(s2v.getVersionIdList() != null) {
+                    versionIds.addAll(s2v.getVersionIdList());
+                }
+                s2v.setVersionIdList(new ArrayList<>(versionIds));
+                saveSignatureToVersion(s2v);
+            });
+            groupArtifact.setParsed(true)
+                    .setParseError(containError);
+            libraryGroupArtifactMapper.update(groupArtifact);
+        } catch (Exception e) {
+            LOG.error("save groupArtifact fail groupId = {}, artifactId = {}",
+                    groupId, artifactId);
+            LOG.error("save groupArtifact fail", e);
+            groupArtifact.setParsed(true)
+                    .setParseError(true);
+            libraryGroupArtifactMapper.update(groupArtifact);
+        }
     }
 
-    public void parseLibraryJar(String groupId, String artifactId, String version, long versionId, Map<String, MethodSignature> signatureCache) throws Exception {
+    public List<MethodSignature> parseLibraryJar(String groupId, String artifactId, String version, Map<String, MethodSignature> signatureCache) throws Exception {
         String jarPath = generateJarDownloadPath(groupId, artifactId, version);
-        List<MethodSignature> signatures = jarAnalysisService.analyzeJar(jarPath, signatureCache);
-        int insertLimit = 1000;
-        List<LibrarySignatureMap> mapList = new ArrayList<>(insertLimit);
+        List<MethodSignature> signatures = jarAnalysisService.analyzeJar(jarPath);
         for (MethodSignature signature : signatures) {
-            mapList.add(new LibrarySignatureMap()
-                    .setLibraryVersionId(versionId)
-                    .setMethodSignatureId(signature.getId()));
-            if(mapList.size() >= insertLimit) {
-                librarySignatureMapMapper.insert(mapList);
-                mapList.clear();
+            saveMethodSignature(signature, signatureCache);
+        }
+        return signatures;
+    }
+
+    public static int getMethodSignatureSliceKey(String packageName, String className) {
+        String key = packageName + ":" + className;
+        return (int)(KeyHasher.FNV1A_32().hashKey(key.getBytes()) & 127);
+    }
+
+    public static int getMethodSignatureSliceKey(long signatureId) {
+        return (int)(signatureId >> MAX_SIGNATURE_BIT) & 127;
+    }
+
+    public static String getMethodSignatureCacheKey(MethodSignature ms) {
+        return ms.getPackageName() + ":" + ms.getClassName() + ":" + ms.getMethodName() + ":" + ms.getParamList();
+    }
+
+    public LibrarySignatureToVersion getSignatureToVersion(long signatureId) {
+        int slice = getMethodSignatureSliceKey(signatureId);
+        return librarySignatureToVersionMapper.findById(slice, signatureId);
+    }
+
+    public void saveSignatureToVersion(LibrarySignatureToVersion s2v) {
+        int slice = getMethodSignatureSliceKey(s2v.getSignatureId());
+        librarySignatureToVersionMapper.insertOne(slice, s2v);
+    }
+
+    public LibraryVersionToSignature getVersionToSignature(long versionId) {
+        return libraryVersionToSignatureMapper.findById(versionId);
+    }
+
+    public void saveVersionToSignature(LibraryVersionToSignature v2s) {
+        libraryVersionToSignatureMapper.insertOne(v2s);
+    }
+
+    public List<Long>[] getVersionIdsAndGroupArtifactIdsBySignatureIds(Collection<Long> signatureIds) {
+        List<LibrarySignatureToVersion> s2vList = new ArrayList<>(signatureIds.size());
+        for (long signatureId : signatureIds) {
+            LibrarySignatureToVersion s2v = getSignatureToVersion(signatureId);
+            if(s2v != null) s2vList.add(s2v);
+        }
+        Set<Long> versionIds = new HashSet<>();
+        Set<Long> gaIds = new HashSet<>();
+        for (LibrarySignatureToVersion s2v : s2vList) {
+            if(s2v.getVersionIdList() != null) {
+                versionIds.addAll(s2v.getVersionIdList());
+            }
+            if(s2v.getGroupArtifactIdList() != null) {
+                gaIds.addAll(s2v.getGroupArtifactIdList());
             }
         }
-        if(mapList.size() > 0) {
-            librarySignatureMapMapper.insert(mapList);
+        return new List[]{new ArrayList<>(versionIds), new ArrayList<>(gaIds)};
+    }
+
+    public List<MethodSignature> getMethodSignatureList(String packageName, String className, String methodName) {
+        int sliceKey = getMethodSignatureSliceKey(packageName, className);
+        return methodSignatureMapper.findList(sliceKey, packageName, className, methodName);
+    }
+
+    public MethodSignature getMethodSignature(MethodSignature ms, Map<String, MethodSignature> signatureCache) {
+        String cacheKey = null;
+        if(signatureCache != null) {
+            cacheKey = getMethodSignatureCacheKey(ms);
+            MethodSignature cacheValue = signatureCache.get(cacheKey);
+            if (cacheValue != null) {
+                ms.setId(cacheValue.getId());
+                return ms;
+            }
+        }
+
+        try {
+            int sliceKey = getMethodSignatureSliceKey(ms.getPackageName(), ms.getClassName());
+            Long id = methodSignatureMapper.findId(sliceKey, ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            if(id == null) return null;
+            ms.setId(id);
+
+            if (signatureCache != null) {
+                MethodSignature cacheValue = new MethodSignature()
+                        .setId(ms.getId())
+                        .setPackageName(ms.getPackageName())
+                        .setClassName(ms.getClassName())
+                        .setMethodName(ms.getMethodName())
+                        .setParamList(ms.getParamList());
+                signatureCache.put(cacheKey, cacheValue);
+            }
+
+            return ms;
+        } finally {
+
+        }
+    }
+
+    public void saveMethodSignature(MethodSignature ms, Map<String, MethodSignature> signatureCache) {
+        String cacheKey = null;
+        if(signatureCache != null) {
+            cacheKey = getMethodSignatureCacheKey(ms);
+            MethodSignature cacheValue = signatureCache.get(cacheKey);
+            if (cacheValue != null) {
+                ms.setId(cacheValue.getId());
+                return;
+            }
+        }
+
+        try {
+            int sliceKey = getMethodSignatureSliceKey(ms.getPackageName(), ms.getClassName());
+            // there will be many duplicate records when analyzing different versions of the same library
+            // insertOne is time-consuming, so we do findId first
+            Long id = methodSignatureMapper.findId(sliceKey, ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            if (id == null) {
+                methodSignatureMapper.insertOne(sliceKey, ms);
+                if (ms.getId() == 0) {
+                    id = methodSignatureMapper.findId(sliceKey, ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+                    if (id == null) { // maybe caused by no transaction
+                        id = methodSignatureMapper.findId(sliceKey, ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+                    }
+                } else {
+                    id = ms.getId();
+                }
+            }
+            ms.setId(id);
+
+            if (signatureCache != null) {
+                MethodSignature cacheValue = new MethodSignature()
+                        .setId(ms.getId())
+                        .setPackageName(ms.getPackageName())
+                        .setClassName(ms.getClassName())
+                        .setMethodName(ms.getMethodName())
+                        .setParamList(ms.getParamList());
+                signatureCache.put(cacheKey, cacheValue);
+            }
+        } finally {
+
         }
     }
 

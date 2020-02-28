@@ -1,9 +1,8 @@
 package edu.pku.migrationhelper.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import edu.pku.migrationhelper.data.*;
-import edu.pku.migrationhelper.mapper.*;
-import edu.pku.migrationhelper.util.JsonUtils;
+import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
+import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +26,10 @@ public abstract class RepositoryAnalysisService {
     protected PomAnalysisService pomAnalysisService;
 
     @Autowired
-    protected BlobInfoMapper blobInfoMapper;
+    protected LibraryIdentityService libraryIdentityService;
 
     @Autowired
-    protected CommitInfoMapper commitInfoMapper;
-
-    @Autowired
-    protected MethodSignatureMapper methodSignatureMapper;
-
-    @Autowired
-    protected LibrarySignatureMapMapper librarySignatureMapMapper;
+    protected GitObjectStorageService gitObjectStorageService;
 
     @Autowired
     protected LibraryVersionMapper libraryVersionMapper;
@@ -70,29 +63,29 @@ public abstract class RepositoryAnalysisService {
     public BlobInfo getBlobInfo(AbstractRepository repository, String blobId) {
         BlobInfo blobInfo = repository.blobCache.get(blobId);
         if(blobInfo == null) {
-            blobInfo = blobInfoMapper.findByBlobId(blobId);
+            blobInfo = gitObjectStorageService.getBlobById(blobId);
             repository.blobCache.put(blobId, blobInfo);
         }
         return blobInfo;
     }
 
     public void saveBlobInfo(AbstractRepository repository, BlobInfo blobInfo) {
-        blobInfoMapper.insert(Collections.singletonList(blobInfo));
-        repository.blobCache.put(blobInfo.getBlobId(), blobInfo);
+        gitObjectStorageService.saveBlob(blobInfo);
+        repository.blobCache.put(blobInfo.getBlobIdString(), blobInfo);
     }
 
     public CommitInfo getCommitInfo(AbstractRepository repository, String commitId) {
         CommitInfo commitInfo = repository.commitCache.get(commitId);
         if(commitInfo == null) {
-            commitInfo = commitInfoMapper.findByCommitId(commitId);
+            commitInfo = gitObjectStorageService.getCommitById(commitId);
             repository.commitCache.put(commitId, commitInfo);
         }
         return commitInfo;
     }
 
     public void saveCommitInfo(AbstractRepository repository, CommitInfo commitInfo) {
-        commitInfoMapper.insert(Collections.singletonList(commitInfo));
-        repository.commitCache.put(commitInfo.getCommitId(), commitInfo);
+        gitObjectStorageService.saveCommit(commitInfo);
+        repository.commitCache.put(commitInfo.getCommitIdString(), commitInfo);
     }
 
     public int getRepositoryAnalyzeStatus(String repositoryName) {
@@ -111,7 +104,7 @@ public abstract class RepositoryAnalysisService {
                 }
                 commitList.add(commitId);
                 if (commitList.size() >= limit) {
-                    long count = commitInfoMapper.countIdIn(commitList);
+                    long count = 0;//commitInfoMapper.countIdIn(commitList); // TODO
                     if (count < commitList.size()) {
                         missingExist.setTrue();
                     }
@@ -125,7 +118,7 @@ public abstract class RepositoryAnalysisService {
                 return 2;
             }
             if (commitList.size() > 0) {
-                long count = commitInfoMapper.countIdIn(commitList);
+                long count = 0;//commitInfoMapper.countIdIn(commitList); // TODO
                 if (count > 0) {
                     successExist.setTrue();
                 }
@@ -169,23 +162,23 @@ public abstract class RepositoryAnalysisService {
     }
 
     private CommitInfo analyzeCommitDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
-        if(StringUtils.isEmpty(thisCommit.getCodeAddGroupArtifactIds()) ||
-                StringUtils.isEmpty(thisCommit.getCodeDeleteGroupArtifactIds()) ||
-                StringUtils.isEmpty(thisCommit.getPomAddGroupArtifactIds()) ||
-                StringUtils.isEmpty(thisCommit.getPomDeleteGroupArtifactIds())) {
-            String parentCodeIds;
-            String parentPomIds;
+        if(thisCommit.getCodeAddGroupArtifactIdList() == null ||
+                thisCommit.getCodeDeleteGroupArtifactIdList() == null ||
+                thisCommit.getPomAddGroupArtifactIdList() == null ||
+                thisCommit.getPomDeleteGroupArtifactIdList() == null) {
+            List<Long> parentCodeIds;
+            List<Long> parentPomIds;
             if(parentCommit == null) {
-                parentCodeIds = "[]";
-                parentPomIds = "[]";
+                parentCodeIds = new ArrayList<>(0);
+                parentPomIds = new ArrayList<>(0);
             } else {
-                parentCodeIds = parentCommit.getCodeGroupArtifactIds();
-                parentPomIds = parentCommit.getPomGroupArtifactIds();
+                parentCodeIds = parentCommit.getCodeGroupArtifactIdList();
+                parentPomIds = parentCommit.getPomGroupArtifactIdList();
             }
-            calcIdsDiff(thisCommit.getCodeGroupArtifactIds(), parentCodeIds,
-                    thisCommit::setCodeAddGroupArtifactIds, thisCommit::setCodeDeleteGroupArtifactIds);
-            calcIdsDiff(thisCommit.getPomGroupArtifactIds(), parentPomIds,
-                    thisCommit::setPomAddGroupArtifactIds, thisCommit::setPomDeleteGroupArtifactIds);
+            calcIdsDiff(thisCommit.getCodeGroupArtifactIdList(), parentCodeIds,
+                    thisCommit::setCodeAddGroupArtifactIdList, thisCommit::setCodeDeleteGroupArtifactIdList);
+            calcIdsDiff(thisCommit.getPomGroupArtifactIdList(), parentPomIds,
+                    thisCommit::setPomAddGroupArtifactIdList, thisCommit::setPomDeleteGroupArtifactIdList);
         }
 
         if(StringUtils.isEmpty(thisCommit.getMethodChangeIds())) {
@@ -196,15 +189,15 @@ public abstract class RepositoryAnalysisService {
         return thisCommit;
     }
 
-    private void calcIdsDiff(String thisIdsJson, String parentIdsJson, Consumer<String> addIdsJson, Consumer<String> deleteIdsJson) {
-        Set<Long> thisIds = new HashSet<>(JsonUtils.readStringAsObject(thisIdsJson, new TypeReference<List<Long>>() {}));
-        Set<Long> parentIds = new HashSet<>(JsonUtils.readStringAsObject(parentIdsJson, new TypeReference<List<Long>>() {}));
+    private void calcIdsDiff(List<Long> thisIdsJson, List<Long> parentIdsJson, Consumer<List<Long>> addIdsJson, Consumer<List<Long>> deleteIdsJson) {
+        Set<Long> thisIds = new HashSet<>(thisIdsJson);
+        Set<Long> parentIds = new HashSet<>(parentIdsJson);
         Set<Long> addIds = new HashSet<>(thisIds);
         addIds.removeAll(parentIds);
         Set<Long> deleteIds = new HashSet<>(parentIds);
         deleteIds.removeAll(thisIds);
-        addIdsJson.accept(JsonUtils.writeObjectAsString(new ArrayList<>(addIds)));
-        deleteIdsJson.accept(JsonUtils.writeObjectAsString(new ArrayList<>(deleteIds)));
+        addIdsJson.accept(new ArrayList<>(addIds));
+        deleteIdsJson.accept(new ArrayList<>(deleteIds));
     }
 
     private CommitInfo analyzeCommitSelfInfo(AbstractRepository repository, String commitId) {
@@ -218,7 +211,7 @@ public abstract class RepositoryAnalysisService {
         }
         if(commitInfo == null) {
             commitInfo = new CommitInfo();
-            commitInfo.setCommitId(commitId);
+            commitInfo.setCommitIdString(commitId);
         }
         List<BlobInCommit> blobs = getBlobsInCommit(repository, commitId);
         Set<Long> codeVersionIds = new HashSet<>();
@@ -227,18 +220,18 @@ public abstract class RepositoryAnalysisService {
         Set<Long> pomGaIds = new HashSet<>();
         for (BlobInCommit blob : blobs) {
             BlobInfo blobInfo = analyzeBlobInfo(repository, blob);
-            if(blobInfo.getBlobType() == BlobInfo.BlobType.Java) {
-                codeVersionIds.addAll(JsonUtils.readStringAsObject(blobInfo.getLibraryVersionIds(), new TypeReference<List<Long>>() {}));
-                codeGaIds.addAll(JsonUtils.readStringAsObject(blobInfo.getLibraryGroupArtifactIds(), new TypeReference<List<Long>>() {}));
-            } else if (blobInfo.getBlobType() == BlobInfo.BlobType.POM) {
-                pomVersionIds.addAll(JsonUtils.readStringAsObject(blobInfo.getLibraryVersionIds(), new TypeReference<List<Long>>() {}));
-                pomGaIds.addAll(JsonUtils.readStringAsObject(blobInfo.getLibraryGroupArtifactIds(), new TypeReference<List<Long>>() {}));
+            if(blobInfo.getBlobTypeEnum() == BlobInfo.BlobType.Java) {
+                codeVersionIds.addAll(blobInfo.getLibraryVersionIdList());
+                codeGaIds.addAll(blobInfo.getLibraryGroupArtifactIdList());
+            } else if (blobInfo.getBlobTypeEnum() == BlobInfo.BlobType.POM) {
+                pomVersionIds.addAll(blobInfo.getLibraryVersionIdList());
+                pomGaIds.addAll(blobInfo.getLibraryGroupArtifactIdList());
             }
         }
-        commitInfo.setCodeLibraryVersionIds(JsonUtils.writeObjectAsString(new ArrayList<>(codeVersionIds)));
-        commitInfo.setCodeGroupArtifactIds(JsonUtils.writeObjectAsString(new ArrayList<>(codeGaIds)));
-        commitInfo.setPomLibraryVersionIds(JsonUtils.writeObjectAsString(new ArrayList<>(pomVersionIds)));
-        commitInfo.setPomGroupArtifactIds(JsonUtils.writeObjectAsString(new ArrayList<>(pomGaIds)));
+        commitInfo.setCodeLibraryVersionIdList(new ArrayList<>(codeVersionIds));
+        commitInfo.setCodeGroupArtifactIdList(new ArrayList<>(codeGaIds));
+        commitInfo.setPomLibraryVersionIdList(new ArrayList<>(pomVersionIds));
+        commitInfo.setPomGroupArtifactIdList(new ArrayList<>(pomGaIds));
         saveCommitInfo(repository, commitInfo);
         return commitInfo;
     }
@@ -248,7 +241,7 @@ public abstract class RepositoryAnalysisService {
         if(blobInfo == null) {
             LOG.debug("new blob: {}", blob.blobId);
             blobInfo = new BlobInfo();
-            blobInfo.setBlobId(blob.blobId);
+            blobInfo.setBlobIdString(blob.blobId);
         } else {
             LOG.debug("exist blob: {}, blobType = {}", blobInfo.getBlobId(), blobInfo.getBlobType());
             return blobInfo;
@@ -257,7 +250,7 @@ public abstract class RepositoryAnalysisService {
         Set<Long> versionIds = new HashSet<>();
         Set<Long> groupArtifactIds = new HashSet<>();
         if(isBlobJavaCode(blob)) {
-            blobInfo.setBlobType(BlobInfo.BlobType.Java);
+            blobInfo.setBlobTypeEnum(BlobInfo.BlobType.Java);
             try {
                 LOG.debug("begin analyzeJavaContent blobId = {}", blob.blobId);
                 String content = getBlobContent(repository, blob.blobId);
@@ -267,13 +260,13 @@ public abstract class RepositoryAnalysisService {
                 LOG.error("analyzeJavaContent fail", e);
                 // not java content
                 LOG.warn("blob is not java content, set to other, blobId = {}", blobInfo.getBlobId());
-                blobInfo.setBlobType(BlobInfo.BlobType.Other);
+                blobInfo.setBlobTypeEnum(BlobInfo.BlobType.ErrorJava);
                 signatureIds.clear();
                 versionIds.clear();
                 groupArtifactIds.clear();
             }
         } else if (isBlobPom(blob)) {
-            blobInfo.setBlobType(BlobInfo.BlobType.POM);
+            blobInfo.setBlobTypeEnum(BlobInfo.BlobType.POM);
             try {
                 LOG.debug("begin analyzePomContent blobId = {}", blob.blobId);
                 String content = getBlobContent(repository, blob.blobId);
@@ -283,17 +276,17 @@ public abstract class RepositoryAnalysisService {
                 LOG.error("analyzePomContent fail", e);
                 // not pom content
                 LOG.warn("blob is not pom content, set to other, blobId = {}", blobInfo.getBlobId());
-                blobInfo.setBlobType(BlobInfo.BlobType.Other);
+                blobInfo.setBlobTypeEnum(BlobInfo.BlobType.ErrorPOM);
                 signatureIds.clear();
                 versionIds.clear();
                 groupArtifactIds.clear();
             }
         } else {
-            blobInfo.setBlobType(BlobInfo.BlobType.Other);
+            blobInfo.setBlobTypeEnum(BlobInfo.BlobType.Other);
         }
-        blobInfo.setLibrarySignatureIds(JsonUtils.writeObjectAsString(new ArrayList<>(signatureIds)));
-        blobInfo.setLibraryVersionIds(JsonUtils.writeObjectAsString(new ArrayList<>(versionIds)));
-        blobInfo.setLibraryGroupArtifactIds(JsonUtils.writeObjectAsString(new ArrayList<>(groupArtifactIds)));
+        blobInfo.setLibrarySignatureIdList(new ArrayList<>(signatureIds));
+        blobInfo.setLibraryVersionIdList(new ArrayList<>(versionIds));
+        blobInfo.setLibraryGroupArtifactIdList(new ArrayList<>(groupArtifactIds));
         saveBlobInfo(repository, blobInfo);
         return blobInfo;
     }
@@ -302,13 +295,11 @@ public abstract class RepositoryAnalysisService {
         List<MethodSignature> signatureList = javaCodeAnalysisService.analyzeJavaCode(content);
         Set<Long> sids = new HashSet<>();
         for (MethodSignature methodSignature : signatureList) {
-            Long id = methodSignatureMapper.findId(
-                    methodSignature.getPackageName(), methodSignature.getClassName(),
-                    methodSignature.getMethodName(), methodSignature.getParamList());
-            if(id != null) {
-                sids.add(id);
+            MethodSignature ms = libraryIdentityService.getMethodSignature(methodSignature, null);
+            if(ms != null) {
+                sids.add(ms.getId());
             } else {
-                List<MethodSignature> candidates = methodSignatureMapper.findList(
+                List<MethodSignature> candidates = libraryIdentityService.getMethodSignatureList(
                         methodSignature.getPackageName(), methodSignature.getClassName(),
                         methodSignature.getMethodName());
                 List<MethodSignature> matched = new LinkedList<>();
@@ -328,9 +319,9 @@ public abstract class RepositoryAnalysisService {
             }
         }
         signatureIds.addAll(sids);
-        List<Long> vids = librarySignatureMapMapper.findVersionIds(sids);
-        versionIds.addAll(vids);
-        groupArtifactIds.addAll(libraryVersionMapper.findGroupArtifactIds(vids));
+        List<Long>[] vIdsAndGaIds = libraryIdentityService.getVersionIdsAndGroupArtifactIdsBySignatureIds(sids);
+        versionIds.addAll(vIdsAndGaIds[0]);
+        groupArtifactIds.addAll(vIdsAndGaIds[1]);
     }
 
     public void analyzePomContent(String content, Set<Long> signatureIds, Set<Long> versionIds, Set<Long> groupArtifactIds) throws Exception {

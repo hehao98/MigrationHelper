@@ -1,10 +1,7 @@
 package edu.pku.migrationhelper.mapper;
 
 import edu.pku.migrationhelper.data.CommitInfo;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,10 +12,27 @@ import java.util.List;
 @Mapper
 public interface CommitInfoMapper {
 
-    String tableName = "commit_info";
+    String tableName = "commit_info_";
+
+    @Update("<script>" +
+            "CREATE TABLE `"+tableName+"${tableNum}` (\n" +
+            "                             `commit_id` binary(20) NOT NULL,\n" +
+            "                             `code_library_version_ids` mediumblob NOT NULL,\n" +
+            "                             `code_group_artifact_ids` mediumblob NOT NULL,\n" +
+            "                             `code_delete_group_artifact_ids` mediumblob NOT NULL,\n" +
+            "                             `code_add_group_artifact_ids` mediumblob NOT NULL,\n" +
+            "                             `pom_library_version_ids` mediumblob NOT NULL,\n" +
+            "                             `pom_group_artifact_ids` mediumblob NOT NULL,\n" +
+            "                             `pom_delete_group_artifact_ids` mediumblob NOT NULL,\n" +
+            "                             `pom_add_group_artifact_ids` mediumblob NOT NULL,\n" +
+            "                             `method_change_ids` mediumblob NOT NULL,\n" +
+            "                             PRIMARY KEY (`commit_id`)\n" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=ascii;" +
+            "</script>")
+    void createTable(@Param("tableNum") int tableNum);
 
     @Insert("<script>" +
-            "insert into " + tableName + " " +
+            "insert into " + tableName + "${tableNum} " +
             "(commit_id, method_change_ids, " +
             "code_library_version_ids, code_group_artifact_ids, code_delete_group_artifact_ids, code_add_group_artifact_ids, " +
             "pom_library_version_ids, pom_group_artifact_ids, pom_delete_group_artifact_ids, pom_add_group_artifact_ids) values " +
@@ -33,25 +47,41 @@ public interface CommitInfoMapper {
             "pom_library_version_ids = values(pom_library_version_ids), pom_group_artifact_ids = values(pom_group_artifact_ids), " +
             "pom_delete_group_artifact_ids = values(pom_delete_group_artifact_ids), pom_add_group_artifact_ids = values(pom_add_group_artifact_ids)" +
             "</script>")
-    int insert(List<CommitInfo> entities);
+    int insert(@Param("tableNum") int tableNum, @Param("list") List<CommitInfo> entities);
 
-    @Select("<script>" +
-            "select * from " + tableName + " where " +
-            "commit_id = #{commitId}" +
+    @Insert("<script>" +
+            "insert into " + tableName + "${tableNum} " +
+            "(commit_id, method_change_ids, " +
+            "code_library_version_ids, code_group_artifact_ids, code_delete_group_artifact_ids, code_add_group_artifact_ids, " +
+            "pom_library_version_ids, pom_group_artifact_ids, pom_delete_group_artifact_ids, pom_add_group_artifact_ids) values " +
+            "(#{e.commitId}, #{e.methodChangeIds}, " +
+            "#{e.codeLibraryVersionIds}, #{e.codeGroupArtifactIds}, #{e.codeDeleteGroupArtifactIds}, #{e.codeAddGroupArtifactIds}, " +
+            "#{e.pomLibraryVersionIds}, #{e.pomGroupArtifactIds}, #{e.pomDeleteGroupArtifactIds}, #{e.pomAddGroupArtifactIds})" +
+            "on duplicate key update method_change_ids = values(method_change_ids), " +
+            "code_library_version_ids = values(code_library_version_ids), code_group_artifact_ids = values(code_group_artifact_ids), " +
+            "code_delete_group_artifact_ids = values(code_delete_group_artifact_ids), code_add_group_artifact_ids = values(code_add_group_artifact_ids), " +
+            "pom_library_version_ids = values(pom_library_version_ids), pom_group_artifact_ids = values(pom_group_artifact_ids), " +
+            "pom_delete_group_artifact_ids = values(pom_delete_group_artifact_ids), pom_add_group_artifact_ids = values(pom_add_group_artifact_ids)" +
             "</script>")
-    CommitInfo findByCommitId(@Param("commitId") String commitId);
+    int insertOne(@Param("tableNum") int tableNum, @Param("e") CommitInfo e);
 
     @Select("<script>" +
-            "select * from " + tableName + " order by commit_id limit #{offset}, #{limit} " +
+            "select * from " + tableName + "${tableNum} where " +
+            "commit_id = unhex(#{commitId})" +
             "</script>")
-    List<CommitInfo> findList(@Param("offset") long offset, @Param("limit") int limit);
+    CommitInfo findByCommitId(@Param("tableNum") int tableNum, @Param("commitId") String commitId);
 
     @Select("<script>" +
-            "select count(*) from " + tableName + " where " +
+            "select * from " + tableName + "${tableNum} order by commit_id limit #{offset}, #{limit} " +
+            "</script>")
+    List<CommitInfo> findList(@Param("tableNum") int tableNum, @Param("offset") long offset, @Param("limit") int limit);
+
+    @Select("<script>" +
+            "select count(*) from " + tableName + "${tableNum} where " +
             "<choose>" +
             "<when test = 'idIn == null || idIn.size() == 0'> false </when>" +
-            "<otherwise> commit_id in (<foreach collection='idIn' item='e' separator=','>#{e}</foreach>) </otherwise>" +
+            "<otherwise> commit_id in (<foreach collection='idIn' item='e' separator=','>unhex(#{e})</foreach>) </otherwise>" +
             "</choose>" +
             "</script>")
-    Long countIdIn(@Param("idIn") Collection<String> idIn);
+    Long countIdIn(@Param("tableNum") int tableNum, @Param("idIn") Collection<String> idIn);
 }

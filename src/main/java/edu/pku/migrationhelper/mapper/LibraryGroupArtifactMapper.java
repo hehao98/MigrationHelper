@@ -13,6 +13,20 @@ public interface LibraryGroupArtifactMapper {
 
     String tableName = "library_group_artifact";
 
+    @Update("<script>" +
+            "CREATE TABLE `"+tableName+"` (\n" +
+            "                                        `id` bigint(20) NOT NULL AUTO_INCREMENT,\n" +
+            "                                        `group_id` varchar(63) DEFAULT NULL,\n" +
+            "                                        `artifact_id` varchar(63) DEFAULT NULL,\n" +
+            "                                        `version_extracted` bit(1) NOT NULL,\n" +
+            "                                        `parsed` bit(1) NOT NULL,\n" +
+            "                                        `parse_error` bit(1) NOT NULL,\n" +
+            "                                        PRIMARY KEY (`id`),\n" +
+            "                                        UNIQUE KEY `unique` (`group_id`,`artifact_id`)\n" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;" +
+            "</script>")
+    void createTable();
+
     @Insert("<script>" +
             "insert  ignore into " + tableName + " " +
             "(group_id, artifact_id, version_extracted) values " +
@@ -26,7 +40,9 @@ public interface LibraryGroupArtifactMapper {
 
     @Update("<script>" +
             "update " + tableName + " set " +
-            "version_extracted = #{e.versionExtracted} " +
+            "version_extracted = #{e.versionExtracted}, " +
+            "parsed = #{e.parsed}, " +
+            "parse_error = #{e.parseError} " +
             "where id = #{e.id} " +
             "</script>")
     int update(@Param("e") LibraryGroupArtifact entity);

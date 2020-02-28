@@ -1,23 +1,23 @@
 CREATE TABLE `blob_info` (
-                           `blob_id` varchar(40) NOT NULL,
-                           `blob_type` varchar(15) NOT NULL,
-                           `library_signature_ids` text NOT NULL,
-                           `library_version_ids` text NOT NULL,
-                           `library_group_artifact_ids` text NOT NULL,
+                           `blob_id` binary(20) NOT NULL,
+                           `blob_type` int NOT NULL,
+                           `library_signature_ids` mediumblob NOT NULL,
+                           `library_version_ids` mediumblob NOT NULL,
+                           `library_group_artifact_ids` mediumblob NOT NULL,
                            PRIMARY KEY (`blob_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
 CREATE TABLE `commit_info` (
-                             `commit_id` varchar(40) NOT NULL,
-                             `code_library_version_ids` text NOT NULL,
-                             `code_group_artifact_ids` text NOT NULL,
-                             `code_delete_group_artifact_ids` text NOT NULL,
-                             `code_add_group_artifact_ids` text NOT NULL,
-                             `pom_library_version_ids` text NOT NULL,
-                             `pom_group_artifact_ids` text NOT NULL,
-                             `pom_delete_group_artifact_ids` text NOT NULL,
-                             `pom_add_group_artifact_ids` text NOT NULL,
-                             `method_change_ids` text NOT NULL,
+                             `commit_id` binary(20) NOT NULL,
+                             `code_library_version_ids` mediumblob NOT NULL,
+                             `code_group_artifact_ids` mediumblob NOT NULL,
+                             `code_delete_group_artifact_ids` mediumblob NOT NULL,
+                             `code_add_group_artifact_ids` mediumblob NOT NULL,
+                             `pom_library_version_ids` mediumblob NOT NULL,
+                             `pom_group_artifact_ids` mediumblob NOT NULL,
+                             `pom_delete_group_artifact_ids` mediumblob NOT NULL,
+                             `pom_add_group_artifact_ids` mediumblob NOT NULL,
+                             `method_change_ids` mediumblob NOT NULL,
                              PRIMARY KEY (`commit_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
@@ -27,15 +27,17 @@ CREATE TABLE `library_group_artifact` (
                                         `group_id` varchar(63) DEFAULT NULL,
                                         `artifact_id` varchar(63) DEFAULT NULL,
                                         `version_extracted` bit(1) NOT NULL,
+                                        `parsed` bit(1) NOT NULL,
+                                        `parse_error` bit(1) NOT NULL,
                                         PRIMARY KEY (`id`),
                                         UNIQUE KEY `unique` (`group_id`,`artifact_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `library_signature_map` (
-                                       `library_version_id` bigint(20) NOT NULL,
-                                       `method_signature_id` bigint(20) NOT NULL,
-                                       PRIMARY KEY (`library_version_id`,`method_signature_id`),
-                                       KEY `index2` (`method_signature_id`)
+CREATE TABLE `library_signature_to_version` (
+                                                   `signature_id` bigint(20) NOT NULL,
+                                                   `version_ids` mediumblob,
+                                                   `group_artifact_ids` mediumblob,
+                                                   PRIMARY KEY (`signature_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
 CREATE TABLE `library_version` (
@@ -48,6 +50,13 @@ CREATE TABLE `library_version` (
                                  PRIMARY KEY (`id`),
                                  UNIQUE KEY `unique` (`group_artifact_id`,`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE `library_version_to_signature` (
+                                                   `version_id` bigint(20) NOT NULL,
+                                                   `signature_ids` mediumblob,
+                                                   PRIMARY KEY (`version_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
 CREATE TABLE `lio_project_with_repository` (
                                              `id` bigint(20) NOT NULL,
@@ -76,10 +85,10 @@ CREATE TABLE `method_change` (
 
 CREATE TABLE `method_signature` (
                                   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                                  `package_name` varchar(127) NOT NULL,
-                                  `class_name` varchar(127) NOT NULL,
-                                  `method_name` varchar(127) NOT NULL,
-                                  `param_list` varchar(639) NOT NULL,
+                                  `package_name` varchar(255) NOT NULL,
+                                  `class_name` varchar(255) NOT NULL,
+                                  `method_name` varchar(255) NOT NULL,
+                                  `param_list` varchar(2047) NOT NULL,
                                   PRIMARY KEY (`id`),
                                   UNIQUE KEY `unique` (`package_name`,`class_name`,`method_name`,`param_list`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=ascii;

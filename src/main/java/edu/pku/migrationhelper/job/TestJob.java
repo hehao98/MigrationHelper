@@ -1,27 +1,29 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.*;
-import edu.pku.migrationhelper.mapper.BlobInfoMapper;
-import edu.pku.migrationhelper.mapper.CommitInfoMapper;
-import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
-import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
+import edu.pku.migrationhelper.data.BlobInfo;
+import edu.pku.migrationhelper.data.CommitInfo;
+import edu.pku.migrationhelper.data.LibraryVersion;
+import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.*;
+import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.LZFUtils;
+import edu.pku.migrationhelper.util.MathUtils;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import tokyocabinet.HDB;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Arrays;
-import java.util.List;
+import java.io.FileReader;
+import java.util.*;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -59,9 +61,14 @@ public class TestJob {
     @Autowired
     private CommitInfoMapper commitInfoMapper;
 
+    @Autowired
+    private TestMapper testMapper;
+
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
-        testLZF();
+//        testBin2List();
+//        testDatabaseSize();
+//        testLZF();
 //        testPomAnalysis();
 //        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
@@ -70,13 +77,70 @@ public class TestJob {
 //        testAnalyzeBlob();
 //        testTokyoCabinet();
 //        testBlobCommitMapper();
+//        genBerIdsCode();
+        testCreateTable();
+    }
+
+    public void testCreateTable() throws Exception {
+        for (long i = 0; i < 128; i++) {
+            long ai = i << 35;
+            methodSignatureMapper.createTable((int)i);
+            methodSignatureMapper.setAutoIncrement((int)i, ai);
+        }
+    }
+
+    public void testBin2List() throws Exception {
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                testBin2List(i);
+            }
+        }
+        LOG.info("testBin2List success");
+    }
+
+    public void testBin2List(int size) throws Exception {
+        Random random = new Random();
+        List<Long> list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            list.add(random.nextLong());
+        }
+        byte[] content = MathUtils.berNumberList(list);
+        List<Long> result = MathUtils.unberNumberList(content);
+        Iterator<Long> listIt = list.iterator();
+        Iterator<Long> resultIt = result.iterator();
+        while(listIt.hasNext() && resultIt.hasNext()) {
+            if(!listIt.next().equals(resultIt.next())) {
+                throw new RuntimeException("testBin2List fail: " + list);
+            }
+        }
+        if(listIt.hasNext() != resultIt.hasNext()) {
+            throw new RuntimeException("testBin2List fail: " + list);
+        }
+    }
+
+    public void testDatabaseSize() throws Exception {
+        List<Long> signatureIds = testMapper.findAllSignatureIds();
+        Map<Long, List<Long>> v2s = new HashMap<>();
+        for (long signatureId : signatureIds) {
+            List<Long> versionIds = testMapper.findVersionIdsBySignatureId(signatureId);
+            for (Long versionId : versionIds) {
+                v2s.computeIfAbsent(versionId, k -> new LinkedList<>()).add(signatureId);
+            }
+            testMapper.insertS2VJ(signatureId, JsonUtils.writeObjectAsString(versionIds));
+            testMapper.insertS2VB(signatureId, MathUtils.berNumberList(versionIds));
+        }
+        v2s.forEach((vId, sIds) -> {
+            testMapper.insertV2SB(vId, MathUtils.berNumberList(sIds));
+            testMapper.insertV2SJ(vId, JsonUtils.writeObjectAsString(sIds));
+        });
     }
 
     public void testJavaCodeAnalysis() throws Exception {
         String content = readFile("C:\\Users\\xuyul\\Documents\\实验室\\Library Migration\\jgit-cookbook\\src\\main\\java\\org\\dstadler\\jgit\\api\\ReadFileFromCommit.java");
         List<MethodSignature> msList = javaCodeAnalysisService.analyzeJavaCode(content);
         for (MethodSignature ms : msList) {
-            Long id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            MethodSignature dbms = libraryIdentityService.getMethodSignature(ms, null);
+            Long id = dbms == null ? null : dbms.getId();
             LOG.info("id = {}, pn = {}, cn = {}, mn = {}, pl = {}", id,
                     ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
         }
@@ -155,17 +219,6 @@ public class TestJob {
         }
     }
 
-    public void testBlobCommitMapper() throws Exception {
-        BlobInfo blobInfo = blobInfoMapper.findByBlobId("1233e8228ca2254ecc6388e908205a124830e11c");
-        CommitInfo commitInfo = commitInfoMapper.findByCommitId("a70f55fdfce8e34b212c04f52b05c329cc6ee82d");
-        LibraryVersion libraryVersion = libraryVersionMapper.findByGroupIdAndArtifactIdAndVersion(
-                "org.eclipse.jgit", "org.eclipse.jgit", "3.4.0.201405051725-m7");
-        LOG.info("blob = {}, commit = {}, libraryVersion = {}",
-                blobInfo == null ? null : blobInfo.getBlobId(),
-                commitInfo == null ? null : commitInfo.getCommitId(),
-                libraryVersion == null ? null : libraryVersion.getGroupArtifactId());
-    }
-
     public void testLZF() throws Exception {
         printFirstNByte("lzf_test/1.bin", 50);
         printFirstNByte("lzf_test/2.bin", 50);
@@ -201,5 +254,41 @@ public class TestJob {
             System.out.print(',');
         }
         System.out.println("");
+    }
+
+    public void genBerIdsCode() throws Exception {
+        String className = "BlobInfo";
+        BufferedReader reader = new BufferedReader(new FileReader("db/test.txt"));
+        String line;
+        while((line = reader.readLine()) != null) {
+            line = line.trim();
+            if("".equals(line)) continue;
+            String[] attrs = line.split(" ");
+            String fieldName = attrs[2];
+            fieldName = fieldName.substring(0, fieldName.length() - 1);
+            String FieldName = fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+            String listFieldName = fieldName.substring(0, fieldName.length() - 1) + "List";
+            String ListFieldName = FieldName.substring(0, FieldName.length() - 1) + "List";
+            System.out.println(
+                    "    public byte[] get"+FieldName+"() {\n" +
+                            "        return "+fieldName+";\n" +
+                            "    }\n" +
+                            "\n" +
+                            "    public "+className+" set"+FieldName+"(byte[] "+fieldName+") {\n" +
+                            "        GetSetHelper.berNumberByteSetter("+fieldName+", e -> this."+fieldName+" = e, e -> this."+listFieldName+" = e);\n" +
+                            "        return this;\n" +
+                            "    }\n" +
+                            "\n" +
+                            "    public List<Long> get"+ListFieldName+"() {\n" +
+                            "        return "+listFieldName+";\n" +
+                            "    }\n" +
+                            "\n" +
+                            "    public "+className+" set"+ListFieldName+"(byte[] "+listFieldName+") {\n" +
+                            "        GetSetHelper.berNumberByteSetter("+listFieldName+", e -> this."+fieldName+" = e, e -> this."+listFieldName+" = e);\n" +
+                            "        return this;\n" +
+                            "    }\n" +
+                            "\n"
+            );
+        }
     }
 }

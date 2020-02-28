@@ -27,10 +27,7 @@ public class JarAnalysisService {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
-    @Autowired
-    private MethodSignatureMapper methodSignatureMapper;
-
-    public List<MethodSignature> analyzeJar(String filePath, Map<String, MethodSignature> signatureCache) throws Exception {
+    public List<MethodSignature> analyzeJar(String filePath) throws Exception {
         List<MethodSignature> result = new LinkedList<>();
         try {
             // store all classes into repository, so that we can analyze their superclass's methods
@@ -49,7 +46,7 @@ public class JarAnalysisService {
                 }
             }
             for (JavaClass clz : classList) {
-                analyzeClass(clz, repository, result, signatureCache);
+                analyzeClass(clz, repository, result);
             }
         } catch (Exception e) {
             LOG.error("analyzeJar fail filePath = {}", filePath);
@@ -58,7 +55,7 @@ public class JarAnalysisService {
         return result;
     }
 
-    public void analyzeClass(JavaClass clz, Repository repository, List<MethodSignature> result, Map<String, MethodSignature> signatureCache) {
+    public void analyzeClass(JavaClass clz, Repository repository, List<MethodSignature> result) {
         String packageName = clz.getPackageName();
         String className = clz.getClassName();
         if(packageName == null) packageName = "";
@@ -68,14 +65,14 @@ public class JarAnalysisService {
                 .setClassName(className)
                 .setMethodName("")
                 .setParamList("");
-        saveMethodSignature(ms, result, signatureCache);
+        result.add(ms);
         while (clz != null) {
-            analyzeClassMethods(clz, packageName, className, result, signatureCache);
+            analyzeClassMethods(clz, packageName, className, result);
             for (String interfaceName : clz.getInterfaceNames()) {
                 try {
                     JavaClass interfaceClass = repository.loadClass(interfaceName);
                     if(interfaceClass == null) continue;
-                    analyzeClassMethods(interfaceClass, packageName, className, result, signatureCache);
+                    analyzeClassMethods(interfaceClass, packageName, className, result);
                 } catch (ClassNotFoundException e) {
                     // ignore when we can't find the class in this repository
                 }
@@ -89,7 +86,7 @@ public class JarAnalysisService {
         }
     }
 
-    public void analyzeClassMethods(JavaClass clz, String packageName, String className, List<MethodSignature> result, Map<String, MethodSignature> signatureCache) {
+    public void analyzeClassMethods(JavaClass clz, String packageName, String className, List<MethodSignature> result) {
         StringBuilder paramList = new StringBuilder();
         for (Method method : clz.getMethods()) {
             String methodName = method.getName();
@@ -109,55 +106,7 @@ public class JarAnalysisService {
                     .setClassName(className)
                     .setMethodName(methodName)
                     .setParamList(paramListString);
-            saveMethodSignature(ms, result, signatureCache);
-        }
-    }
-
-    private void saveMethodSignature(MethodSignature ms, List<MethodSignature> result, Map<String, MethodSignature> signatureCache) {
-        String cacheKey = null;
-        if(signatureCache != null) {
-            cacheKey = ms.getPackageName() + ":" + ms.getClassName() + ":" + ms.getMethodName() + ":" + ms.getParamList();
-            MethodSignature cacheValue = signatureCache.get(cacheKey);
-            if (cacheValue != null) {
-                ms.setId(cacheValue.getId());
-                result.add(ms);
-                return;
-            }
-        }
-
-        try {
-            // there will be many duplicate records when analyzing different versions of the same library
-            // insertOne is time-consuming, so we do findId first
-            Long id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
-            if (id == null) {
-                methodSignatureMapper.insertOne(ms);
-                if (ms.getId() == 0) {
-                    id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
-                    if (id == null) { // maybe caused by no transaction
-                        id = methodSignatureMapper.findId(ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
-                    }
-                } else {
-                    id = ms.getId();
-                }
-            }
-            ms.setId(id);
             result.add(ms);
-
-            if (signatureCache != null) {
-                MethodSignature cacheValue = new MethodSignature()
-                        .setId(ms.getId())
-                        .setPackageName(ms.getPackageName())
-                        .setClassName(ms.getClassName())
-                        .setMethodName(ms.getMethodName())
-                        .setParamList(ms.getParamList());
-                signatureCache.put(cacheKey, cacheValue);
-            }
-        } finally {
-
         }
-//        } catch (Exception e) {
-//            LOG.error("save method signature fail", e);
-             // ignore sql exception (usually data too long for some column)
-//        }
     }
 }

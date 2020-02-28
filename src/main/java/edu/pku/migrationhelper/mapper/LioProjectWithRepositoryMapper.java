@@ -1,10 +1,7 @@
 package edu.pku.migrationhelper.mapper;
 
 import edu.pku.migrationhelper.data.LioProjectWithRepository;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -15,6 +12,26 @@ import java.util.List;
 public interface LioProjectWithRepositoryMapper {
 
     String tableName = "lio_project_with_repository";
+
+    @Update("<script>" +
+            "CREATE TABLE `"+tableName+"` (\n" +
+            "                                             `id` bigint(20) NOT NULL,\n" +
+            "                                             `platform` varchar(255) DEFAULT NULL,\n" +
+            "                                             `language` varchar(255) DEFAULT NULL,\n" +
+            "                                             `name` varchar(255) DEFAULT NULL,\n" +
+            "                                             `repository_url` varchar(255) DEFAULT NULL,\n" +
+            "                                             `repository_id` bigint(20) DEFAULT NULL,\n" +
+            "                                             `source_rank` int(11) DEFAULT NULL,\n" +
+            "                                             `repository_star_count` int(11) DEFAULT NULL,\n" +
+            "                                             `repository_fork_count` int(11) DEFAULT NULL,\n" +
+            "                                             `repository_watchers_count` int(11) DEFAULT NULL,\n" +
+            "                                             `repository_source_rank` int(11) DEFAULT NULL,\n" +
+            "                                             `dependent_projects_count` int(11) DEFAULT NULL,\n" +
+            "                                             `dependent_repositories_count` int(11) DEFAULT NULL,\n" +
+            "                                             PRIMARY KEY (`id`)\n" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;" +
+            "</script>")
+    void createTable();
 
     @Insert("<script>" +
             "insert  ignore into " + tableName + " " +

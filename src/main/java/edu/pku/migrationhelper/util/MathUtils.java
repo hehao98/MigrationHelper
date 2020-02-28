@@ -19,14 +19,15 @@ public class MathUtils {
      * binary string. Here we do the reverse
      * :param s: a binary string with packed values
      * :return: a list of unpacked values
-     * >>> unber('\x00\x83M')
+     * >>> unberNumberList('\x00\x83M')
      * [0, 461]
-     * >>> unber('\x83M\x96\x14')
+     * >>> unberNumberList('\x83M\x96\x14')
      * [461, 2836]
-     * >>> unber('\x99a\x89\x12')
+     * >>> unberNumberList('\x99a\x89\x12')
      * [3297, 1170]
      */
-    public static List<Long> unber(byte[] content) {
+    public static List<Long> unberNumberList(byte[] content) {
+        if(content == null) return null;
         List<Long> result = new LinkedList<>();
         long acc = 0;
         for (byte b : content) {
@@ -34,6 +35,39 @@ public class MathUtils {
             if ((b & 0x80) == 0) {
                 result.add(acc);
                 acc = 0;
+            }
+        }
+        return result;
+    }
+
+    public static byte[] berNumberList(List<Long> list) {
+        if(list == null) return null;
+        int listSize = list.size();
+        byte[][] resultSep = new byte[listSize][10];
+        int [] resultLen = new int[listSize];
+        int numberCount = 0;
+        int totalLength = 0;
+        for (long number : list) {
+            byte[] buffer = resultSep[numberCount];
+            int bufferCount = 0;
+            do {
+                if(bufferCount == 0) {
+                    buffer[bufferCount++] = (byte)(number & 0x7f);
+                } else {
+                    buffer[bufferCount++] = (byte)((number & 0x7f) | 0x80);
+                }
+                number = number >>> 7;
+            } while (number != 0);
+            resultLen[numberCount++] = bufferCount;
+            totalLength += bufferCount;
+        }
+        byte[] result = new byte[totalLength];
+        int len = 0;
+        for (int i = 0; i < listSize; i++) {
+            byte[] buffer = resultSep[i];
+            int bufferCount = resultLen[i];
+            for (int j = 0; j < bufferCount; j++) {
+                result[len++] = buffer[bufferCount - j - 1];
             }
         }
         return result;

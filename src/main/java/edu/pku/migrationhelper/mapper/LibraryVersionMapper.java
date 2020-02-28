@@ -14,6 +14,20 @@ public interface LibraryVersionMapper {
 
     String tableName = "library_version";
 
+    @Update("<script>" +
+            "CREATE TABLE `"+tableName+"` (\n" +
+            "                                 `id` bigint(20) NOT NULL AUTO_INCREMENT,\n" +
+            "                                 `group_artifact_id` bigint(20) NOT NULL,\n" +
+            "                                 `version` varchar(63) DEFAULT NULL,\n" +
+            "                                 `downloaded` bit(1) NOT NULL,\n" +
+            "                                 `parsed` bit(1) NOT NULL,\n" +
+            "                                 `parse_error` bit(1) NOT NULL,\n" +
+            "                                 PRIMARY KEY (`id`),\n" +
+            "                                 UNIQUE KEY `unique` (`group_artifact_id`,`version`)\n" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;" +
+            "</script>")
+    void createTable();
+
     @Insert("<script>" +
             "insert  ignore into " + tableName + " " +
             "(group_artifact_id, version, downloaded, parsed, parse_error) values " +

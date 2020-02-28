@@ -149,7 +149,7 @@ public class WocHdbDriver {
         }
         byte[] value = getRaw(key);
         if(value == null) return null;
-        return MathUtils.unber(value);
+        return MathUtils.unberNumberList(value);
     }
 
     public int getSliceByKey(String key) {
