@@ -3,7 +3,7 @@ spring:
   datasource:
     # MySQL
     dbcp2:
-      url: jdbc:mysql://localhost:3306/migration_helper_2
+      url: jdbc:mysql://localhost:3306/migration_helper_4
       username: root
       password: kylinsql
       driver-class-name: com.mysql.cj.jdbc.Driver

@@ -12,4 +12,4 @@ migration-helper:
   woc:
     enabled: false
   job:
-    enabled: CreateTableJob
+    enabled: TestJob

@@ -1,9 +1,6 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.BlobInfo;
-import edu.pku.migrationhelper.data.CommitInfo;
-import edu.pku.migrationhelper.data.LibraryVersion;
-import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
@@ -66,6 +63,7 @@ public class TestJob {
 
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
+        testDatabase();
 //        testBin2List();
 //        testDatabaseSize();
 //        testLZF();
@@ -78,7 +76,27 @@ public class TestJob {
 //        testTokyoCabinet();
 //        testBlobCommitMapper();
 //        genBerIdsCode();
-        testCreateTable();
+//        testCreateTable();
+    }
+
+    public void testDatabase() throws Exception {
+        MethodSignature ms = new MethodSignature()
+                .setPackageName("org.eclipse.jgit.api")
+                .setClassName("GarbageCollectCommand")
+                .setMethodName("wait")
+                .setParamList("");
+        MethodSignature mss = libraryIdentityService.getMethodSignature(ms, null);
+        System.out.println(mss.getId());
+        List<MethodSignature> msList = libraryIdentityService.getMethodSignatureList(ms.getPackageName(), ms.getClassName(), ms.getMethodName());
+        for (MethodSignature msss : msList) {
+            System.out.println(msss.getId());
+        }
+
+        LibrarySignatureToVersion s2v = libraryIdentityService.getSignatureToVersion(ms.getId());
+        System.out.println(s2v.getVersionIdList());
+        System.out.println(s2v.getGroupArtifactIdList());
+
+        System.out.println(libraryIdentityService.getVersionToSignature(1).getSignatureIdList());
     }
 
     public void testCreateTable() throws Exception {

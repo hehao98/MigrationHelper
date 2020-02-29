@@ -132,7 +132,7 @@ public class LibraryIdentityService {
 
         // download and parse each version of library
         Map<String, MethodSignature> signatureCache = new HashMap<>();
-        Map<Long, Set<Long>> version2Signature = new HashMap<>();
+        Map<Long, Set<Long>> signature2Version = new HashMap<>();
         List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
         boolean containError = false;
         for (LibraryVersion versionData : versionDatas) {
@@ -145,8 +145,10 @@ public class LibraryIdentityService {
                         containError = true;
                     }
                     LibraryVersionToSignature v2s = getVersionToSignature(versionId);
-                    if(v2s != null) {
-                        version2Signature.put(versionId, new HashSet<>(v2s.getSignatureIdList()));
+                    if(v2s != null && v2s.getSignatureIdList() != null) {
+                        v2s.getSignatureIdList().forEach(sid -> signature2Version
+                                .computeIfAbsent(sid, k -> new HashSet<>())
+                                .add(versionId));
                     }
                     continue;
                 }
@@ -167,7 +169,21 @@ public class LibraryIdentityService {
                 List<MethodSignature> signatureList = parseLibraryJar(groupId, artifactId, version, signatureCache);
                 Set<Long> signatureIds = new HashSet<>();
                 signatureList.forEach(e -> signatureIds.add(e.getId()));
-                version2Signature.put(versionId, signatureIds);
+                signatureIds.forEach(sid -> signature2Version
+                        .computeIfAbsent(sid, k -> new HashSet<>())
+                        .add(versionId));
+
+                LibraryVersionToSignature v2s = getVersionToSignature(versionId);
+                if(v2s == null) {
+                    v2s = new LibraryVersionToSignature()
+                            .setVersionId(versionId);
+                }
+                if(v2s.getSignatureIdList() != null) {
+                    signatureIds.addAll(v2s.getSignatureIdList());
+                }
+                v2s.setSignatureIdList(new ArrayList<>(signatureIds));
+                saveVersionToSignature(v2s);
+
                 versionData.setParsed(true);
                 versionData.setParseError(false);
                 libraryVersionMapper.update(versionData);
@@ -186,24 +202,8 @@ public class LibraryIdentityService {
             }
         }
 
-        // save version2Signature, signature2Version and groupArtifact
+        // save signature2Version and groupArtifact
         try {
-            Map<Long, Set<Long>> signature2Version = new HashMap<>();
-            version2Signature.forEach((versionId, signatureIds) -> {
-                signatureIds.forEach(sid -> signature2Version
-                        .computeIfAbsent(sid, k -> new HashSet<>())
-                        .add(versionId));
-                LibraryVersionToSignature v2s = getVersionToSignature(versionId);
-                if(v2s == null) {
-                    v2s = new LibraryVersionToSignature()
-                            .setVersionId(versionId);
-                }
-                if(v2s.getSignatureIdList() != null) {
-                    signatureIds.addAll(v2s.getSignatureIdList());
-                }
-                v2s.setSignatureIdList(new ArrayList<>(signatureIds));
-                saveVersionToSignature(v2s);
-            });
             signature2Version.forEach((signatureId, versionIds) -> {
                 LibrarySignatureToVersion s2v = getSignatureToVersion(signatureId);
                 if(s2v == null) {
