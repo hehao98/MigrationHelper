@@ -377,25 +377,28 @@ public class LibraryIdentityService {
 
     public void downloadLibraryFromMaven(String groupId, String artifactId, String version, OutputStream output) throws IOException {
         Iterator<String> baseIt = mavenUrlBase.iterator();
-        while(baseIt.hasNext()) {
-            String url = baseIt.next()
-                    + groupId.replace(".", "/") + "/"
-                    + artifactId + "/" + version + "/"
-                    + artifactId + "-" + version + ".jar";
-            HttpGet request = new HttpGet(url);
-            try {
-                HttpResponse response = executeHttpRequest(request);
-                response.getEntity().writeTo(output);
-                output.flush();
-                output.close();
-                return;
-            } catch (Exception e) {
-                if(!baseIt.hasNext()) throw e;
-                LOG.info("http fail, try next, url = {}", url);
-                continue;
-            } finally {
-                request.releaseConnection();
+        try {
+            while (baseIt.hasNext()) {
+                String url = baseIt.next()
+                        + groupId.replace(".", "/") + "/"
+                        + artifactId + "/" + version + "/"
+                        + artifactId + "-" + version + ".jar";
+                HttpGet request = new HttpGet(url);
+                try {
+                    HttpResponse response = executeHttpRequest(request);
+                    response.getEntity().writeTo(output);
+                    output.flush();
+                    return;
+                } catch (Exception e) {
+                    if (!baseIt.hasNext()) throw e;
+                    LOG.info("http fail, try next, url = {}", url);
+                    continue;
+                } finally {
+                    request.releaseConnection();
+                }
             }
+        } finally {
+            output.close();
         }
         throw new RuntimeException("no maven repository available");
     }

@@ -29,11 +29,13 @@ public class JarAnalysisService {
 
     public List<MethodSignature> analyzeJar(String filePath) throws Exception {
         List<MethodSignature> result = new LinkedList<>();
+        Repository repository = null;
+        JarFile jarFile = null;
         try {
             // store all classes into repository, so that we can analyze their superclass's methods
-            Repository repository = new MemorySensitiveClassPathRepository(new ClassPath(filePath));
+            repository = new MemorySensitiveClassPathRepository(new ClassPath(filePath));
             List<JavaClass> classList = new LinkedList<>();
-            JarFile jarFile = new JarFile(filePath);
+            jarFile = new JarFile(filePath);
             Enumeration<JarEntry> e = jarFile.entries();
             while(e.hasMoreElements()) {
                 JarEntry entry = e.nextElement();
@@ -51,6 +53,13 @@ public class JarAnalysisService {
         } catch (Exception e) {
             LOG.error("analyzeJar fail filePath = {}", filePath);
             throw e;
+        } finally {
+            if(repository != null) {
+                repository.clear();
+            }
+            if(jarFile != null) {
+                jarFile.close();
+            }
         }
         return result;
     }
