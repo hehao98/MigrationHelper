@@ -25,8 +25,8 @@ migration-helper:
   woc:
     enabled: true
   thread-pool:
-    thread-count: 24
-    calc-thread-count: 4
+    thread-count: 32
+    calc-thread-count: 8
   library-identity:
     maven-url-base:
       - https://repo1.maven.org/maven2/
