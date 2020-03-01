@@ -3,10 +3,11 @@ spring:
   datasource:
     # MySQL
     dbcp2:
-      url: jdbc:mysql://localhost:3306/migration_helper_4
+      url: jdbc:mysql://localhost:3306/migration_helper_5
       username: root
       password: kylinsql
       driver-class-name: com.mysql.cj.jdbc.Driver
+      max-total: 100
     # SQLite
 #    dbcp2:
 #      url: jdbc:sqlite:db/migration_helper.db
@@ -22,7 +23,8 @@ server:
 
 migration-helper:
   thread-pool:
-    thread-count: 4
+    thread-count: 8
+    calc-thread-count: 4
   library-identity:
     maven-url-base:
       - https://repo1.maven.org/maven2/

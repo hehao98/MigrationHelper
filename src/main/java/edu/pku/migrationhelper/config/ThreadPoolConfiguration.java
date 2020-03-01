@@ -20,10 +20,18 @@ public class ThreadPoolConfiguration {
 
     private int threadCount = 1;
 
-    @Bean
+    private int calcThreadCount = 1;
+
+    @Bean("ThreadPool")
     public ExecutorService getExecutorService() {
         LOG.info("Thread pool thread count = {}", threadCount);
         return Executors.newFixedThreadPool(threadCount);
+    }
+
+    @Bean("CalcThreadPool")
+    public ExecutorService getCalcExecutorService() {
+        LOG.info("Calculation thread pool thread count = {}", calcThreadCount);
+        return Executors.newFixedThreadPool(calcThreadCount);
     }
 
     public int getThreadCount() {
@@ -32,6 +40,15 @@ public class ThreadPoolConfiguration {
 
     public ThreadPoolConfiguration setThreadCount(int threadCount) {
         this.threadCount = threadCount;
+        return this;
+    }
+
+    public int getCalcThreadCount() {
+        return calcThreadCount;
+    }
+
+    public ThreadPoolConfiguration setCalcThreadCount(int calcThreadCount) {
+        this.calcThreadCount = calcThreadCount;
         return this;
     }
 }

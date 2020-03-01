@@ -63,12 +63,12 @@ public class TestJob {
 
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
-        testDatabase();
+//        testDatabase();
 //        testBin2List();
 //        testDatabaseSize();
 //        testLZF();
 //        testPomAnalysis();
-//        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
+        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();

@@ -2,6 +2,8 @@ package edu.pku.migrationhelper.job;
 
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "CreateTableJob")
 public class CreateTableJob {
+
+    Logger LOG = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private BlobInfoMapper blobInfoMapper;
@@ -68,6 +72,8 @@ public class CreateTableJob {
             methodSignatureMapper.createTable(i);
             methodSignatureMapper.setAutoIncrement(i, ai);
         }
+
+        LOG.info("Create Table Success");
     }
 
 }

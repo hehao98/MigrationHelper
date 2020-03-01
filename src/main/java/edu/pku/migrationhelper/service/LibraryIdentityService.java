@@ -15,6 +15,7 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -39,6 +42,10 @@ public class LibraryIdentityService {
             .setMaxConnPerRoute(100)
             .setMaxConnTotal(100)
             .build();
+
+    @Autowired
+    @Qualifier("CalcThreadPool")
+    private ExecutorService calcThreadPool;
 
     @Autowired
     private JarAnalysisService jarAnalysisService;
@@ -134,6 +141,12 @@ public class LibraryIdentityService {
         Map<String, MethodSignature> signatureCache = new HashMap<>();
         Map<Long, Set<Long>> signature2Version = new HashMap<>();
         List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
+
+        if(versionDatas.size() > 30) {
+            //TODO 80% of GroupArtifacts have less than 27 versions, skip and re-run those GroupArtifacts which have more than 30 versions later
+            return;
+        }
+
         boolean containError = false;
         for (LibraryVersion versionData : versionDatas) {
             long versionId = versionData.getId();
@@ -237,7 +250,15 @@ public class LibraryIdentityService {
 
     public List<MethodSignature> parseLibraryJar(String groupId, String artifactId, String version, Map<String, MethodSignature> signatureCache) throws Exception {
         String jarPath = generateJarDownloadPath(groupId, artifactId, version);
-        List<MethodSignature> signatures = jarAnalysisService.analyzeJar(jarPath);
+        List<MethodSignature> signatures = new LinkedList<>();
+        Future<?> result = calcThreadPool.submit(() -> {
+            try {
+                jarAnalysisService.analyzeJar(jarPath, signatures);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        result.get();
         for (MethodSignature signature : signatures) {
             saveMethodSignature(signature, signatureCache);
         }

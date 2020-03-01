@@ -27,8 +27,7 @@ public class JarAnalysisService {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
-    public List<MethodSignature> analyzeJar(String filePath) throws Exception {
-        List<MethodSignature> result = new LinkedList<>();
+    public List<MethodSignature> analyzeJar(String filePath, List<MethodSignature> result) throws Exception {
         Repository repository = null;
         JarFile jarFile = null;
         try {

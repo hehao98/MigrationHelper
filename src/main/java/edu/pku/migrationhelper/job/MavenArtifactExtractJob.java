@@ -8,6 +8,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -28,6 +29,7 @@ public class MavenArtifactExtractJob {
     Logger LOG = LoggerFactory.getLogger(getClass());
 
     @Autowired
+    @Qualifier("ThreadPool")
     private ExecutorService executorService;
 
     @Autowired
