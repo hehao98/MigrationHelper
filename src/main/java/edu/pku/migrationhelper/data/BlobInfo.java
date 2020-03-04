@@ -40,7 +40,7 @@ public class BlobInfo {
 
     private BlobType blobTypeEnum;
 
-    private byte[] librarySignatureIds;
+    private byte[] librarySignatureIds; // [(signatureId, startLine, endLine), ......]
 
     private byte[] libraryVersionIds;
 

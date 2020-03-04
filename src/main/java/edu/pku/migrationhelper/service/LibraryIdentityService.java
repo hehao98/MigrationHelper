@@ -39,8 +39,8 @@ public class LibraryIdentityService {
     Logger LOG = LoggerFactory.getLogger(getClass());
 
     private HttpClient httpClient = HttpClients.custom()
-            .setMaxConnPerRoute(100)
-            .setMaxConnTotal(100)
+            .setMaxConnPerRoute(1000)
+            .setMaxConnTotal(1000)
             .build();
 
     @Autowired
@@ -276,6 +276,27 @@ public class LibraryIdentityService {
 
     public static String getMethodSignatureCacheKey(MethodSignature ms) {
         return ms.getPackageName() + ":" + ms.getClassName() + ":" + ms.getMethodName() + ":" + ms.getParamList();
+    }
+
+    public Map<Long, List<Long>> getSignatureToGroupArtifact(Collection<Long> signatureIds) {
+        Map<Integer, Set<Long>> sliceMap = new HashMap<>();
+        for (Long signatureId : signatureIds) {
+            int slice = getMethodSignatureSliceKey(signatureId);
+            sliceMap.computeIfAbsent(slice, k -> new HashSet<>()).add(signatureId);
+        }
+        Map<Long, List<Long>> result = new HashMap<>();
+        sliceMap.forEach((slice, ids) -> {
+            List<LibrarySignatureToVersion> s2vList = librarySignatureToVersionMapper.findGroupArtifactByIdIn(slice, ids);
+            for (LibrarySignatureToVersion s2v : s2vList) {
+                result.put(s2v.getSignatureId(), s2v.getGroupArtifactIdList());
+            }
+        });
+        for (Long signatureId : signatureIds) {
+            if(!result.containsKey(signatureId)) {
+                result.put(signatureId, new ArrayList<>(0));
+            }
+        }
+        return result;
     }
 
     public LibrarySignatureToVersion getSignatureToVersion(long signatureId) {

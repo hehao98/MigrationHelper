@@ -7,7 +7,7 @@ spring:
       username: root
       password: if48SrV7#e
       driver-class-name: com.mysql.cj.jdbc.Driver
-      max-total: 100
+      max-total: 500
     # SQLite
 #    dbcp2:
 #      url: jdbc:sqlite:db/migration_helper.db
@@ -25,8 +25,8 @@ migration-helper:
   woc:
     enabled: true
   thread-pool:
-    thread-count: 32
-    calc-thread-count: 8
+    thread-count: 256
+    calc-thread-count: 16
   library-identity:
     maven-url-base:
       - https://repo1.maven.org/maven2/

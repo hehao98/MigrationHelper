@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Created by xuyul on 2020/2/28.
  */
@@ -36,4 +39,15 @@ public interface LibrarySignatureToVersionMapper {
             "signature_id = #{signatureId}" +
             "</script>")
     LibrarySignatureToVersion findById(@Param("tableNum") int tableNum, @Param("signatureId") long signatureId);
+
+    @Select("<script>" +
+            "select signature_id, group_artifact_ids from " + tableName + "${tableNum} where " +
+            "<choose>" +
+            "<when test = 'idIn == null || idIn.size() == 0'> false </when>" +
+            "<otherwise> signature_id in (<foreach collection='idIn' item='e' separator=','>#{e}</foreach>) </otherwise>" +
+            "</choose>" +
+            "</script>")
+    List<LibrarySignatureToVersion> findGroupArtifactByIdIn(
+            @Param("tableNum") int tableNum,
+            @Param("idIn") Collection<Long> signatureIds);
 }

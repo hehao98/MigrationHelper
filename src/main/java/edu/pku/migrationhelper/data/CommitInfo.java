@@ -1,5 +1,7 @@
 package edu.pku.migrationhelper.data;
 
+import edu.pku.migrationhelper.service.RepositoryAnalysisService;
+
 import java.util.List;
 
 /**
@@ -25,7 +27,9 @@ public class CommitInfo {
 
     private byte[] pomAddGroupArtifactIds;
 
-    private byte[] methodChangeIds;
+    private byte[] methodChangeIds; // [(methodChangeId, count)]
+
+    private List<RepositoryAnalysisService.BlobInCommit> blobInCommit; // not persistence, using by RepositoryAnalysisService
 
     private String commitIdString;
 
@@ -232,6 +236,15 @@ public class CommitInfo {
 
     public CommitInfo setMethodChangeIdList(List<Long> methodChangeIdList) {
         GetSetHelper.berNumberListSetter(methodChangeIdList, e -> this.methodChangeIds = e, e -> this.methodChangeIdList = e);
+        return this;
+    }
+
+    public List<RepositoryAnalysisService.BlobInCommit> getBlobInCommit() {
+        return blobInCommit;
+    }
+
+    public CommitInfo setBlobInCommit(List<RepositoryAnalysisService.BlobInCommit> blobInCommit) {
+        this.blobInCommit = blobInCommit;
         return this;
     }
 }

@@ -4,6 +4,7 @@ import edu.pku.migrationhelper.data.MethodSignature;
 import org.springframework.stereotype.Service;
 import spoon.Launcher;
 import spoon.reflect.code.*;
+import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
@@ -24,7 +25,6 @@ public class JavaCodeAnalysisService {
     public List<MethodSignature> analyzeJavaCode(String javaCode) {
         if(javaCode == null || "".equals(javaCode)) return Collections.emptyList();
         CtClass<?> ctClass = Launcher.parseClass(javaCode);
-        Set<String> existSignature = new HashSet<>();
         List<MethodSignature> result = new LinkedList<>();
         StringBuilder stringBuilder = new StringBuilder();
         for (CtMethod<?> method : ctClass.getAllMethods()) {
@@ -70,19 +70,11 @@ public class JavaCodeAnalysisService {
                     }
                     methodSignature.setParamList(stringBuilder.toString());
 
-                    stringBuilder.delete(0, stringBuilder.length());
-                    stringBuilder.append(methodSignature.getPackageName());
-                    stringBuilder.append("|");
-                    stringBuilder.append(methodSignature.getClassName());
-                    stringBuilder.append("|");
-                    stringBuilder.append(methodSignature.getMethodName());
-                    stringBuilder.append("|");
-                    stringBuilder.append(methodSignature.getParamList());
-                    String methodSignatureString = stringBuilder.toString();
-                    if(!existSignature.contains(methodSignatureString)) {
-                        existSignature.add(methodSignatureString);
-                        result.add(methodSignature);
-                    }
+                    SourcePosition position = element.getPosition();
+                    methodSignature.setStartLine(position.getLine());
+                    methodSignature.setEndLine(position.getEndLine());
+
+                    result.add(methodSignature);
                 }
             });
         }

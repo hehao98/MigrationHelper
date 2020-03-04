@@ -68,10 +68,10 @@ public class TestJob {
 //        testDatabaseSize();
 //        testLZF();
 //        testPomAnalysis();
-        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
+//        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
-//        testJavaCodeAnalysis();
+        testJavaCodeAnalysis();
 //        testAnalyzeBlob();
 //        testTokyoCabinet();
 //        testBlobCommitMapper();
@@ -154,13 +154,13 @@ public class TestJob {
     }
 
     public void testJavaCodeAnalysis() throws Exception {
-        String content = readFile("C:\\Users\\xuyul\\Documents\\实验室\\Library Migration\\jgit-cookbook\\src\\main\\java\\org\\dstadler\\jgit\\api\\ReadFileFromCommit.java");
+        String content = readFile("C:\\Users\\xuyul\\Documents\\实验室\\Library-Migration\\jgit-cookbook\\src\\main\\java\\org\\dstadler\\jgit\\api\\ReadFileFromCommit.java");
         List<MethodSignature> msList = javaCodeAnalysisService.analyzeJavaCode(content);
         for (MethodSignature ms : msList) {
             MethodSignature dbms = libraryIdentityService.getMethodSignature(ms, null);
             Long id = dbms == null ? null : dbms.getId();
-            LOG.info("id = {}, pn = {}, cn = {}, mn = {}, pl = {}", id,
-                    ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            LOG.info("id = {}, pn = {}, cn = {}, mn = {}, pl = {}, ss = {}, se = {}", id,
+                    ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList(), ms.getStartLine(), ms.getEndLine());
         }
     }
 

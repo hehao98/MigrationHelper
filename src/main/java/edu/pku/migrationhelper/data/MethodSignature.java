@@ -12,6 +12,10 @@ public class MethodSignature {
 
     private String paramList;
 
+    private int startLine; // not persistence, using by analysis of java code only
+
+    private int endLine; // not persistence, using by analysis of java code only
+
     public long getId() {
         return id;
     }
@@ -54,6 +58,24 @@ public class MethodSignature {
 
     public MethodSignature setParamList(String paramList) {
         this.paramList = paramList;
+        return this;
+    }
+
+    public int getStartLine() {
+        return startLine;
+    }
+
+    public MethodSignature setStartLine(int startLine) {
+        this.startLine = startLine;
+        return this;
+    }
+
+    public int getEndLine() {
+        return endLine;
+    }
+
+    public MethodSignature setEndLine(int endLine) {
+        this.endLine = endLine;
         return this;
     }
 }
