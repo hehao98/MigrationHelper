@@ -1,12 +1,14 @@
 package edu.pku.migrationhelper.service;
 
 import com.github.difflib.DiffUtils;
+import com.github.difflib.algorithm.jgit.HistogramDiff;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Chunk;
 import com.github.difflib.patch.Patch;
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
+import edu.pku.migrationhelper.mapper.MethodChangeMapper;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,9 @@ public abstract class RepositoryAnalysisService {
 
     @Autowired
     protected LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+
+    @Autowired
+    protected MethodChangeMapper methodChangeMapper;
 
     public static abstract class AbstractRepository {
         public String repositoryName;
@@ -164,7 +169,7 @@ public abstract class RepositoryAnalysisService {
         }
     }
 
-    private CommitInfo analyzeCommitDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
+    public CommitInfo analyzeCommitDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
         if(thisCommit.getCodeAddGroupArtifactIdList() == null ||
                 thisCommit.getCodeDeleteGroupArtifactIdList() == null ||
                 thisCommit.getPomAddGroupArtifactIdList() == null ||
@@ -185,7 +190,6 @@ public abstract class RepositoryAnalysisService {
         }
 
         if(thisCommit.getMethodChangeIds() == null) {
-            // TODO method change analyze
             List<BlobInCommit[]> diffBlobs = getCommitBlobDiff(repository, thisCommit, parentCommit);
             Map<List<Long>, MethodChange> methodChangeMap = new HashMap<>();
             for (BlobInCommit[] diffBlob : diffBlobs) {
@@ -246,13 +250,53 @@ public abstract class RepositoryAnalysisService {
         return thisCommit;
     }
 
+    public static int getMethodChangeSliceKey(long methodChangeId) {
+        return (int)(methodChangeId >> MethodChangeMapper.MAX_ID_BIT) & (MethodChangeMapper.MAX_TABLE_COUNT - 1);
+    }
+
+    public static int getMethodChangeSliceKey(MethodChange methodChange) {
+        byte[] deleteIds = methodChange.getDeleteSignatureIds();
+        if(deleteIds != null && deleteIds.length > 0) {
+            return deleteIds[0] & (MethodChangeMapper.MAX_TABLE_COUNT - 1);
+        }
+        byte[] addIds = methodChange.getAddSignatureIds();
+        if(addIds != null && addIds.length > 0) {
+            return addIds[0] & (MethodChangeMapper.MAX_TABLE_COUNT - 1);
+        }
+        return 0;
+    }
+
     private List<MethodChange> saveMethodChange(Collection<MethodChange> methodChanges) {
-        // TODO
+        for (MethodChange methodChange : methodChanges) {
+            int sliceKey = getMethodChangeSliceKey(methodChange);
+            methodChangeMapper.insertOne(sliceKey, methodChange);
+            Long id = methodChangeMapper.findId(sliceKey, methodChange.getDeleteSignatureIds(), methodChange.getAddSignatureIds());
+            if(id == null) {
+                id = methodChangeMapper.findId(sliceKey, methodChange.getDeleteSignatureIds(), methodChange.getAddSignatureIds());
+            }
+            methodChange.setId(id);
+        }
         return new ArrayList<>(methodChanges);
     }
 
+    private List<String> splitContent2Lines(String content) {
+        List<String> result = new LinkedList<>();
+        char[] ca = content.toCharArray();
+        int start = 0;
+        for (int i = 0; i < ca.length; i++) {
+            if(ca[i] == '\n') {
+                result.add(new String(ca, start, i - start));
+                start = i + 1;
+            }
+        }
+        if(start != ca.length) {
+            result.add(new String(ca, start, ca.length - start));
+        }
+        return new ArrayList<>(result);
+    }
+
     // return List<[deleteSignatureIds, addSignatureIds]>
-    private List<Set<Long>[]> analyzeBlobDiff(AbstractRepository repository, BlobInCommit parentBlob, BlobInCommit thisBlob) {
+    public List<Set<Long>[]> analyzeBlobDiff(AbstractRepository repository, BlobInCommit parentBlob, BlobInCommit thisBlob) {
         List<Set<Long>[]> result = new LinkedList<>();
         if(parentBlob == null || thisBlob == null) {
             return result;
@@ -268,21 +312,37 @@ public abstract class RepositoryAnalysisService {
         try {
             String thisContent = getBlobContent(repository, thisBlob.blobId);
             String parentContent = getBlobContent(repository, parentBlob.blobId);
-            List<String> thisLines = Arrays.asList(thisContent.split("\n"));
-            List<String> parentLines = Arrays.asList(parentContent.split("\n"));
-            Patch<String> patch = DiffUtils.diff(parentLines, thisLines);
+            List<String> thisLines = splitContent2Lines(thisContent);
+            List<String> parentLines = splitContent2Lines(parentContent);
+            Patch<String> patch = DiffUtils.diff(parentLines, thisLines, new HistogramDiff<>());
 
             Map<Long, Set<Long>> thisLine2Sig = buildLine2SigMap(thisBlobInfo);
             Map<Long, Set<Long>> parentLine2Sig = buildLine2SigMap(parentBlobInfo);
 
+            if(LOG.isDebugEnabled()) {
+                int line = 1;
+                for (String lineContent : parentLines) {
+                    System.out.println(line + ": " + lineContent);
+                    ++line;
+                }
+                line = 1;
+                for (String lineContent : thisLines) {
+                    System.out.println(line + ": " + lineContent);
+                    ++line;
+                }
+            }
+
             for (AbstractDelta<String> delta : patch.getDeltas()) {
+                LOG.debug("delta type: {}", delta.getType());
+                LOG.debug("Delete Chunk:");
                 Set<Long> deleteIds = calcChunkSignatureIds(parentLine2Sig, delta.getSource());
+                LOG.debug("Add Chunk:");
                 Set<Long> addIds = calcChunkSignatureIds(thisLine2Sig, delta.getTarget());
                 Set<Long> intersect = new HashSet<>(deleteIds);
                 intersect.retainAll(addIds);
                 deleteIds.removeAll(intersect);
                 addIds.removeAll(intersect);
-                if(deleteIds.isEmpty() && addIds.isEmpty()) {
+                if(deleteIds.isEmpty() || addIds.isEmpty()) {
                     continue;
                 } else {
                     result.add(new Set[]{deleteIds, addIds});
@@ -297,11 +357,17 @@ public abstract class RepositoryAnalysisService {
     }
 
     private Set<Long> calcChunkSignatureIds(Map<Long, Set<Long>> line2Sig, Chunk<String> chunk) {
-        long start = chunk.getPosition();
+        long start = chunk.getPosition() + 1;
         long end = start + chunk.getLines().size();
         Set<Long> ids = new HashSet<>();
         for (long i = start; i < end; i++) {
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("{}: {}", i, chunk.getLines().get((int)(i - start)));
+            }
             if(line2Sig.containsKey(i)) {
+                if(LOG.isDebugEnabled()) {
+                    LOG.debug("{} contains signatures: {}", i, line2Sig.get(i));
+                }
                 ids.addAll(line2Sig.get(i));
             }
         }
@@ -326,11 +392,17 @@ public abstract class RepositoryAnalysisService {
                 result.computeIfAbsent(i, k -> new HashSet<>()).add(signatureId);
             }
         }
+        if(LOG.isDebugEnabled()) {
+            LOG.debug("blobId line2SigMap: {}", blobInfo.getBlobIdString());
+            result.forEach((line, sids) -> {
+                LOG.debug("{}: {}", line, sids);
+            });
+        }
         return result;
     }
 
     // return List<[origin, new]>
-    private List<BlobInCommit[]> getCommitBlobDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
+    public List<BlobInCommit[]> getCommitBlobDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
         List<BlobInCommit> thisBlobs = thisCommit.getBlobInCommit();
         if(thisBlobs == null) {
             thisBlobs = getBlobsInCommit(repository, thisCommit.getCommitIdString());
@@ -434,7 +506,7 @@ public abstract class RepositoryAnalysisService {
             blobInfo = new BlobInfo();
             blobInfo.setBlobIdString(blob.blobId);
         } else {
-            LOG.debug("exist blob: {}, blobType = {}", blobInfo.getBlobId(), blobInfo.getBlobType());
+            LOG.debug("exist blob: {}, blobType = {}", blobInfo.getBlobIdString(), blobInfo.getBlobTypeEnum());
             return blobInfo;
         }
         List<Long[]> signatureIdLines = new LinkedList<>(); // List<[signatureId, startLine, endLine]>
@@ -450,7 +522,7 @@ public abstract class RepositoryAnalysisService {
             } catch (Exception e) {
                 LOG.error("analyzeJavaContent fail", e);
                 // not java content
-                LOG.warn("blob is not java content, set to other, blobId = {}", blobInfo.getBlobId());
+                LOG.warn("blob is not java content, set to other, blobId = {}", blobInfo.getBlobIdString());
                 blobInfo.setBlobTypeEnum(BlobInfo.BlobType.ErrorJava);
                 signatureIdLines.clear();
                 versionIds.clear();
@@ -466,7 +538,7 @@ public abstract class RepositoryAnalysisService {
             } catch (Exception e) {
                 LOG.error("analyzePomContent fail", e);
                 // not pom content
-                LOG.warn("blob is not pom content, set to other, blobId = {}", blobInfo.getBlobId());
+                LOG.warn("blob is not pom content, set to other, blobId = {}", blobInfo.getBlobIdString());
                 blobInfo.setBlobTypeEnum(BlobInfo.BlobType.ErrorPOM);
                 versionIds.clear();
                 groupArtifactIds.clear();

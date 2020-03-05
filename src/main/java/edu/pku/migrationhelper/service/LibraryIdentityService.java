@@ -34,8 +34,6 @@ import java.util.concurrent.Future;
 @ConfigurationProperties(prefix = "migration-helper.library-identity")
 public class LibraryIdentityService {
 
-    public static final int MAX_SIGNATURE_BIT = 35;
-
     Logger LOG = LoggerFactory.getLogger(getClass());
 
     private HttpClient httpClient = HttpClients.custom()
@@ -267,11 +265,11 @@ public class LibraryIdentityService {
 
     public static int getMethodSignatureSliceKey(String packageName, String className) {
         String key = packageName + ":" + className;
-        return (int)(KeyHasher.FNV1A_32().hashKey(key.getBytes()) & 127);
+        return (int)(KeyHasher.FNV1A_32().hashKey(key.getBytes()) & (MethodSignatureMapper.MAX_TABLE_COUNT - 1));
     }
 
     public static int getMethodSignatureSliceKey(long signatureId) {
-        return (int)(signatureId >> MAX_SIGNATURE_BIT) & 127;
+        return (int)(signatureId >> MethodSignatureMapper.MAX_ID_BIT) & (MethodSignatureMapper.MAX_TABLE_COUNT - 1);
     }
 
     public static String getMethodSignatureCacheKey(MethodSignature ms) {

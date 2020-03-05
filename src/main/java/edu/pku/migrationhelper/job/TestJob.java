@@ -53,6 +53,9 @@ public class TestJob {
     private PomAnalysisService pomAnalysisService;
 
     @Autowired
+    private GitObjectStorageService gitObjectStorageService;
+
+    @Autowired
     private BlobInfoMapper blobInfoMapper;
 
     @Autowired
@@ -60,6 +63,9 @@ public class TestJob {
 
     @Autowired
     private TestMapper testMapper;
+
+    @Autowired
+    private MethodChangeMapper methodChangeMapper;
 
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
@@ -71,12 +77,102 @@ public class TestJob {
 //        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
-        testJavaCodeAnalysis();
+//        testJavaCodeAnalysis();
+//        createTable();
 //        testAnalyzeBlob();
 //        testTokyoCabinet();
 //        testBlobCommitMapper();
 //        genBerIdsCode();
 //        testCreateTable();
+        commitInfoCommandLine();
+//        diffCommandLine();
+    }
+// blob b703f00d138039eb44e986e8e90abafc0588464a 9aed2812ec9bc716740da6b5332c95181263de8c
+    public void diffCommandLine() throws Exception {
+        Scanner sc = new Scanner(System.in);
+        RepositoryAnalysisService.AbstractRepository repository = gitRepositoryAnalysisService.openRepository("jgit-cookbook");
+        while(true) {
+            String cmd = sc.next().toLowerCase();
+            String parent = sc.next();
+            String revision = sc.next();
+            switch (cmd) {
+                case "commit": {
+                    List<RepositoryAnalysisService.BlobInCommit[]> result = gitRepositoryAnalysisService.getCommitBlobDiff(repository,
+                            gitRepositoryAnalysisService.getCommitInfo(repository, revision),
+                            gitRepositoryAnalysisService.getCommitInfo(repository, parent));
+                    result.forEach(pr -> {
+                        System.out.println("---Chunk---");
+                        System.out.println("Delete Blob: " + (pr[0] == null ? "null" : pr[0].blobId + " " + pr[0].fileName));
+                        System.out.println("Add Blob: " + (pr[1] == null ? "null" : pr[1].blobId + " " + pr[1].fileName));
+                    });
+                    break;
+                }
+                case "blob": {
+                    RepositoryAnalysisService.BlobInCommit p = new RepositoryAnalysisService.BlobInCommit();
+                    p.blobId = parent;
+                    RepositoryAnalysisService.BlobInCommit r = new RepositoryAnalysisService.BlobInCommit();
+                    r.blobId = revision;
+                    List<Set<Long>[]> result = gitRepositoryAnalysisService.analyzeBlobDiff(repository, p, r);
+                    result.forEach(da -> {
+                        System.out.println("---Chunk---");
+                        System.out.println("Delete Signature: ");
+                        da[0].forEach(this::showMethodSignature);
+                        System.out.println("Add Signature: ");
+                        da[1].forEach(this::showMethodSignature);
+                    });
+                    System.out.println("---Blob Diff End---");
+                    break;
+                }
+                default:
+                    continue;
+            }
+        }
+    }
+
+    public void commitInfoCommandLine() throws Exception {
+        Scanner sc = new Scanner(System.in);
+        while(true) {
+            String line = sc.nextLine();
+            if("".equals(line.trim())) {
+                continue;
+            }
+            CommitInfo commitInfo = gitObjectStorageService.getCommitById(line);
+            if(commitInfo == null) {
+                System.out.println("Commit: " + line + " = null");
+                continue;
+            }
+            System.out.println("CommitId: " + commitInfo.getCommitIdString());
+            System.out.println("CodeGA: " + commitInfo.getCodeGroupArtifactIdList());
+            System.out.println("POMGA: " + commitInfo.getPomGroupArtifactIdList());
+            System.out.println("MethodChange: " + commitInfo.getMethodChangeIdList());
+            int i = 0;
+            for (Long methodChangeId : commitInfo.getMethodChangeIdList()) {
+                i++;
+                if(i % 2 == 0) continue;
+                int methodChangeSlice = RepositoryAnalysisService.getMethodChangeSliceKey(methodChangeId);
+                MethodChange methodChange = methodChangeMapper.findById(methodChangeSlice, methodChangeId);
+                System.out.println("MethodChangeId: " + methodChange.getId());
+                System.out.println("Counter: " + methodChange.getCounter());
+                System.out.println("DelSig: " + methodChange.getDeleteSignatureIdList());
+                methodChange.getDeleteSignatureIdList().forEach(this::showMethodSignature);
+                System.out.println("AddSig: " + methodChange.getAddSignatureIdList());
+                methodChange.getAddSignatureIdList().forEach(this::showMethodSignature);
+                System.out.println("DelGA: " + methodChange.getDeleteGroupArtifactIdList());
+                System.out.println("AddGA: " + methodChange.getAddGroupArtifactIdList());
+            }
+        }
+    }
+
+    public void showMethodSignature(long signatureId) {
+        int slice = libraryIdentityService.getMethodSignatureSliceKey(signatureId);
+        MethodSignature methodSignature = methodSignatureMapper.findById(slice, signatureId);
+        if(methodSignature == null) {
+            System.out.println("Signature: Id = " + signatureId + " null");
+        } else {
+            System.out.println("Signature: Id = " + signatureId + ", " +
+                    methodSignature.getPackageName() + "." + methodSignature.getClassName() + "::" +
+                    methodSignature.getMethodName() + "(" + methodSignature.getParamList() + ")");
+        }
     }
 
     public void testDatabase() throws Exception {
@@ -307,6 +403,22 @@ public class TestJob {
                             "    }\n" +
                             "\n"
             );
+        }
+    }
+
+    public void createTable() {
+        for (int i = 0; i < BlobInfoMapper.MAX_TABLE_COUNT; i++) {
+            blobInfoMapper.createTable(i);
+        }
+
+        for (int i = 0; i < CommitInfoMapper.MAX_TABLE_COUNT; i++) {
+            commitInfoMapper.createTable(i);
+        }
+        for (int i = 0; i < MethodChangeMapper.MAX_TABLE_COUNT; i++) {
+            long ii = (long) i;
+            long ai = ii << MethodChangeMapper.MAX_ID_BIT;
+            methodChangeMapper.createTable(i);
+            methodChangeMapper.setAutoIncrement(i, ai);
         }
     }
 }

@@ -11,15 +11,17 @@ import java.util.List;
 @Mapper
 public interface BlobInfoMapper {
 
+    int MAX_TABLE_COUNT = 128;
+
     String tableName = "blob_info_";
 
     @Update("<script>" +
             "CREATE TABLE `"+tableName+"${tableNum}` (\n" +
             "                           `blob_id` binary(20) NOT NULL,\n" +
             "                           `blob_type` int NOT NULL,\n" +
-            "                           `library_signature_ids` mediumblob NOT NULL,\n" +
-            "                           `library_version_ids` mediumblob NOT NULL,\n" +
-            "                           `library_group_artifact_ids` mediumblob NOT NULL,\n" +
+            "                           `library_signature_ids` mediumblob,\n" +
+            "                           `library_version_ids` mediumblob,\n" +
+            "                           `library_group_artifact_ids` mediumblob,\n" +
             "                           PRIMARY KEY (`blob_id`)\n" +
             ") ENGINE=InnoDB DEFAULT CHARSET=ascii;" +
             "</script>")

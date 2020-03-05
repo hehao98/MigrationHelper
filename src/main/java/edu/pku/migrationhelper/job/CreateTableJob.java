@@ -41,22 +41,25 @@ public class CreateTableJob {
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
 
     @Autowired
+    private MethodChangeMapper methodChangeMapper;
+
+    @Autowired
     private MethodSignatureMapper methodSignatureMapper;
 
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
 
-        for (int i = 0; i < 128; i++) {
+        for (int i = 0; i < BlobInfoMapper.MAX_TABLE_COUNT; i++) {
             blobInfoMapper.createTable(i);
         }
 
-        for (int i = 0; i < 128; i++) {
+        for (int i = 0; i < CommitInfoMapper.MAX_TABLE_COUNT; i++) {
             commitInfoMapper.createTable(i);
         }
 
         libraryGroupArtifactMapper.createTable();
 
-        for (int i = 0; i < 128; i++) {
+        for (int i = 0; i < MethodSignatureMapper.MAX_TABLE_COUNT; i++) {
             librarySignatureToVersionMapper.createTable(i);
         }
 
@@ -66,9 +69,16 @@ public class CreateTableJob {
 
         lioProjectWithRepositoryMapper.createTable();
 
-        for (int i = 0; i < 128; i++) {
+        for (int i = 0; i < MethodChangeMapper.MAX_TABLE_COUNT; i++) {
             long ii = (long) i;
-            long ai = ii << LibraryIdentityService.MAX_SIGNATURE_BIT;
+            long ai = ii << MethodChangeMapper.MAX_ID_BIT;
+            methodChangeMapper.createTable(i);
+            methodChangeMapper.setAutoIncrement(i, ai);
+        }
+
+        for (int i = 0; i < MethodSignatureMapper.MAX_TABLE_COUNT; i++) {
+            long ii = (long) i;
+            long ai = ii << MethodSignatureMapper.MAX_ID_BIT;
             methodSignatureMapper.createTable(i);
             methodSignatureMapper.setAutoIncrement(i, ai);
         }

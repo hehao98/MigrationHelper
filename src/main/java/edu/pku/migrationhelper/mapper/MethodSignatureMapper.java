@@ -8,6 +8,10 @@ import java.util.List;
 @Mapper
 public interface MethodSignatureMapper {
 
+    int MAX_ID_BIT = 35;
+
+    int MAX_TABLE_COUNT = 128;
+
     String tableName = "method_signature_";
 
     @Update("<script>" +
@@ -99,4 +103,12 @@ public interface MethodSignatureMapper {
             @Param("packageName") String packageName,
             @Param("className") String className,
             @Param("methodName") String methodName);
+
+    @Select("<script>" +
+            "select * from " + tableName + "${tableNum} where " +
+            "id = #{signatureId} " +
+            "</script>")
+    MethodSignature findById(
+            @Param("tableNum") int tableNum,
+            @Param("signatureId") long signatureId);
 }

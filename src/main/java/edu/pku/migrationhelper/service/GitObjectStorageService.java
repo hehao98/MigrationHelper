@@ -21,28 +21,32 @@ public class GitObjectStorageService {
     private CommitInfoMapper commitInfoMapper;
 
     public void saveBlob(BlobInfo blobInfo) {
-        int slice = getSliceKeyById(blobInfo.getBlobId());
+        int slice = getBlobSliceKeyById(blobInfo.getBlobId());
         blobInfoMapper.insertOne(slice, blobInfo);
     }
 
     public BlobInfo getBlobById(String blobId) {
         byte[] blobIdPrefix = HexUtils.fromHexString(blobId.substring(0, 2));
-        int slice = getSliceKeyById(blobIdPrefix);
+        int slice = getBlobSliceKeyById(blobIdPrefix);
         return blobInfoMapper.findByBlobId(slice, blobId);
     }
 
     public void saveCommit(CommitInfo commitInfo) {
-        int slice = getSliceKeyById(commitInfo.getCommitId());
+        int slice = getCommitSliceKeyById(commitInfo.getCommitId());
         commitInfoMapper.insertOne(slice, commitInfo);
     }
 
     public CommitInfo getCommitById(String commitId) {
         byte[] commitIdPrefix = HexUtils.fromHexString(commitId.substring(0, 2));
-        int slice = getSliceKeyById(commitIdPrefix);
+        int slice = getCommitSliceKeyById(commitIdPrefix);
         return commitInfoMapper.findByCommitId(slice, commitId);
     }
 
-    public static int getSliceKeyById(byte[] id) {
-        return id[0] & 127;
+    public static int getBlobSliceKeyById(byte[] id) {
+        return id[0] & (BlobInfoMapper.MAX_TABLE_COUNT - 1);
+    }
+
+    public static int getCommitSliceKeyById(byte[] id) {
+        return id[0] & (CommitInfoMapper.MAX_TABLE_COUNT - 1);
     }
 }

@@ -1,23 +1,23 @@
 CREATE TABLE `blob_info` (
                            `blob_id` binary(20) NOT NULL,
                            `blob_type` int NOT NULL,
-                           `library_signature_ids` mediumblob NOT NULL,
-                           `library_version_ids` mediumblob NOT NULL,
-                           `library_group_artifact_ids` mediumblob NOT NULL,
+                           `library_signature_ids` mediumblob,
+                           `library_version_ids` mediumblob,
+                           `library_group_artifact_ids` mediumblob,
                            PRIMARY KEY (`blob_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
 CREATE TABLE `commit_info` (
                              `commit_id` binary(20) NOT NULL,
-                             `code_library_version_ids` mediumblob NOT NULL,
-                             `code_group_artifact_ids` mediumblob NOT NULL,
-                             `code_delete_group_artifact_ids` mediumblob NOT NULL,
-                             `code_add_group_artifact_ids` mediumblob NOT NULL,
-                             `pom_library_version_ids` mediumblob NOT NULL,
-                             `pom_group_artifact_ids` mediumblob NOT NULL,
-                             `pom_delete_group_artifact_ids` mediumblob NOT NULL,
-                             `pom_add_group_artifact_ids` mediumblob NOT NULL,
-                             `method_change_ids` mediumblob NOT NULL,
+                             `code_library_version_ids` mediumblob,
+                             `code_group_artifact_ids` mediumblob,
+                             `code_delete_group_artifact_ids` mediumblob,
+                             `code_add_group_artifact_ids` mediumblob,
+                             `pom_library_version_ids` mediumblob,
+                             `pom_group_artifact_ids` mediumblob,
+                             `pom_delete_group_artifact_ids` mediumblob,
+                             `pom_add_group_artifact_ids` mediumblob,
+                             `method_change_ids` mediumblob,
                              PRIMARY KEY (`commit_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
@@ -76,9 +76,12 @@ CREATE TABLE `lio_project_with_repository` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `method_change` (
-                               `id` bigint(20) NOT NULL,
-                               `delete_signature_ids` varchar(1535) NOT NULL,
-                               `add_signature_ids` varchar(1535) NOT NULL,
+                               `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                               `delete_signature_ids` varbinary(255) NOT NULL,
+                               `add_signature_ids` varbinary(255) NOT NULL,
+                               `delete_group_artifact_ids` varbinary(255) NOT NULL,
+                               `add_group_artifact_ids` varbinary(255) NOT NULL,
+                               `counter` bigint(20) NOT NULL,
                                PRIMARY KEY (`id`),
                                UNIQUE KEY `unique_index` (`delete_signature_ids`,`add_signature_ids`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;

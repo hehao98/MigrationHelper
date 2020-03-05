@@ -12,20 +12,22 @@ import java.util.List;
 @Mapper
 public interface CommitInfoMapper {
 
+    int MAX_TABLE_COUNT = 128;
+
     String tableName = "commit_info_";
 
     @Update("<script>" +
             "CREATE TABLE `"+tableName+"${tableNum}` (\n" +
             "                             `commit_id` binary(20) NOT NULL,\n" +
-            "                             `code_library_version_ids` mediumblob NOT NULL,\n" +
-            "                             `code_group_artifact_ids` mediumblob NOT NULL,\n" +
-            "                             `code_delete_group_artifact_ids` mediumblob NOT NULL,\n" +
-            "                             `code_add_group_artifact_ids` mediumblob NOT NULL,\n" +
-            "                             `pom_library_version_ids` mediumblob NOT NULL,\n" +
-            "                             `pom_group_artifact_ids` mediumblob NOT NULL,\n" +
-            "                             `pom_delete_group_artifact_ids` mediumblob NOT NULL,\n" +
-            "                             `pom_add_group_artifact_ids` mediumblob NOT NULL,\n" +
-            "                             `method_change_ids` mediumblob NOT NULL,\n" +
+            "                             `code_library_version_ids` mediumblob,\n" +
+            "                             `code_group_artifact_ids` mediumblob,\n" +
+            "                             `code_delete_group_artifact_ids` mediumblob,\n" +
+            "                             `code_add_group_artifact_ids` mediumblob,\n" +
+            "                             `pom_library_version_ids` mediumblob,\n" +
+            "                             `pom_group_artifact_ids` mediumblob,\n" +
+            "                             `pom_delete_group_artifact_ids` mediumblob,\n" +
+            "                             `pom_add_group_artifact_ids` mediumblob,\n" +
+            "                             `method_change_ids` mediumblob,\n" +
             "                             PRIMARY KEY (`commit_id`)\n" +
             ") ENGINE=InnoDB DEFAULT CHARSET=ascii;" +
             "</script>")
