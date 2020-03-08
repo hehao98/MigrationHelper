@@ -33,6 +33,20 @@ public interface CommitInfoMapper {
             "</script>")
     void createTable(@Param("tableNum") int tableNum);
 
+    @Update("<script>" +
+            "ALTER TABLE `"+tableName+"${tableNum}` \n" +
+            "CHANGE COLUMN `code_library_version_ids` `code_library_version_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `code_group_artifact_ids` `code_group_artifact_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `code_delete_group_artifact_ids` `code_delete_group_artifact_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `code_add_group_artifact_ids` `code_add_group_artifact_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `pom_library_version_ids` `pom_library_version_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `pom_group_artifact_ids` `pom_group_artifact_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `pom_delete_group_artifact_ids` `pom_delete_group_artifact_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `pom_add_group_artifact_ids` `pom_add_group_artifact_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `method_change_ids` `method_change_ids` MEDIUMBLOB ;\n" +
+            "</script>")
+    void alterTable(@Param("tableNum") int tableNum);
+
     @Insert("<script>" +
             "insert into " + tableName + "${tableNum} " +
             "(commit_id, method_change_ids, " +

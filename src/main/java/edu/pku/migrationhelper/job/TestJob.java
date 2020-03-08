@@ -84,9 +84,28 @@ public class TestJob {
 //        testBlobCommitMapper();
 //        genBerIdsCode();
 //        testCreateTable();
-        commitInfoCommandLine();
+//        commitInfoCommandLine();
 //        diffCommandLine();
+        alterTableJob();
     }
+
+    public void alterTableJob() throws Exception {
+        for (int i = 0; i < BlobInfoMapper.MAX_TABLE_COUNT; i++) {
+            blobInfoMapper.alterTable(i);
+        }
+
+        for (int i = 0; i < CommitInfoMapper.MAX_TABLE_COUNT; i++) {
+            commitInfoMapper.alterTable(i);
+        }
+
+        for (int i = 0; i < MethodChangeMapper.MAX_TABLE_COUNT; i++) {
+            long ii = (long) i;
+            long ai = ii << MethodChangeMapper.MAX_ID_BIT;
+            methodChangeMapper.createTable(i);
+            methodChangeMapper.setAutoIncrement(i, ai);
+        }
+    }
+
 // blob b703f00d138039eb44e986e8e90abafc0588464a 9aed2812ec9bc716740da6b5332c95181263de8c
     public void diffCommandLine() throws Exception {
         Scanner sc = new Scanner(System.in);

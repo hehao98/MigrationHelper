@@ -140,13 +140,20 @@ public class LibraryIdentityService {
         Map<Long, Set<Long>> signature2Version = new HashMap<>();
         List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
 
+        boolean analyzeFirstOnly = false;
         if(versionDatas.size() > 30) {
             //TODO 80% of GroupArtifacts have less than 27 versions, skip and re-run those GroupArtifacts which have more than 30 versions later
-            return;
+            analyzeFirstOnly = true;
         }
+        int versionCount = 1;
 
         boolean containError = false;
         for (LibraryVersion versionData : versionDatas) {
+            if(analyzeFirstOnly && versionCount > 1) {
+                break;
+            }
+            versionCount++;
+
             long versionId = versionData.getId();
             String version = versionData.getVersion();
             File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
@@ -176,7 +183,11 @@ public class LibraryIdentityService {
                     versionData.setDownloaded(true);
                     libraryVersionMapper.update(versionData);
                 }
-                LOG.info("start parse library id = {}", versionData.getId());
+                long jarSize = jarFile.length() / (1024 * 1024);
+                LOG.info("start parse library id = {}, size = {} MB", versionData.getId(), jarSize);
+                if(jarSize > 50) {
+                    analyzeFirstOnly = true;
+                }
                 List<MethodSignature> signatureList = parseLibraryJar(groupId, artifactId, version, signatureCache);
                 Set<Long> signatureIds = new HashSet<>();
                 signatureList.forEach(e -> signatureIds.add(e.getId()));
@@ -206,6 +217,7 @@ public class LibraryIdentityService {
                 versionData.setParsed(false);
                 versionData.setParseError(true);
                 libraryVersionMapper.update(versionData);
+                versionCount--;
             } finally {
                 if (jarFile.exists()) {
                     jarFile.delete();
@@ -234,7 +246,7 @@ public class LibraryIdentityService {
                 saveSignatureToVersion(s2v);
             });
             groupArtifact.setParsed(true)
-                    .setParseError(containError);
+                    .setParseError(containError || analyzeFirstOnly);
             libraryGroupArtifactMapper.update(groupArtifact);
         } catch (Exception e) {
             LOG.error("save groupArtifact fail groupId = {}, artifactId = {}",

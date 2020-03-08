@@ -39,8 +39,10 @@ migration-helper:
     c2pcBase: /da0_data/basemaps/c2pcFullQ.
     c2bBase: /da0_data/basemaps/c2bFullQ.
     b2fBase: /da0_data/basemaps/b2fFullQ.
-    blobIndexBase: /fast/All.sha1o/sha1.blob_
-    blobContentBase: /data/All.blobs/blob_
+    blobIndexBase: /fast/All.sha1o/sha1.blob_ # da4 only
+    commitIndexBase: /fast/All.sha1c/commit_ # da4 only
+    treeIndexBase: /fast/All.sha1c/tree_ # da4 only
+    blobContentBase: /data/All.blobs/blob_ # da4 only
   woc-repo-analysis-job:
     repository-list-file: repositories.csv
   libraries-io-import:

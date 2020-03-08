@@ -27,6 +27,14 @@ public interface BlobInfoMapper {
             "</script>")
     void createTable(@Param("tableNum") int tableNum);
 
+    @Update("<script>" +
+            "ALTER TABLE `"+tableName+"${tableNum}` \n" +
+            "CHANGE COLUMN `library_signature_ids` `library_signature_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `library_version_ids` `library_version_ids` MEDIUMBLOB ,\n" +
+            "CHANGE COLUMN `library_group_artifact_ids` `library_group_artifact_ids` MEDIUMBLOB ;\n" +
+            "</script>")
+    void alterTable(@Param("tableNum") int tableNum);
+
     @Insert("<script>" +
             "insert into " + tableName + "${tableNum} " +
             "(blob_id, blob_type, library_signature_ids, library_version_ids, library_group_artifact_ids) values " +
