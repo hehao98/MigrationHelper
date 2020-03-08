@@ -86,7 +86,7 @@ public class TestJob {
 //        testCreateTable();
 //        commitInfoCommandLine();
 //        diffCommandLine();
-        alterTableJob();
+//        alterTableJob();
     }
 
     public void alterTableJob() throws Exception {

@@ -13,7 +13,7 @@ Configutation:
     Logger:
       - name: edu.pku.migrationhelper
         additivity: false
-        level: debug
+        level: info
         AppenderRef:
           - ref: console
       - name: edu.pku.migrationhelper.mapper

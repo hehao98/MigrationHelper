@@ -77,10 +77,10 @@ CREATE TABLE `lio_project_with_repository` (
 
 CREATE TABLE `method_change` (
                                `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                               `delete_signature_ids` varbinary(255) NOT NULL,
-                               `add_signature_ids` varbinary(255) NOT NULL,
-                               `delete_group_artifact_ids` varbinary(255) NOT NULL,
-                               `add_group_artifact_ids` varbinary(255) NOT NULL,
+                               `delete_signature_ids` varbinary(1023) NOT NULL,
+                               `add_signature_ids` varbinary(1023) NOT NULL,
+                               `delete_group_artifact_ids` varbinary(1023) NOT NULL,
+                               `add_group_artifact_ids` varbinary(1023) NOT NULL,
                                `counter` bigint(20) NOT NULL,
                                PRIMARY KEY (`id`),
                                UNIQUE KEY `unique_index` (`delete_signature_ids`,`add_signature_ids`)

@@ -520,7 +520,7 @@ public abstract class RepositoryAnalysisService {
                 analyzeJavaContent(content, signatureIdLines, versionIds, groupArtifactIds);
                 LOG.debug("end analyzeJavaContent blobId = {}", blob.blobId);
             } catch (Exception e) {
-//                LOG.error("analyzeJavaContent fail", e);
+                LOG.error("analyzeJavaContent fail", e);
                 // not java content
                 LOG.warn("blob is not java content, set to other, blobId = {}", blobInfo.getBlobIdString());
                 blobInfo.setBlobTypeEnum(BlobInfo.BlobType.ErrorJava);

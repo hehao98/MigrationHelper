@@ -35,6 +35,11 @@ public interface BlobInfoMapper {
             "</script>")
     void alterTable(@Param("tableNum") int tableNum);
 
+    @Update("<script>" +
+            "DROP TABLE `"+tableName+"${tableNum}` \n" +
+            "</script>")
+    void dropTable(@Param("tableNum") int tableNum);
+
     @Insert("<script>" +
             "insert into " + tableName + "${tableNum} " +
             "(blob_id, blob_type, library_signature_ids, library_version_ids, library_group_artifact_ids) values " +

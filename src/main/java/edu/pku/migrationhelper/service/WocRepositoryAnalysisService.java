@@ -107,6 +107,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     @Override
     public List<BlobInCommit> getBlobsInCommit(AbstractRepository repo, String commitId) {
         String commitContent = commitIndex.getValue(commitId);
+        if(commitContent == null) return new ArrayList<>(0); // TODO
         String[] attrLine = commitContent.split("\n");
         String treeId = null;
         for (String line : attrLine) {
@@ -115,7 +116,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
                 break;
             }
         }
-        if (treeId == null) return Collections.emptyList();
+        if (treeId == null) return new ArrayList<>(0); // TODO
         return getBlobsInTree((WocRepository) repo, treeId, "");
     }
 
@@ -153,6 +154,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     public String getBlobContent(AbstractRepository repo, String blobId) {
         WocRepository repository = (WocRepository) repo;
         List<Long> offsetLength = blobIndex.getBerNumberListValue(blobId);
+        if(offsetLength == null) return ""; // TODO
         if(offsetLength.size() != 2) {
             throw new RuntimeException("offsetLength.size() != 2");
         }

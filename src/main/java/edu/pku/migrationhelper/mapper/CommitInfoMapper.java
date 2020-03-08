@@ -47,6 +47,11 @@ public interface CommitInfoMapper {
             "</script>")
     void alterTable(@Param("tableNum") int tableNum);
 
+    @Update("<script>" +
+            "DROP TABLE `"+tableName+"${tableNum}` \n" +
+            "</script>")
+    void dropTable(@Param("tableNum") int tableNum);
+
     @Insert("<script>" +
             "insert into " + tableName + "${tableNum} " +
             "(commit_id, method_change_ids, " +

@@ -18,10 +18,10 @@ public interface MethodChangeMapper {
     @Update("<script>" +
             "CREATE TABLE `"+tableName+"${tableNum}` (\n" +
             "                               `id` bigint(20) NOT NULL AUTO_INCREMENT,\n" +
-            "                               `delete_signature_ids` varbinary(255) NOT NULL,\n" +
-            "                               `add_signature_ids` varbinary(255) NOT NULL,\n" +
-            "                               `delete_group_artifact_ids` varbinary(255) NOT NULL,\n" +
-            "                               `add_group_artifact_ids` varbinary(255) NOT NULL,\n" +
+            "                               `delete_signature_ids` varbinary(1023) NOT NULL,\n" +
+            "                               `add_signature_ids` varbinary(1023) NOT NULL,\n" +
+            "                               `delete_group_artifact_ids` varbinary(1023) NOT NULL,\n" +
+            "                               `add_group_artifact_ids` varbinary(1023) NOT NULL,\n" +
             "                               `counter` bigint(20) NOT NULL,\n" +
             "                               PRIMARY KEY (`id`),\n" +
             "                               UNIQUE KEY `unique_index` (`delete_signature_ids`,`add_signature_ids`)\n" +
@@ -33,6 +33,11 @@ public interface MethodChangeMapper {
             "ALTER TABLE `"+tableName+"${tableNum}` auto_increment = #{ai};" +
             "</script>")
     void setAutoIncrement(@Param("tableNum") int tableNum, @Param("ai") long ai);
+
+    @Update("<script>" +
+            "DROP TABLE `"+tableName+"${tableNum}` \n" +
+            "</script>")
+    void dropTable(@Param("tableNum") int tableNum);
 
     @Insert("<script>" +
             "insert into " + tableName + "${tableNum} " +
