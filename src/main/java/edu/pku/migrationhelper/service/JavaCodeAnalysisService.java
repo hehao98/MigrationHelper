@@ -16,8 +16,11 @@ import spoon.reflect.declaration.CtType;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtPackageReference;
 import spoon.reflect.reference.CtTypeReference;
+import spoon.support.compiler.FileSystemFile;
 import spoon.support.compiler.VirtualFile;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.*;
 
 /**
@@ -34,72 +37,87 @@ public class JavaCodeAnalysisService {
         List<MethodSignature> result = new LinkedList<>();
         if(javaCode == null || "".equals(javaCode)) return result;
         StringBuilder stringBuilder = new StringBuilder();
+        File tmpFile = null;
 
-        Launcher launcher = new Launcher();
-        launcher.addInputResource(new VirtualFile(javaCode));
-        launcher.getEnvironment().setNoClasspath(true);
-        launcher.getEnvironment().setAutoImports(true);
-        Collection<CtType<?>> allTypes = launcher.buildModel().getAllTypes();
-        for (CtType<?> type : allTypes) {
-            if (!(type instanceof CtClass)) continue;
-            CtClass<?> ctClass = (CtClass) type;
-            for (CtMethod<?> method : ctClass.getAllMethods()) {
-                CtBlock<?> methodBody = method.getBody();
-                if (methodBody == null) continue;
-                Iterable<CtElement> it = methodBody.asIterable();
-                it.forEach(element -> {
-                    if (element instanceof CtInvocation) {
-                        CtInvocation invocation = (CtInvocation) element;
+        try {
+            tmpFile = File.createTempFile("java_code_analysis", ".java");
+            tmpFile.deleteOnExit();
+            try(FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)) {
+                fileOutputStream.write(javaCode.getBytes());
+            }
 
-                        SourcePosition position = element.getPosition();
-                        if (!position.isValidPosition()) return;
+            Launcher launcher = new Launcher();
+            launcher.addInputResource(new FileSystemFile(tmpFile));
+            launcher.getEnvironment().setNoClasspath(true);
+            launcher.getEnvironment().setAutoImports(true);
+            Collection<CtType<?>> allTypes = launcher.buildModel().getAllTypes();
+            for (CtType<?> type : allTypes) {
+                if (!(type instanceof CtClass)) continue;
+                CtClass<?> ctClass = (CtClass) type;
+                for (CtMethod<?> method : ctClass.getAllMethods()) {
+                    CtBlock<?> methodBody = method.getBody();
+                    if (methodBody == null) continue;
+                    Iterable<CtElement> it = methodBody.asIterable();
+                    it.forEach(element -> {
+                        if (element instanceof CtInvocation) {
+                            CtInvocation invocation = (CtInvocation) element;
 
-                        MethodSignature methodSignature = new MethodSignature();
+                            SourcePosition position = element.getPosition();
+                            if (!position.isValidPosition()) return;
 
-                        methodSignature.setStartLine(position.getLine());
-                        methodSignature.setEndLine(position.getEndLine());
+                            MethodSignature methodSignature = new MethodSignature();
 
-                        for (CtElement directChild : invocation.getDirectChildren()) {
-                            if (directChild instanceof CtVariableAccess) {
-                                CtVariableAccess expression = (CtVariableAccess) directChild;
-                                methodSignature.setPackageName(getTypePackageName(expression.getType()));
-                                methodSignature.setClassName(getTypeName(expression.getType()));
-                                break;
-                            } else if (directChild instanceof CtTypeAccess) {
-                                CtTypeAccess expression = (CtTypeAccess) directChild;
-                                methodSignature.setPackageName(getTypePackageName(expression.getAccessedType()));
-                                methodSignature.setClassName(getTypeName(expression.getAccessedType()));
-                                break;
+                            methodSignature.setStartLine(position.getLine());
+                            methodSignature.setEndLine(position.getEndLine());
+
+                            for (CtElement directChild : invocation.getDirectChildren()) {
+                                if (directChild instanceof CtVariableAccess) {
+                                    CtVariableAccess expression = (CtVariableAccess) directChild;
+                                    methodSignature.setPackageName(getTypePackageName(expression.getType()));
+                                    methodSignature.setClassName(getTypeName(expression.getType()));
+                                    break;
+                                } else if (directChild instanceof CtTypeAccess) {
+                                    CtTypeAccess expression = (CtTypeAccess) directChild;
+                                    methodSignature.setPackageName(getTypePackageName(expression.getAccessedType()));
+                                    methodSignature.setClassName(getTypeName(expression.getAccessedType()));
+                                    break;
+                                }
                             }
-                        }
 
-                        CtExecutableReference executableReference = invocation.getExecutable();
-                        if (methodSignature.getPackageName() == null) {
-                            methodSignature.setPackageName(getTypePackageName(executableReference.getDeclaringType()));
-                            methodSignature.setClassName(getTypeName(executableReference.getDeclaringType()));
-                        }
-                        methodSignature.setMethodName(executableReference.getSimpleName());
-                        stringBuilder.delete(0, stringBuilder.length());
-                        for (Object parameter : executableReference.getParameters()) {
-                            CtTypeReference<?> p = (CtTypeReference<?>) parameter;
-                            if (p.getPackage() != null) {
-                                stringBuilder.append(getTypePackageName(p));
-                                stringBuilder.append(".");
+                            CtExecutableReference executableReference = invocation.getExecutable();
+                            if (methodSignature.getPackageName() == null) {
+                                methodSignature.setPackageName(getTypePackageName(executableReference.getDeclaringType()));
+                                methodSignature.setClassName(getTypeName(executableReference.getDeclaringType()));
                             }
-                            stringBuilder.append(p.getSimpleName());
-                            stringBuilder.append(",");
-                        }
-                        if (stringBuilder.length() > 0) {
-                            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-                        }
-                        methodSignature.setParamList(stringBuilder.toString());
+                            methodSignature.setMethodName(executableReference.getSimpleName());
+                            stringBuilder.delete(0, stringBuilder.length());
+                            for (Object parameter : executableReference.getParameters()) {
+                                CtTypeReference<?> p = (CtTypeReference<?>) parameter;
+                                if (p.getPackage() != null) {
+                                    stringBuilder.append(getTypePackageName(p));
+                                    stringBuilder.append(".");
+                                }
+                                stringBuilder.append(p.getSimpleName());
+                                stringBuilder.append(",");
+                            }
+                            if (stringBuilder.length() > 0) {
+                                stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+                            }
+                            methodSignature.setParamList(stringBuilder.toString());
 
-                        result.add(methodSignature);
-                    }
-                });
+                            result.add(methodSignature);
+                        }
+                    });
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(tmpFile != null) {
+                tmpFile.delete();
             }
         }
-        return result;
     }
 
     private String getTypeName(CtTypeReference tr) {

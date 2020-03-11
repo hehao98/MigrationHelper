@@ -3,6 +3,8 @@ package edu.pku.migrationhelper.mapper;
 import edu.pku.migrationhelper.data.MethodChange;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 /**
  * Created by xuyul on 2020/3/5.
  */
@@ -58,4 +60,9 @@ public interface MethodChangeMapper {
             "id = #{id}" +
             "</script>")
     MethodChange findById(@Param("tableNum") int tableNum, @Param("id") long id);
+
+    @Select("<script>" +
+            "select * from " + tableName + "${tableNum} order by id limit #{offset}, #{limit} " +
+            "</script>")
+    List<MethodChange> findList(@Param("tableNum") int tableNum, @Param("offset") long offset, @Param("limit") int limit);
 }

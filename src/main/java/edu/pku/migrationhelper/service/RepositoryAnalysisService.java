@@ -102,45 +102,18 @@ public abstract class RepositoryAnalysisService {
             return 0;
         }
         try {
-            int limit = 100;
             MutableBoolean successExist = new MutableBoolean(false);
-            MutableBoolean missingExist = new MutableBoolean(false);
-            List<String> commitList = new ArrayList<>(limit);
             forEachCommit(repository, commitId -> {
-                if (successExist.booleanValue() && missingExist.booleanValue()) {
+                if (successExist.booleanValue()) {
                     return;
                 }
-                commitList.add(commitId);
-                if (commitList.size() >= limit) {
-                    long count = 0;//commitInfoMapper.countIdIn(commitList); // TODO
-                    if (count < commitList.size()) {
-                        missingExist.setTrue();
-                    }
-                    if (count > 0) {
-                        successExist.setTrue();
-                    }
-                    commitList.clear();
-                }
-            });
-            if (successExist.booleanValue() && missingExist.booleanValue()) {
-                return 2;
-            }
-            if (commitList.size() > 0) {
-                long count = 0;//commitInfoMapper.countIdIn(commitList); // TODO
-                if (count > 0) {
+                CommitInfo commitInfo = gitObjectStorageService.getCommitById(commitId);
+                if(commitInfo != null) {
                     successExist.setTrue();
                 }
-                if (count < commitList.size()) {
-                    missingExist.setTrue();
-                }
-            }
-            if (!successExist.booleanValue()) {
-                return 0;
-            }
-            if (successExist.booleanValue() && !missingExist.booleanValue()) {
-                return 1;
-            }
-            return 2;
+            });
+            if(successExist.booleanValue()) return 1;
+            else return 0;
         } finally {
             closeRepository(repository);
         }
