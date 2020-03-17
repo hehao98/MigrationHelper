@@ -85,7 +85,7 @@ public class TestJob {
 //        genBerIdsCode();
 //        testCreateTable();
 //        commitInfoCommandLine();
-//        diffCommandLine();
+        diffCommandLine();
 //        alterTableJob();
     }
 
@@ -106,7 +106,8 @@ public class TestJob {
         }
     }
 
-// blob b703f00d138039eb44e986e8e90abafc0588464a 9aed2812ec9bc716740da6b5332c95181263de8c
+    // blob 862dbe191db587c33adaf7ea0596c0a02c6cccd2 5a043332e3a22a4d17ed03240fffed222ec74fd1
+    // blob b703f00d138039eb44e986e8e90abafc0588464a 9aed2812ec9bc716740da6b5332c95181263de8c
     public void diffCommandLine() throws Exception {
         Scanner sc = new Scanner(System.in);
         RepositoryAnalysisService.AbstractRepository repository = gitRepositoryAnalysisService.openRepository("jgit-cookbook");
@@ -129,8 +130,10 @@ public class TestJob {
                 case "blob": {
                     RepositoryAnalysisService.BlobInCommit p = new RepositoryAnalysisService.BlobInCommit();
                     p.blobId = parent;
+                    p.fileName = "xxx.java";
                     RepositoryAnalysisService.BlobInCommit r = new RepositoryAnalysisService.BlobInCommit();
                     r.blobId = revision;
+                    r.fileName = "yyy.java";
                     List<Set<Long>[]> result = gitRepositoryAnalysisService.analyzeBlobDiff(repository, p, r);
                     result.forEach(da -> {
                         System.out.println("---Chunk---");
@@ -269,7 +272,7 @@ public class TestJob {
     }
 
     public void testJavaCodeAnalysis() throws Exception {
-        String content = readFile("C:\\Users\\xuyul\\Documents\\实验室\\Library-Migration\\jgit-cookbook\\src\\main\\java\\org\\dstadler\\jgit\\api\\ReadFileFromCommit.java");
+        String content = readFile("..\\jgit-cookbook\\src\\main\\java\\org\\dstadler\\jgit\\porcelain\\ListTags.java");
         List<MethodSignature> msList = javaCodeAnalysisService.analyzeJavaCode(content);
         for (MethodSignature ms : msList) {
             MethodSignature dbms = libraryIdentityService.getMethodSignature(ms, null);

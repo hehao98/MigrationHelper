@@ -4,6 +4,7 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.algorithm.jgit.HistogramDiff;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Chunk;
+import com.github.difflib.patch.DeltaType;
 import com.github.difflib.patch.Patch;
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
@@ -94,6 +95,38 @@ public abstract class RepositoryAnalysisService {
     public void saveCommitInfo(AbstractRepository repository, CommitInfo commitInfo) {
         gitObjectStorageService.saveCommit(commitInfo);
         repository.commitCache.put(commitInfo.getCommitIdString(), commitInfo);
+    }
+
+    public List<CommitInfo> getRepositoryDependencyChangeCommits(String repositoryName) {
+        List<CommitInfo> result = new LinkedList<>();
+        AbstractRepository repository = openRepository(repositoryName);
+        if(repository == null) {
+            return result;
+        }
+        try {
+            forEachCommit(repository, commitId -> {
+                CommitInfo commitInfo = gitObjectStorageService.getCommitById(commitId);
+                if(commitInfo == null) return;
+                boolean change = false;
+                if(commitInfo.getCodeAddGroupArtifactIdList() != null && !commitInfo.getCodeAddGroupArtifactIdList().isEmpty()) {
+                    change = true;
+                } else if (commitInfo.getCodeDeleteGroupArtifactIdList() != null && !commitInfo.getCodeDeleteGroupArtifactIdList().isEmpty()) {
+                    change = true;
+                } else if (commitInfo.getPomAddGroupArtifactIdList() != null && !commitInfo.getPomAddGroupArtifactIdList().isEmpty()) {
+                    change = true;
+                } else if (commitInfo.getPomDeleteGroupArtifactIdList() != null && !commitInfo.getPomDeleteGroupArtifactIdList().isEmpty()) {
+                    change = true;
+                } else if (commitInfo.getMethodChangeIdList() != null && !commitInfo.getMethodChangeIdList().isEmpty()) {
+                    change = true;
+                }
+                if(change) {
+                    result.add(commitInfo);
+                }
+            });
+            return result;
+        } finally {
+            closeRepository(repository);
+        }
     }
 
     public int getRepositoryAnalyzeStatus(String repositoryName) {
@@ -285,12 +318,16 @@ public abstract class RepositoryAnalysisService {
         try {
             String thisContent = getBlobContent(repository, thisBlob.blobId);
             String parentContent = getBlobContent(repository, parentBlob.blobId);
+            if (thisContent == null || parentContent == null) {
+                return result;
+            }
             List<String> thisLines = splitContent2Lines(thisContent);
             List<String> parentLines = splitContent2Lines(parentContent);
-            Patch<String> patch = DiffUtils.diff(parentLines, thisLines, new HistogramDiff<>());
+            Patch<String> patch = DiffUtils.diff(parentLines, thisLines);
 
             Map<Long, Set<Long>> thisLine2Sig = buildLine2SigMap(thisBlobInfo);
             Map<Long, Set<Long>> parentLine2Sig = buildLine2SigMap(parentBlobInfo);
+            List<MyDiffDelta> deltaList = mergeDiffDelta(patch.getDeltas());
 
             if(LOG.isDebugEnabled()) {
                 int line = 1;
@@ -303,14 +340,29 @@ public abstract class RepositoryAnalysisService {
                     System.out.println(line + ": " + lineContent);
                     ++line;
                 }
+
+                System.out.println("thisLine2Sig: ");
+                thisLine2Sig.forEach((lineNumber, sids) -> System.out.println(lineNumber + ": " + sids));
+                System.out.println("parentLine2Sig: ");
+                parentLine2Sig.forEach((lineNumber, sids) -> System.out.println(lineNumber + ": " + sids));
+
+                for (MyDiffDelta delta : deltaList) {
+                    System.out.println(delta.deltaType);
+                    for (long i = delta.delStart; i < delta.delEnd; i++) {
+                        line = (int) (i + 1);
+                        System.out.println("--- " + line + ": " + parentLines.get(line - 1));
+                    }
+                    for (long i = delta.addStart; i < delta.addEnd; i++) {
+                        line = (int) (i + 1);
+                        System.out.println("+++ " + line + ": " + thisLines.get(line - 1));
+                    }
+                }
             }
 
-            for (AbstractDelta<String> delta : patch.getDeltas()) {
-                LOG.debug("delta type: {}", delta.getType());
-                LOG.debug("Delete Chunk:");
-                Set<Long> deleteIds = calcChunkSignatureIds(parentLine2Sig, delta.getSource());
-                LOG.debug("Add Chunk:");
-                Set<Long> addIds = calcChunkSignatureIds(thisLine2Sig, delta.getTarget());
+            for (MyDiffDelta delta : deltaList) {
+                if(delta.deltaType != DeltaType.CHANGE) continue;
+                Set<Long> deleteIds = calcChunkSignatureIds(parentLine2Sig, delta.delStart + 1, delta.delEnd + 1);
+                Set<Long> addIds = calcChunkSignatureIds(thisLine2Sig, delta.addStart + 1, delta.addEnd + 1);
                 Set<Long> intersect = new HashSet<>(deleteIds);
                 intersect.retainAll(addIds);
                 deleteIds.removeAll(intersect);
@@ -329,22 +381,126 @@ public abstract class RepositoryAnalysisService {
         }
     }
 
-    private Set<Long> calcChunkSignatureIds(Map<Long, Set<Long>> line2Sig, Chunk<String> chunk) {
-        long start = chunk.getPosition() + 1;
-        long end = start + chunk.getLines().size();
-        Set<Long> ids = new HashSet<>();
+    private static Set<Long> calcChunkSignatureIds(Map<Long, Set<Long>> line2Sig, long start, long end) {
+        Set<Long> result = new HashSet<>();
         for (long i = start; i < end; i++) {
-            if(LOG.isDebugEnabled()) {
-                LOG.debug("{}: {}", i, chunk.getLines().get((int)(i - start)));
-            }
             if(line2Sig.containsKey(i)) {
-                if(LOG.isDebugEnabled()) {
-                    LOG.debug("{} contains signatures: {}", i, line2Sig.get(i));
-                }
-                ids.addAll(line2Sig.get(i));
+                result.addAll(line2Sig.get(i));
             }
         }
-        return ids;
+        return result;
+    }
+
+    public static class MyDiffDelta {
+        DeltaType deltaType;
+        long delStart = 0; // include, 0-base
+        long delEnd = 0; // exclude
+        long addStart = 0; // include, 0-base
+        long addEnd = 0; // exclude
+    }
+
+    public static <T> List<MyDiffDelta> mergeDiffDelta(Collection<AbstractDelta<T>> deltaList) {
+        TreeMap<Long, MyDiffDelta> delMap = new TreeMap<>();
+        TreeMap<Long, MyDiffDelta> addMap = new TreeMap<>();
+        TreeMap<Long, MyDiffDelta> chgMap = new TreeMap<>();
+        for (AbstractDelta<?> delta : deltaList) {
+            MyDiffDelta myDelta = new MyDiffDelta();
+            myDelta.deltaType = delta.getType();
+            myDelta.delStart = delta.getSource().getPosition();
+            myDelta.delEnd = myDelta.delStart + delta.getSource().getLines().size();
+            myDelta.addStart = delta.getTarget().getPosition();
+            myDelta.addEnd = myDelta.addStart + delta.getTarget().getLines().size();
+            switch (myDelta.deltaType) {
+                case CHANGE: {
+                    chgMap.put(myDelta.delStart, myDelta);
+                    break;
+                }
+                case INSERT: {
+                    addMap.put(myDelta.addStart, myDelta);
+                    break;
+                }
+                case DELETE: {
+                    delMap.put(myDelta.delStart, myDelta);
+                    break;
+                }
+            }
+        }
+        List<MyDiffDelta> result = new ArrayList<>(deltaList.size());
+        while(!chgMap.isEmpty()) {
+            Iterator<MyDiffDelta> it = chgMap.values().iterator();
+            MyDiffDelta delta = it.next();
+            long originalKey = delta.delStart;
+            Map.Entry<Long, MyDiffDelta> entry;
+            MyDiffDelta delDelta;
+            MyDiffDelta addDelta;
+            MyDiffDelta chgDelta;
+            // del: [a, b), chg: [b, c) -> [x, y) => chg: [a, c) -> [x, y)
+            entry = delMap.floorEntry(delta.delStart);
+            if(entry != null) {
+                delDelta = entry.getValue();
+                if(delDelta.delEnd == delta.delStart) {
+                    delMap.remove(entry.getKey());
+                    delta.delStart = delDelta.delStart;
+                    modifyChangeMap(chgMap, originalKey, delta);
+                    continue;
+                }
+            }
+            // del: [c, d), chg: [b, c) -> [x, y) => chg: [b, d) -> [x, y)
+            delDelta = delMap.get(delta.delEnd);
+            if(delDelta != null) {
+                delMap.remove(delta.delEnd);
+                delta.delEnd = delDelta.delEnd;
+                continue;
+            }
+            // add: [z, x), chg: [b, c) -> [x, y) => chg: [b, c) -> [z, y)
+            entry = addMap.floorEntry(delta.addStart);
+            if(entry != null) {
+                addDelta = entry.getValue();
+                if(addDelta.addEnd == delta.addStart) {
+                    addMap.remove(entry.getKey());
+                    delta.addStart = addDelta.addStart;
+                    continue;
+                }
+            }
+            // add: [y, z), chg: [b, c) -> [x, y) => chg: [b, c) -> [x, z)
+            addDelta = addMap.get(delta.addEnd);
+            if(addDelta != null) {
+                addMap.remove(delta.addEnd);
+                delta.addEnd = addDelta.addEnd;
+                continue;
+            }
+            // chg: [a, b) -> [z, x), chg: [b, c) -> [x, y) => chg: [a, c) -> [z, y)
+            entry = chgMap.floorEntry(delta.delStart);
+            if(entry != null) {
+                chgDelta = entry.getValue();
+                if(chgDelta.delEnd == delta.delStart && chgDelta.addEnd == delta.addStart) {
+                    chgMap.remove(entry.getKey());
+                    delta.delStart = chgDelta.delStart;
+                    delta.addStart = chgDelta.addStart;
+                    modifyChangeMap(chgMap, originalKey, delta);
+                    continue;
+                }
+            }
+            // chg: [c, d) -> [y, z), chg: [b, c) -> [x, y) => chg: [b, d) -> [x, z)
+            chgDelta = chgMap.get(delta.delEnd);
+            if(chgDelta != null && chgDelta.addStart == delta.addEnd) {
+                chgMap.remove(delta.delEnd);
+                delta.delEnd = chgDelta.delEnd;
+                delta.addEnd = chgDelta.addEnd;
+                continue;
+            }
+            // can not merge
+            chgMap.remove(originalKey);
+            result.add(delta);
+        }
+        result.addAll(delMap.values());
+        result.addAll(addMap.values());
+        return result;
+    }
+
+    private static void modifyChangeMap(TreeMap<Long, MyDiffDelta> chgMap, long originalKey, MyDiffDelta newValue) {
+        chgMap.remove(originalKey);
+        chgMap.put(newValue.delStart, newValue);
     }
 
     private Map<Long, Set<Long>> buildLine2SigMap(BlobInfo blobInfo) {
@@ -381,15 +537,25 @@ public abstract class RepositoryAnalysisService {
             thisBlobs = getBlobsInCommit(repository, thisCommit.getCommitIdString());
             thisCommit.setBlobInCommit(thisBlobs);
         }
-        List<BlobInCommit> parentBlobs = null;
-        if(parentCommit != null) {
-            parentBlobs = parentCommit.getBlobInCommit();
-            if(parentBlobs == null) {
-                parentBlobs = getBlobsInCommit(repository, parentCommit.getCommitIdString());
-                parentCommit.setBlobInCommit(parentBlobs);
-            }
+        if(thisBlobs == null) {
+            return new ArrayList<>(0);
         }
-        if(parentBlobs == null || parentBlobs.isEmpty()) {
+        if(parentCommit == null) {
+            List<BlobInCommit[]> result = new ArrayList<>(thisBlobs.size());
+            for (BlobInCommit thisBlob : thisBlobs) {
+                result.add(new BlobInCommit[]{null, thisBlob});
+            }
+            return result;
+        }
+        List<BlobInCommit> parentBlobs = parentCommit.getBlobInCommit();;
+        if(parentBlobs == null) {
+            parentBlobs = getBlobsInCommit(repository, parentCommit.getCommitIdString());
+            parentCommit.setBlobInCommit(parentBlobs);
+        }
+        if(parentBlobs == null) {
+            return new ArrayList<>(0);
+        }
+        if(parentBlobs.isEmpty()) {
             List<BlobInCommit[]> result = new ArrayList<>(thisBlobs.size());
             for (BlobInCommit thisBlob : thisBlobs) {
                 result.add(new BlobInCommit[]{null, thisBlob});
@@ -425,6 +591,9 @@ public abstract class RepositoryAnalysisService {
     }
 
     private void calcIdsDiff(List<Long> thisIdsJson, List<Long> parentIdsJson, Consumer<List<Long>> addIdsJson, Consumer<List<Long>> deleteIdsJson) {
+        if(thisIdsJson == null || parentIdsJson == null) {
+            return;
+        }
         Set<Long> thisIds = new HashSet<>(thisIdsJson);
         Set<Long> parentIds = new HashSet<>(parentIdsJson);
         Set<Long> addIds = new HashSet<>(thisIds);
@@ -449,6 +618,10 @@ public abstract class RepositoryAnalysisService {
             commitInfo.setCommitIdString(commitId);
         }
         List<BlobInCommit> blobs = getBlobsInCommit(repository, commitId);
+        if(blobs == null) {
+            saveCommitInfo(repository, commitInfo);
+            return commitInfo;
+        }
         Set<Long> codeVersionIds = new HashSet<>();
         Set<Long> codeGaIds = new HashSet<>();
         Set<Long> pomVersionIds = new HashSet<>();
@@ -490,6 +663,7 @@ public abstract class RepositoryAnalysisService {
             try {
                 LOG.debug("begin analyzeJavaContent blobId = {}", blob.blobId);
                 String content = getBlobContent(repository, blob.blobId);
+                if(content == null) throw new RuntimeException("can not access blob: " + blob.blobId);
                 analyzeJavaContent(content, signatureIdLines, versionIds, groupArtifactIds);
                 LOG.debug("end analyzeJavaContent blobId = {}", blob.blobId);
             } catch (Exception e) {
@@ -506,6 +680,7 @@ public abstract class RepositoryAnalysisService {
             try {
                 LOG.debug("begin analyzePomContent blobId = {}", blob.blobId);
                 String content = getBlobContent(repository, blob.blobId);
+                if(content == null) throw new RuntimeException("can not access blob: " + blob.blobId);
                 analyzePomContent(content, versionIds, groupArtifactIds);
                 LOG.debug("end analyzePomContent blobId = {}", blob.blobId);
             } catch (Exception e) {

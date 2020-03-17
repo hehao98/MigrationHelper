@@ -107,7 +107,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     @Override
     public List<BlobInCommit> getBlobsInCommit(AbstractRepository repo, String commitId) {
         String commitContent = commitIndex.getValue(commitId);
-        if(commitContent == null) return new ArrayList<>(0); // TODO
+        if(commitContent == null) return null; // TODO
         String[] attrLine = commitContent.split("\n");
         String treeId = null;
         for (String line : attrLine) {
@@ -116,7 +116,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
                 break;
             }
         }
-        if (treeId == null) return new ArrayList<>(0); // TODO
+        if (treeId == null) return null; // TODO
         return getBlobsInTree((WocRepository) repo, treeId, "");
     }
 
@@ -126,6 +126,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         }
         List<BlobInCommit> result = new LinkedList<>();
         byte[] treeContent = treeIndex.getValueBytes(treeId);
+        if(treeContent == null) return null; // TODO
         int p = 0, len = treeContent.length;
         while(p < len) {
             int start = p;
@@ -138,7 +139,9 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
             String objectId = MathUtils.toHexString(treeContent, p, 20);
             p += 20;
             if(isTree) {
-                result.addAll(getBlobsInTree(repository, objectId, parentPath + fileName + "/"));
+                List<BlobInCommit> subTreeResult = getBlobsInTree(repository, objectId, parentPath + fileName + "/");
+                if(subTreeResult == null) return null; // TODO
+                result.addAll(subTreeResult);
             } else {
                 BlobInCommit bic = new BlobInCommit();
                 bic.fileName = parentPath + fileName;
@@ -154,7 +157,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     public String getBlobContent(AbstractRepository repo, String blobId) {
         WocRepository repository = (WocRepository) repo;
         List<Long> offsetLength = blobIndex.getBerNumberListValue(blobId);
-        if(offsetLength == null) return ""; // TODO
+        if(offsetLength == null) return null; // TODO
         if(offsetLength.size() != 2) {
             throw new RuntimeException("offsetLength.size() != 2");
         }

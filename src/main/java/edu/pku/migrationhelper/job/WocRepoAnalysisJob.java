@@ -40,20 +40,25 @@ public class WocRepoAnalysisJob {
         int jobId = 1;
         String line;
         while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",");
-            if(attrs.length < 2) {
-                continue;
-            }
-            if(!"Java".equals(attrs[1])) {
-                continue;
-            }
-            String[] urlFields = attrs[0].split("/");
-            if(urlFields.length < 2) {
-                continue;
-            }
-            String repoName = urlFields[urlFields.length - 2] + "_" + urlFields[urlFields.length - 1];
+            String repoName = getRepoNameFromUrl(line);
+            if(repoName == null) continue;
             executorService.submit(new SingleRepoJob(jobId++, repoName));
         }
+    }
+
+    public static String getRepoNameFromUrl(String url) {
+        String[] attrs = url.split(",");
+        if(attrs.length < 2) {
+            return null;
+        }
+        if(!"Java".equals(attrs[1])) {
+            return null;
+        }
+        String[] urlFields = attrs[0].split("/");
+        if(urlFields.length < 2) {
+            return null;
+        }
+        return urlFields[urlFields.length - 2] + "_" + urlFields[urlFields.length - 1];
     }
 
     public class SingleRepoJob implements Runnable {

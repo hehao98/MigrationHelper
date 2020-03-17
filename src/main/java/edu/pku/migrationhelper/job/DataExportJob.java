@@ -74,6 +74,10 @@ public class DataExportJob implements CommandLineRunner {
                 exportCommitInfo(writer);
                 break;
             }
+            case "MethodChangeCommit": {
+                exportMethodChangeCommit(writer, args);
+                break;
+            }
             case "LibraryVersion": {
                 exportLibraryVersion(writer);
                 break;
@@ -277,23 +281,46 @@ public class DataExportJob implements CommandLineRunner {
         BufferedReader reader = new BufferedReader(new FileReader(repositoryListFile));
         String line;
         while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",");
-            if(attrs.length < 2) {
-                continue;
-            }
-            if(!"Java".equals(attrs[1])) {
-                continue;
-            }
-            String[] urlFields = attrs[0].split("/");
-            if(urlFields.length < 2) {
-                continue;
-            }
-            String repoName = urlFields[urlFields.length - 2] + "_" + urlFields[urlFields.length - 1];
+            String repoName = WocRepoAnalysisJob.getRepoNameFromUrl(line);
+            if(repoName == null) continue;
             int status = wocEnabled ?
                     wocRepositoryAnalysisService.getRepositoryAnalyzeStatus(repoName) :
                     gitRepositoryAnalysisService.getRepositoryAnalyzeStatus(repoName);
             outputLine(writer, repoName, status);
         }
+    }
+
+    public void exportMethodChangeCommit(FileWriter writer, String... args) throws Exception {
+        int projectLimit = 110;
+        if(args.length >= 3) {
+            projectLimit = Integer.parseInt(args[2]);
+        }
+        outputLine(writer, "repositoryName", "commitSha1",
+                "codeDepAdd", "codeDepDel", "pomDepAdd", "pomDepDel", "APIChangeBlocks");
+        BufferedReader reader = new BufferedReader(new FileReader(repositoryListFile));
+        String line;
+        while((line = reader.readLine()) != null) {
+            String repoName = WocRepoAnalysisJob.getRepoNameFromUrl(line);
+            if(repoName == null) continue;
+            if(projectLimit-- <= 0) break;
+            LOG.info("dump project: {}, {}", repoName, projectLimit);
+            List<CommitInfo> result = wocEnabled ?
+                    wocRepositoryAnalysisService.getRepositoryDependencyChangeCommits(repoName) :
+                    gitRepositoryAnalysisService.getRepositoryDependencyChangeCommits(repoName);
+            for (CommitInfo commitInfo : result) {
+                outputLine(writer, line, commitInfo.getCommitIdString(),
+                        getListSizeSafe(commitInfo.getCodeAddGroupArtifactIdList()),
+                        getListSizeSafe(commitInfo.getCodeDeleteGroupArtifactIdList()),
+                        getListSizeSafe(commitInfo.getPomAddGroupArtifactIdList()),
+                        getListSizeSafe(commitInfo.getPomDeleteGroupArtifactIdList()),
+                        getListSizeSafe(commitInfo.getMethodChangeIdList()) / 2);
+            }
+        }
+    }
+
+    public int getListSizeSafe(List<?> list) {
+        if(list == null) return 0;
+        return list.size();
     }
 
     public void outputLine(FileWriter writer, Object... fields) throws Exception {

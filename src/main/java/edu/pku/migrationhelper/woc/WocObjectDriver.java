@@ -71,6 +71,7 @@ public class WocObjectDriver {
 
     public String getLZFString(String key, long offset, int length) throws IOException {
         byte[] raw = getRaw(key, offset, length);
+        if(raw == null) return null;
         try {
             return new String(LZFUtils.lzfDecompressFromPerl(raw));
         } catch (LZFUtils.LZFException e) {
