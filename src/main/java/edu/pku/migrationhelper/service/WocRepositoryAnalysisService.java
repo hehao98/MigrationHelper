@@ -25,7 +25,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     public static class WocRepository extends AbstractRepository {
         public WocObjectDriver blobDriver;
-        public Map<String, List<BlobInCommit>> treeCache = new HashMap<>();
+        public Map<String, List<BlobInCommit>> treeCache = new HashMap<>(100000);
     }
 
     private WocHdbDriver p2c;
@@ -83,7 +83,11 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     @Override
     public void closeRepository(AbstractRepository repo) {
         WocRepository repository = (WocRepository) repo;
+        repository.treeCache = null;
+        repository.blobCache = null;
+        repository.commitCache = null;
         repository.blobDriver.closeDatabaseFile();
+        repository.blobDriver = null;
     }
 
     @Override

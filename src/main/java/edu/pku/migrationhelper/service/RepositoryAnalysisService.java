@@ -10,6 +10,7 @@ import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.MethodChangeMapper;
+import edu.pku.migrationhelper.mapper.RepositoryAnalyzeStatusMapper;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +47,13 @@ public abstract class RepositoryAnalysisService {
     @Autowired
     protected MethodChangeMapper methodChangeMapper;
 
+    @Autowired
+    protected RepositoryAnalyzeStatusMapper repositoryAnalyzeStatusMapper;
+
     public static abstract class AbstractRepository {
         public String repositoryName;
-        public Map<String, BlobInfo> blobCache = new HashMap<>();
-        public Map<String, CommitInfo> commitCache = new HashMap<>();
+        public Map<String, BlobInfo> blobCache = new HashMap<>(200000);
+        public Map<String, CommitInfo> commitCache = new HashMap<>(20000);
     }
 
     public static class BlobInCommit {
@@ -70,6 +74,9 @@ public abstract class RepositoryAnalysisService {
     public abstract String getBlobContent(AbstractRepository repository, String blobId);
 
     public BlobInfo getBlobInfo(AbstractRepository repository, String blobId) {
+//        if(true) { // TODO
+//            return gitObjectStorageService.getBlobById(blobId);
+//        }
         BlobInfo blobInfo = repository.blobCache.get(blobId);
         if(blobInfo == null) {
             blobInfo = gitObjectStorageService.getBlobById(blobId);
@@ -80,10 +87,13 @@ public abstract class RepositoryAnalysisService {
 
     public void saveBlobInfo(AbstractRepository repository, BlobInfo blobInfo) {
         gitObjectStorageService.saveBlob(blobInfo);
-        repository.blobCache.put(blobInfo.getBlobIdString(), blobInfo);
+        repository.blobCache.put(blobInfo.getBlobIdString(), blobInfo); // TODO
     }
 
     public CommitInfo getCommitInfo(AbstractRepository repository, String commitId) {
+//        if(true) { // TODO
+//            return gitObjectStorageService.getCommitById(commitId);
+//        }
         CommitInfo commitInfo = repository.commitCache.get(commitId);
         if(commitInfo == null) {
             commitInfo = gitObjectStorageService.getCommitById(commitId);
@@ -94,7 +104,7 @@ public abstract class RepositoryAnalysisService {
 
     public void saveCommitInfo(AbstractRepository repository, CommitInfo commitInfo) {
         gitObjectStorageService.saveCommit(commitInfo);
-        repository.commitCache.put(commitInfo.getCommitIdString(), commitInfo);
+        repository.commitCache.put(commitInfo.getCommitIdString(), commitInfo); // TODO
     }
 
     public List<CommitInfo> getRepositoryDependencyChangeCommits(String repositoryName) {
@@ -153,13 +163,41 @@ public abstract class RepositoryAnalysisService {
     }
 
     public void analyzeRepositoryLibrary(String repositoryName) {
+        RepositoryAnalyzeStatus.RepoType repoType = null;
+        if(this instanceof WocRepositoryAnalysisService) {
+            repoType = RepositoryAnalyzeStatus.RepoType.WoC;
+        } else if(this instanceof GitRepositoryAnalysisService) {
+            repoType = RepositoryAnalyzeStatus.RepoType.Git;
+        } else {
+            throw new RuntimeException("Unknown RepoType");
+        }
+        RepositoryAnalyzeStatus analyzeStatus = repositoryAnalyzeStatusMapper.findByRepoTypeAndRepoName(repoType, repositoryName);
+        if(analyzeStatus == null) {
+            analyzeStatus = new RepositoryAnalyzeStatus()
+                    .setRepoType(repoType)
+                    .setRepoName(repositoryName)
+                    .setAnalyzeStatus(RepositoryAnalyzeStatus.AnalyzeStatus.Analyzing)
+                    .setStartTime(new Date())
+                    .setEndTime(null);
+            repositoryAnalyzeStatusMapper.insert(analyzeStatus);
+        }
+        if(analyzeStatus.getAnalyzeStatus() != RepositoryAnalyzeStatus.AnalyzeStatus.Analyzing) {
+            return;
+        }
         AbstractRepository repository = openRepository(repositoryName);
         if(repository == null) {
+            analyzeStatus.setEndTime(new Date())
+                    .setAnalyzeStatus(RepositoryAnalyzeStatus.AnalyzeStatus.Error);
+            repositoryAnalyzeStatusMapper.update(analyzeStatus);
             throw new RuntimeException("open repository fail");
         }
         try {
             forEachCommit(repository, commitId -> {
                 CommitInfo thisCommit = analyzeCommitSelfInfo(repository, commitId);
+                if((!commitNeedAnalyzeDependencyChange(thisCommit)) &&
+                        (!commitNeedAnalyzeMethodChange(thisCommit))) {
+                    return;
+                }
                 List<String> parentIds = getCommitParents(repository, commitId);
                 if (parentIds.size() == 1) {
                     CommitInfo parentCommit = analyzeCommitSelfInfo(repository, parentIds.get(0));
@@ -170,16 +208,32 @@ public abstract class RepositoryAnalysisService {
                     // ignore merge commit
                 }
             });
+            analyzeStatus.setEndTime(new Date())
+                    .setAnalyzeStatus(RepositoryAnalyzeStatus.AnalyzeStatus.Success);
+            repositoryAnalyzeStatusMapper.update(analyzeStatus);
+        } catch (Exception e) {
+            analyzeStatus.setEndTime(new Date())
+                    .setAnalyzeStatus(RepositoryAnalyzeStatus.AnalyzeStatus.Error);
+            repositoryAnalyzeStatusMapper.update(analyzeStatus);
+            throw e;
         } finally {
             closeRepository(repository);
         }
     }
 
+    public static boolean commitNeedAnalyzeDependencyChange(CommitInfo commitInfo) {
+        return commitInfo.getCodeAddGroupArtifactIdList() == null ||
+                commitInfo.getCodeDeleteGroupArtifactIdList() == null ||
+                commitInfo.getPomAddGroupArtifactIdList() == null ||
+                commitInfo.getPomDeleteGroupArtifactIdList() == null;
+    }
+
+    public static boolean commitNeedAnalyzeMethodChange(CommitInfo commitInfo) {
+        return commitInfo.getMethodChangeIds() == null;
+    }
+
     public CommitInfo analyzeCommitDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
-        if(thisCommit.getCodeAddGroupArtifactIdList() == null ||
-                thisCommit.getCodeDeleteGroupArtifactIdList() == null ||
-                thisCommit.getPomAddGroupArtifactIdList() == null ||
-                thisCommit.getPomDeleteGroupArtifactIdList() == null) {
+        if(commitNeedAnalyzeDependencyChange(thisCommit)) {
             List<Long> parentCodeIds;
             List<Long> parentPomIds;
             if(parentCommit == null) {
@@ -195,7 +249,7 @@ public abstract class RepositoryAnalysisService {
                     thisCommit::setPomAddGroupArtifactIdList, thisCommit::setPomDeleteGroupArtifactIdList);
         }
 
-        if(thisCommit.getMethodChangeIds() == null) {
+        if(commitNeedAnalyzeMethodChange(thisCommit)) {
             List<BlobInCommit[]> diffBlobs = getCommitBlobDiff(repository, thisCommit, parentCommit);
             Map<List<Long>, MethodChange> methodChangeMap = new HashMap<>();
             for (BlobInCommit[] diffBlob : diffBlobs) {

@@ -46,6 +46,9 @@ public class CreateTableJob {
     @Autowired
     private MethodSignatureMapper methodSignatureMapper;
 
+    @Autowired
+    private RepositoryAnalyzeStatusMapper repositoryAnalyzeStatusMapper;
+
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
 
@@ -82,6 +85,8 @@ public class CreateTableJob {
             methodSignatureMapper.createTable(i);
             methodSignatureMapper.setAutoIncrement(i, ai);
         }
+
+        repositoryAnalyzeStatusMapper.createTable();
 
         LOG.info("Create Table Success");
     }

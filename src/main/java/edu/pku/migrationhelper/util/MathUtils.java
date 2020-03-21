@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.util;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class MathUtils {
                 acc = 0;
             }
         }
-        return result;
+        return new ArrayList<>(result);
     }
 
     public static byte[] berNumberList(List<Long> list) {

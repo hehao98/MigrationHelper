@@ -95,3 +95,14 @@ CREATE TABLE `method_signature` (
                                   PRIMARY KEY (`id`),
                                   UNIQUE KEY `unique` (`package_name`,`class_name`,`method_name`,`param_list`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
+
+CREATE TABLE `repository_analyze_status` (
+                                             `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                                             `repo_type` varchar(15) DEFAULT NULL,
+                                             `repo_name` varchar(255) DEFAULT NULL,
+                                             `start_time` datetime DEFAULT NULL,
+                                             `end_time` datetime DEFAULT NULL,
+                                             `analyze_status` varchar(15) DEFAULT NULL,
+                                             PRIMARY KEY (`id`),
+                                             UNIQUE KEY `index2` (`repo_type`,`repo_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

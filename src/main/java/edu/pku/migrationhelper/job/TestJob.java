@@ -78,14 +78,14 @@ public class TestJob {
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
-//        createTable();
-//        testAnalyzeBlob();
+        createTable();
+        testAnalyzeBlob();
 //        testTokyoCabinet();
 //        testBlobCommitMapper();
 //        genBerIdsCode();
 //        testCreateTable();
 //        commitInfoCommandLine();
-        diffCommandLine();
+//        diffCommandLine();
 //        alterTableJob();
     }
 
