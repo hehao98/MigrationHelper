@@ -52,13 +52,13 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/3rd/tokyocabinet.jar</systemPath>
         </dependency>
-        <dependency>
-            <groupId>spmf</groupId>
-            <artifactId>spmf</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/3rd/spmf.jar</systemPath>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>spmf</groupId>-->
+<!--            <artifactId>spmf</artifactId>-->
+<!--            <version>1.0</version>-->
+<!--            <scope>system</scope>-->
+<!--            <systemPath>${project.basedir}/3rd/spmf.jar</systemPath>-->
+<!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/com.twitter/util-hashing -->
         <dependency>
             <groupId>com.twitter</groupId>

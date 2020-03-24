@@ -1,0 +1,17 @@
+NbDepart
+NbArriv
+NbCancel
+NbDivert
+DelayDepart
+DelayArriv
+GroundWaitingDepart
+GroundWaitingArriv
+ degree
+ closeness
+ betweennes
+ eigenvector
+ pagerank
+ numCliques
+ maxClique
+ numNodesComm
+ clustering
