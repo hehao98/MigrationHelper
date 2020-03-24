@@ -49,6 +49,9 @@ public class CreateTableJob {
     @Autowired
     private RepositoryAnalyzeStatusMapper repositoryAnalyzeStatusMapper;
 
+    @Autowired
+    private RepositoryDepSeqMapper repositoryDepSeqMapper;
+
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
 
@@ -87,6 +90,8 @@ public class CreateTableJob {
         }
 
         repositoryAnalyzeStatusMapper.createTable();
+
+        repositoryDepSeqMapper.createTable();
 
         LOG.info("Create Table Success");
     }

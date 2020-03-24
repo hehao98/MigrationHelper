@@ -11,5 +11,6 @@ server:
 migration-helper:
   woc:
     enabled: false
+    object-enabled: false
   job:
     enabled: TestJob

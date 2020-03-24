@@ -31,6 +31,8 @@ public class CommitInfo {
 
     private List<RepositoryAnalysisService.BlobInCommit> blobInCommit; // not persistence, using by RepositoryAnalysisService
 
+    private int commitTime; // not persistence, using by RepositoryAnalysisService
+
     private String commitIdString;
 
     private List<Long> codeLibraryVersionIdList;
@@ -245,6 +247,15 @@ public class CommitInfo {
 
     public CommitInfo setBlobInCommit(List<RepositoryAnalysisService.BlobInCommit> blobInCommit) {
         this.blobInCommit = blobInCommit;
+        return this;
+    }
+
+    public int getCommitTime() {
+        return commitTime;
+    }
+
+    public CommitInfo setCommitTime(int commitTime) {
+        this.commitTime = commitTime;
         return this;
     }
 }

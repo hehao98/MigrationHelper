@@ -15,17 +15,17 @@ public class RepositoryAnalyzeStatus {
         Error,
     }
 
-    public long id;
+    private long id;
 
-    public RepoType repoType;
+    private RepoType repoType;
 
-    public String repoName;
+    private String repoName;
 
-    public Date startTime;
+    private Date startTime;
 
-    public Date endTime;
+    private Date endTime;
 
-    public AnalyzeStatus analyzeStatus;
+    private AnalyzeStatus analyzeStatus;
 
     public long getId() {
         return id;

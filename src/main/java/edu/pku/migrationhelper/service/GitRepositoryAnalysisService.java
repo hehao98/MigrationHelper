@@ -135,4 +135,19 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public Integer getCommitTime(AbstractRepository repo, String commitId) {
+        try {
+            GitRepository gitRepository = (GitRepository) repo;
+            Repository repository = gitRepository.repository;
+            try (RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit commit = revWalk.parseCommit(ObjectId.fromString(commitId));
+                if(commit == null) return null;
+                return commit.getCommitTime();
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

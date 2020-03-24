@@ -106,3 +106,9 @@ CREATE TABLE `repository_analyze_status` (
                                              PRIMARY KEY (`id`),
                                              UNIQUE KEY `index2` (`repo_type`,`repo_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `repository_dep_seq` (
+                                             `id` bigint(20) NOT NULL,
+                                             `dep_seq` mediumblob,
+                                             PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=ascii;

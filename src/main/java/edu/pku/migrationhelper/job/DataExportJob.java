@@ -1,15 +1,13 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.BlobInfo;
-import edu.pku.migrationhelper.data.CommitInfo;
-import edu.pku.migrationhelper.data.LioProjectWithRepository;
-import edu.pku.migrationhelper.data.MethodChange;
+import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.GitRepositoryAnalysisService;
 import edu.pku.migrationhelper.service.WocRepositoryAnalysisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,6 +17,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Created by xuyul on 2020/2/24.
@@ -55,6 +55,10 @@ public class DataExportJob implements CommandLineRunner {
 
     @Autowired
     private GitRepositoryAnalysisService gitRepositoryAnalysisService;
+
+    @Autowired
+    @Qualifier("ThreadPool")
+    private ExecutorService executorService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -96,6 +100,10 @@ public class DataExportJob implements CommandLineRunner {
             }
             case "LioProjectParseStatus": {
                 exportLioProjectParseStatus(writer);
+                break;
+            }
+            case "RepositoryDepSeq": {
+                exportRepositoryDepSeq(writer, args);
                 break;
             }
         }
@@ -316,6 +324,64 @@ public class DataExportJob implements CommandLineRunner {
                         getListSizeSafe(commitInfo.getMethodChangeIdList()) / 2);
             }
         }
+    }
+
+    public void exportRepositoryDepSeq(FileWriter writer, String... args) throws Exception {
+        int projectLimit = 1000;
+        if(args.length >= 3) {
+            projectLimit = Integer.parseInt(args[2]);
+        }
+        outputLine(writer, "id", "repositoryName", "depSeq");
+        BufferedReader reader = new BufferedReader(new FileReader(repositoryListFile));
+        String line;
+        Future[] futures = new Future[projectLimit];
+        String[] repoNames = new String[projectLimit];
+        while((line = reader.readLine()) != null) {
+            int index = futures.length - projectLimit;
+            String repoName = WocRepoAnalysisJob.getRepoNameFromUrl(line);
+            if(repoName == null) continue;
+            if(projectLimit-- <= 0) break;
+            repoNames[index] = repoName;
+            futures[index] = executorService.submit(() -> {
+                LOG.info("dump project: {}, {}", repoName, index);
+                RepositoryDepSeq result = wocEnabled ?
+                        wocRepositoryAnalysisService.getRepositoryDepSeq(repoName) :
+                        gitRepositoryAnalysisService.getRepositoryDepSeq(repoName);
+                LOG.info("dump project success: {}, {}", repoName, index);
+            });
+
+        }
+        for (int i = 0; i < futures.length; i++) {
+            Future future = futures[i];
+            String repoName = repoNames[i];
+            if(future == null) continue;
+            LOG.info("waiting project: {}, {}", repoName, i);
+            try {
+                future.get();
+            } catch (Exception e) {
+                LOG.error("waiting project error: " + repoName + " " + i, e);
+                continue;
+            }
+            LOG.info("output project: {}, {}", repoName, i);
+            RepositoryDepSeq result = wocEnabled ?
+                    wocRepositoryAnalysisService.getRepositoryDepSeq(repoName) :
+                    gitRepositoryAnalysisService.getRepositoryDepSeq(repoName);
+            if(result == null) continue;
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            if(result.getDepSeqList() != null) {
+                for (Long aLong : result.getDepSeqList()) {
+                    sb.append(aLong);
+                    sb.append(" ");
+                }
+            }
+            if(sb.length() > 1) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append("]");
+            outputLine(writer, result.getId(), repoName, sb.toString());
+        }
+        LOG.info("Export Success");
     }
 
     public int getListSizeSafe(List<?> list) {

@@ -78,8 +78,8 @@ public class TestJob {
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
 //        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
-        createTable();
-        testAnalyzeBlob();
+//        createTable();
+//        testAnalyzeBlob();
 //        testTokyoCabinet();
 //        testBlobCommitMapper();
 //        genBerIdsCode();
@@ -87,6 +87,12 @@ public class TestJob {
 //        commitInfoCommandLine();
 //        diffCommandLine();
 //        alterTableJob();
+        testRepositoryDepSeq();
+    }
+
+    public void testRepositoryDepSeq() throws Exception {
+        RepositoryDepSeq depSeq = gitRepositoryAnalysisService.getRepositoryDepSeq("jgit-cookbook");
+        System.out.println(depSeq.getDepSeqList());
     }
 
     public void alterTableJob() throws Exception {

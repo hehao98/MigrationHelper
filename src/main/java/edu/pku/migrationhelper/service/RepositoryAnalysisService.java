@@ -7,10 +7,7 @@ import com.github.difflib.patch.Chunk;
 import com.github.difflib.patch.DeltaType;
 import com.github.difflib.patch.Patch;
 import edu.pku.migrationhelper.data.*;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
-import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
-import edu.pku.migrationhelper.mapper.MethodChangeMapper;
-import edu.pku.migrationhelper.mapper.RepositoryAnalyzeStatusMapper;
+import edu.pku.migrationhelper.mapper.*;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +47,9 @@ public abstract class RepositoryAnalysisService {
     @Autowired
     protected RepositoryAnalyzeStatusMapper repositoryAnalyzeStatusMapper;
 
+    @Autowired
+    protected RepositoryDepSeqMapper repositoryDepSeqMapper;
+
     public static abstract class AbstractRepository {
         public String repositoryName;
         public Map<String, BlobInfo> blobCache = new HashMap<>(200000);
@@ -72,6 +72,8 @@ public abstract class RepositoryAnalysisService {
     public abstract List<BlobInCommit> getBlobsInCommit(AbstractRepository repository, String commitId);
 
     public abstract String getBlobContent(AbstractRepository repository, String blobId);
+
+    public abstract Integer getCommitTime(AbstractRepository repository, String commitId);
 
     public BlobInfo getBlobInfo(AbstractRepository repository, String blobId) {
 //        if(true) { // TODO
@@ -105,6 +107,75 @@ public abstract class RepositoryAnalysisService {
     public void saveCommitInfo(AbstractRepository repository, CommitInfo commitInfo) {
         gitObjectStorageService.saveCommit(commitInfo);
         repository.commitCache.put(commitInfo.getCommitIdString(), commitInfo); // TODO
+    }
+
+    public RepositoryAnalyzeStatus.RepoType getRepoType() {
+        if(this instanceof WocRepositoryAnalysisService) {
+            return RepositoryAnalyzeStatus.RepoType.WoC;
+        } else if(this instanceof GitRepositoryAnalysisService) {
+            return RepositoryAnalyzeStatus.RepoType.Git;
+        } else {
+            throw new RuntimeException("Unknown RepoType");
+        }
+    }
+
+    public RepositoryDepSeq getRepositoryDepSeq(String repositoryName) {
+        RepositoryAnalyzeStatus.RepoType repoType = getRepoType();
+        RepositoryAnalyzeStatus analyzeStatus = repositoryAnalyzeStatusMapper.findByRepoTypeAndRepoName(
+                repoType, repositoryName);
+        if(analyzeStatus == null) return null;
+        if(analyzeStatus.getAnalyzeStatus() != RepositoryAnalyzeStatus.AnalyzeStatus.Success) return null;
+        RepositoryDepSeq depSeq = repositoryDepSeqMapper.findById(analyzeStatus.getId());
+        if(depSeq != null) return depSeq;
+        depSeq = new RepositoryDepSeq().setId(analyzeStatus.getId());
+        AbstractRepository repository = openRepository(repositoryName);
+        if(repository == null) {
+            return null;
+        }
+        try {
+            List<CommitInfo> commitList = new LinkedList<>();
+            forEachCommit(repository, commitId -> {
+                CommitInfo commitInfo = gitObjectStorageService.getCommitById(commitId);
+                if(commitInfo == null) return;
+                Integer commitTime = getCommitTime(repository, commitId);
+                if(commitTime == null) return;
+                commitInfo.setCommitTime(commitTime);
+                commitList.add(commitInfo);
+            });
+            commitList.sort(Comparator.comparingInt(CommitInfo::getCommitTime));
+            List<Long> depSeqList = new LinkedList<>();
+            for (CommitInfo commitInfo : commitList) {
+                List<Long> commitSeq = new LinkedList<>();
+
+                List<Long> pomAddIdList = commitInfo.getPomAddGroupArtifactIdList();
+                if(pomAddIdList != null) commitSeq.addAll(pomAddIdList);
+
+                Set<Long> deleteIds = new HashSet<>();
+                List<Long> pomIdList = commitInfo.getPomGroupArtifactIdList();
+                Set<Long> pomIds = pomIdList == null ? new HashSet<>() : new HashSet<>(pomIdList);
+                List<Long> codeDeleteIdList = commitInfo.getCodeDeleteGroupArtifactIdList();
+                if(codeDeleteIdList != null) {
+                    codeDeleteIdList.forEach(id -> {
+                        if(pomIds.contains(id)) {
+                            deleteIds.add(id);
+                        }
+                    });
+                }
+                List<Long> pomDeleteIdList = commitInfo.getPomDeleteGroupArtifactIdList();
+                if(pomDeleteIdList != null) deleteIds.addAll(pomDeleteIdList);
+                deleteIds.forEach(id -> commitSeq.add(-id));
+
+                if(commitSeq.isEmpty()) continue;
+                commitSeq.sort(Long::compare);
+                depSeqList.addAll(commitSeq);
+                depSeqList.add(0L);
+            }
+            depSeq.setDepSeqList(depSeqList);
+            repositoryDepSeqMapper.insert(depSeq);
+            return depSeq;
+        } finally {
+            closeRepository(repository);
+        }
     }
 
     public List<CommitInfo> getRepositoryDependencyChangeCommits(String repositoryName) {
@@ -163,14 +234,7 @@ public abstract class RepositoryAnalysisService {
     }
 
     public void analyzeRepositoryLibrary(String repositoryName) {
-        RepositoryAnalyzeStatus.RepoType repoType = null;
-        if(this instanceof WocRepositoryAnalysisService) {
-            repoType = RepositoryAnalyzeStatus.RepoType.WoC;
-        } else if(this instanceof GitRepositoryAnalysisService) {
-            repoType = RepositoryAnalyzeStatus.RepoType.Git;
-        } else {
-            throw new RuntimeException("Unknown RepoType");
-        }
+        RepositoryAnalyzeStatus.RepoType repoType = getRepoType();
         RepositoryAnalyzeStatus analyzeStatus = repositoryAnalyzeStatusMapper.findByRepoTypeAndRepoName(repoType, repositoryName);
         if(analyzeStatus == null) {
             analyzeStatus = new RepositoryAnalyzeStatus()

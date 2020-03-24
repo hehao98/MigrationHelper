@@ -23,6 +23,9 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     @Value("${migration-helper.woc.enabled}")
     private boolean wocEnabled = false;
 
+    @Value("${migration-helper.woc.object-enabled}")
+    private boolean wocObjectEnabled = false;
+
     public static class WocRepository extends AbstractRepository {
         public WocObjectDriver blobDriver;
         public Map<String, List<BlobInCommit>> treeCache = new HashMap<>(100000);
@@ -35,6 +38,8 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 //    private WocHdbDriver c2b;
 
 //    private WocHdbDriver b2f;
+
+    private WocHdbDriver c2ta;
 
     private WocHdbDriver blobIndex;
 
@@ -49,23 +54,29 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         c2pc = new WocHdbDriver(c2pcBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
 //        c2b = new WocHdbDriver(c2bBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
 //        b2f = new WocHdbDriver(b2fBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
-        blobIndex = new WocHdbDriver(blobIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.BerNumberList);
-        commitIndex = new WocHdbDriver(commitIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
-        treeIndex = new WocHdbDriver(treeIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
+        c2ta = new WocHdbDriver(c2taBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.Text);
         p2c.openDatabaseFile();
         c2pc.openDatabaseFile();
 //        c2b.openDatabaseFile();
 //        b2f.openDatabaseFile();
+        c2ta.openDatabaseFile();
+        if(!wocObjectEnabled) return;
+        blobIndex = new WocHdbDriver(blobIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.BerNumberList);
+        commitIndex = new WocHdbDriver(commitIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
+        treeIndex = new WocHdbDriver(treeIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         blobIndex.openDatabaseFile();
         commitIndex.openDatabaseFile();
         treeIndex.openDatabaseFile();
     }
 
     public void closeAllWocDatabase() {
+        if(!wocEnabled) return;
         p2c.closeDatabaseFile();
         c2pc.closeDatabaseFile();
 //        c2b.closeDatabaseFile();
 //        b2f.closeDatabaseFile();
+        c2ta.closeDatabaseFile();
+        if(!wocObjectEnabled) return;
         blobIndex.closeDatabaseFile();
         commitIndex.closeDatabaseFile();
         treeIndex.closeDatabaseFile();
@@ -172,6 +183,19 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         }
     }
 
+    @Override
+    public Integer getCommitTime(AbstractRepository repository, String commitId) {
+        String ta = c2ta.getValue(commitId);
+        if(ta == null) return null;
+        String[] attrs = ta.split(";");
+        if(attrs.length < 2) return null;
+        try {
+            return Integer.parseInt(attrs[0]);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     /**
      * configuration fields
      */
@@ -183,6 +207,8 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     private String c2bBase;
 
     private String b2fBase;
+
+    private String c2taBase;
 
     private String blobIndexBase;
 
@@ -225,6 +251,15 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     public WocRepositoryAnalysisService setB2fBase(String b2fBase) {
         this.b2fBase = b2fBase;
+        return this;
+    }
+
+    public String getC2taBase() {
+        return c2taBase;
+    }
+
+    public WocRepositoryAnalysisService setC2taBase(String c2taBase) {
+        this.c2taBase = c2taBase;
         return this;
     }
 
