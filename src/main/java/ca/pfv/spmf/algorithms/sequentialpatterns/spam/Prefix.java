@@ -53,7 +53,7 @@ import ca.pfv.spmf.patterns.itemset_list_integers_without_support.Itemset;
 *  @see AlgoVMSP
 *  
  */
-class Prefix{
+public class Prefix{
 	
 	final List<Itemset> itemsets = new ArrayList<Itemset>();
 	

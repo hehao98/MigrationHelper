@@ -6,6 +6,7 @@ import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.LZFUtils;
 import edu.pku.migrationhelper.util.MathUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import scala.Int;
 import tokyocabinet.HDB;
 
 import java.io.BufferedReader;
@@ -21,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -56,6 +59,9 @@ public class TestJob {
     private GitObjectStorageService gitObjectStorageService;
 
     @Autowired
+    private DependencyChangePatternAnalysisService dependencyChangePatternAnalysisService;
+
+    @Autowired
     private BlobInfoMapper blobInfoMapper;
 
     @Autowired
@@ -87,7 +93,106 @@ public class TestJob {
 //        commitInfoCommandLine();
 //        diffCommandLine();
 //        alterTableJob();
-        testRepositoryDepSeq();
+//        testRepositoryDepSeq();
+        testAnalyzeDepSeq();
+    }
+
+    public List<Long> simplifyLibIdList(List<Long> libIds) {
+        List<Long> result = new ArrayList<>(libIds.size());
+        Set<Long> currentLibs = new HashSet<>();
+        List<Long> currentList = new LinkedList<>();
+        for (Long libId : libIds) {
+            if(libId == 0) {
+                if(currentList.isEmpty()) continue;
+                result.addAll(currentList);
+                result.add(0L);
+                currentList.clear();
+            } else {
+                if(libId > 0) {
+                    if(currentLibs.contains(libId)) continue;
+                    currentLibs.add(libId);
+                    currentList.add(libId);
+                } else {
+                    if(!currentLibs.contains(-libId)) continue;
+                    currentLibs.remove(-libId);
+                    currentList.add(libId);
+                }
+            }
+        }
+        return result;
+    }
+
+    public void testAnalyzeDepSeq() throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader("db/RepositoryDepSeq.csv"));
+        String line = reader.readLine();
+        List<RepositoryDepSeq> seqList = new LinkedList<>();
+        Map<Long, Integer> libCounter = new HashMap<>();
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",");
+            String libIdString = attrs[2];
+            if(libIdString.length() <= 2) continue;
+            String[] libIds = libIdString.replace("[", "").replace("]", "").split(" ");
+            List<Long> libIdList = new ArrayList<>(libIds.length);
+            for (String libId : libIds) {
+                libIdList.add(Long.parseLong(libId));
+            }
+            libIdList = simplifyLibIdList(libIdList);
+            for (Long libId : libIdList) {
+                if(libId <= 0) continue;
+                libCounter.put(libId, libCounter.getOrDefault(libId, 0) + 1);
+            }
+            if(libIdList.isEmpty()) continue;
+            seqList.add(new RepositoryDepSeq().setDepSeqList(libIdList));
+        }
+        List<DependencyChangePatternAnalysisService.DependencySequenceResult> result =
+                dependencyChangePatternAnalysisService.analyzeDependencySequence(seqList, 10000);
+        MutableInt totalSupport = new MutableInt(0);
+        result = result.stream()
+                .filter(pattern -> {
+                    if(pattern.pattern.size() != 3) return false;
+                    List<Long> first = pattern.pattern.get(0);
+                    List<Long> middle = pattern.pattern.get(1);
+                    List<Long> last = pattern.pattern.get(2);
+                    Set<Long> removeLib = new HashSet<>();
+                    for (Long libId : last) {
+                        if(libId < 0) removeLib.add(libId);
+                    }
+                    if(removeLib.isEmpty()) return false;
+                    boolean firstContainRemoved = false;
+                    for (Long libId : first) {
+                        if(removeLib.contains(-libId)) {
+                            firstContainRemoved = true;
+                            break;
+                        }
+                    }
+                    if(!firstContainRemoved) return false;
+                    boolean middleContainOther = false;
+                    for (Long libId : middle) {
+                        if(libId < 0) continue;
+                        if(!removeLib.contains(-libId)) {
+                            middleContainOther = true;
+                            break;
+                        }
+                    }
+                    if(!middleContainOther) return false;
+                    return true;
+                })
+                .filter(pattern -> pattern.pattern.get(0).containsAll(Arrays.asList(25L)))
+                .peek(pattern -> {
+                    Long middle = pattern.pattern.get(1).stream().filter(e -> e > 0).findFirst().get();
+                    pattern.globalSupport = pattern.support / (double) libCounter.get(middle);
+                    totalSupport.add(pattern.support);
+                }).collect(Collectors.toList());
+        result.stream().peek(pattern -> {
+                    pattern.patternSupport = pattern.support / (double) totalSupport.getValue();
+                    pattern.multipleSupport = pattern.patternSupport * pattern.globalSupport;
+                })
+//                .sorted((a, b) -> Double.compare(b.multipleSupport, a.multipleSupport))
+                .sorted((a, b) -> Double.compare(b.patternSupport, a.patternSupport))
+                .forEach(pattern -> {
+                    System.out.println(pattern.pattern);
+                    System.out.println("Rank: " + pattern.multipleSupport + " Support: " + pattern.patternSupport + "(" + pattern.support + ") Library Count: " + pattern.globalSupport);
+                });
     }
 
     public void testRepositoryDepSeq() throws Exception {

@@ -33,7 +33,7 @@ package ca.pfv.spmf.algorithms.sequentialpatterns.spam;
 public class PatternTKS implements Comparable<PatternTKS>{
 	
 	/** the pattern */
-	Prefix prefix;
+	public Prefix prefix;
 	
 	/** the support of the pattern */
 	public int support;
