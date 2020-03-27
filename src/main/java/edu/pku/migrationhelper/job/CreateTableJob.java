@@ -29,6 +29,9 @@ public class CreateTableJob {
     private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
 
     @Autowired
+    private LibraryOverlapMapper libraryOverlapMapper;
+
+    @Autowired
     private LibrarySignatureToVersionMapper librarySignatureToVersionMapper;
 
     @Autowired
@@ -64,6 +67,8 @@ public class CreateTableJob {
         }
 
         libraryGroupArtifactMapper.createTable();
+
+        libraryOverlapMapper.createTable();
 
         for (int i = 0; i < MethodSignatureMapper.MAX_TABLE_COUNT; i++) {
             librarySignatureToVersionMapper.createTable(i);

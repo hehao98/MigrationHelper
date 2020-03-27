@@ -73,6 +73,23 @@ public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
     }
 
     @Override
+    public void forEachCommit(AbstractRepository repo, Consumer<String> commitIdConsumer, int offset, int limit) {
+        GitRepository gitRepository = (GitRepository) repo;
+        Repository repository = gitRepository.repository;
+        try(Git git = new Git(repository)) {
+            Iterable<RevCommit> commits = git.log().all().call();
+            int i = 0;
+            for( RevCommit commit : commits ) {
+                if(i++ < offset) continue;
+                if(i > offset + limit) break;
+                commitIdConsumer.accept(commit.name());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public List<String> getCommitParents(AbstractRepository repo, String commitId) {
         try {
             GitRepository gitRepository = (GitRepository) repo;

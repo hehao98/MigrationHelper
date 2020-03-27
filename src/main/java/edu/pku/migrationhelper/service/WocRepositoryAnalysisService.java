@@ -86,8 +86,12 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     public AbstractRepository openRepository(String repositoryName) {
         WocRepository repository = new WocRepository();
         repository.repositoryName = repositoryName;
-        repository.blobDriver = new WocObjectDriver(blobContentBase, 128);
-        repository.blobDriver.openDatabaseFile();
+        if(wocObjectEnabled) {
+            repository.blobDriver = new WocObjectDriver(blobContentBase, 128);
+            repository.blobDriver.openDatabaseFile();
+        } else {
+            repository.blobDriver = null;
+        }
         return repository;
     }
 
@@ -97,8 +101,10 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         repository.treeCache = null;
         repository.blobCache = null;
         repository.commitCache = null;
-        repository.blobDriver.closeDatabaseFile();
-        repository.blobDriver = null;
+        if(repository.blobDriver != null) {
+            repository.blobDriver.closeDatabaseFile();
+            repository.blobDriver = null;
+        }
     }
 
     @Override
@@ -110,6 +116,20 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
             return;
         }
         commitIds.forEach(commitIdConsumer);
+    }
+
+    @Override
+    public void forEachCommit(AbstractRepository repo, Consumer<String> commitIdConsumer, int offset, int limit) {
+        WocRepository repository = (WocRepository) repo;
+        List<String> commitIds = p2c.getSHA1ListValue(repository.repositoryName);
+        if(commitIds == null) {
+            LOG.warn("no commit found, repositoryName = {}", repository.repositoryName);
+            return;
+        }
+        commitIds.stream()
+                .skip(offset)
+                .limit(limit)
+                .forEach(commitIdConsumer);
     }
 
     @Override

@@ -2,7 +2,9 @@ package edu.pku.migrationhelper.job;
 
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
+import edu.pku.migrationhelper.service.GitObjectStorageService;
 import edu.pku.migrationhelper.service.GitRepositoryAnalysisService;
+import edu.pku.migrationhelper.service.RepositoryAnalysisService;
 import edu.pku.migrationhelper.service.WocRepositoryAnalysisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +53,19 @@ public class DataExportJob implements CommandLineRunner {
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
 
     @Autowired
+    private LibraryOverlapMapper libraryOverlapMapper;
+
+    @Autowired
+    private RepositoryAnalyzeStatusMapper repositoryAnalyzeStatusMapper;
+
+    @Autowired
     private WocRepositoryAnalysisService wocRepositoryAnalysisService;
 
     @Autowired
     private GitRepositoryAnalysisService gitRepositoryAnalysisService;
+
+    @Autowired
+    private GitObjectStorageService gitObjectStorageService;
 
     @Autowired
     @Qualifier("ThreadPool")
@@ -104,6 +115,10 @@ public class DataExportJob implements CommandLineRunner {
             }
             case "RepositoryDepSeq": {
                 exportRepositoryDepSeq(writer, args);
+                break;
+            }
+            case "CommitLibraryOverlap": {
+                exportCommitLibraryOverlap(writer, args);
                 break;
             }
         }
@@ -381,7 +396,100 @@ public class DataExportJob implements CommandLineRunner {
             sb.append("]");
             outputLine(writer, result.getId(), repoName, sb.toString());
         }
-        LOG.info("Export Success");
+    }
+
+    public void exportCommitLibraryOverlap(FileWriter writer, String... args) throws Exception {
+        int projectOffset = 0;
+        int projectLimit = 5000;
+        int commitOffset = 0;
+        int commitLimit = 10;
+        if(args.length >= 3) {
+            projectOffset = Integer.parseInt(args[2]);
+        }
+        if(args.length >= 4) {
+            projectLimit = Integer.parseInt(args[3]);
+        }
+        if(args.length >= 5) {
+            commitOffset = Integer.parseInt(args[4]);
+        }
+        if(args.length >= 6) {
+            commitLimit = Integer.parseInt(args[5]);
+        }
+        LOG.info("build overlap map start");
+        Map<Long, Set<Long>> overlapMap = new HashMap<>(100000);
+        List<LibraryOverlap> overlapList = libraryOverlapMapper.findAll();
+        for (LibraryOverlap overlap : overlapList) {
+            Long id1 = overlap.getGroupArtifactId1();
+            Long id2 = overlap.getGroupArtifactId2();
+            overlapMap.computeIfAbsent(id1, k -> new HashSet<>()).add(id2);
+            overlapMap.computeIfAbsent(id2, k -> new HashSet<>()).add(id1);
+        }
+        LOG.info("build overlap map success");
+        List<RepositoryAnalyzeStatus> repoList = repositoryAnalyzeStatusMapper.findListByStatus(
+                RepositoryAnalyzeStatus.AnalyzeStatus.Success, projectOffset, projectLimit);
+        RepositoryAnalysisService service = wocEnabled ?
+                wocRepositoryAnalysisService :
+                gitRepositoryAnalysisService;
+        outputLine(writer, "repoName", "commitId", "pomSize", "codeSize",
+                "codeExistInPom", "duplicateCodeExistInPom", "codeNotExistInPom", "codeNotExistInPomUnique");
+        for (RepositoryAnalyzeStatus repo : repoList) {
+            String repoName = repo.getRepoName();
+            LOG.info("analyze repo = {}", repoName);
+            RepositoryAnalysisService.AbstractRepository repository = service.openRepository(repoName);
+            if(repository == null) continue;
+            try {
+                service.forEachCommit(repository, commitId -> {
+                    CommitInfo commitInfo = gitObjectStorageService.getCommitById(commitId);
+                    if(commitInfo == null) return;
+                    List<Long> codeGAIds = commitInfo.getCodeGroupArtifactIdList();
+                    List<Long> pomGAIds = commitInfo.getPomGroupArtifactIdList();
+                    if(codeGAIds == null || pomGAIds == null) return;
+                    Set<Long> pomGAIdSet = new HashSet<>(pomGAIds);
+
+                    Set<Long> codeIdExistInPom = new HashSet<>(codeGAIds);
+                    codeIdExistInPom.retainAll(pomGAIdSet);
+
+                    Set<Long> codeIdExistInPomExtend = new HashSet<>();
+                    for (Long gaId : codeIdExistInPom) {
+                        codeIdExistInPomExtend.add(gaId);
+                        Set<Long> extendGaIds = overlapMap.get(gaId);
+                        if(extendGaIds != null) {
+                            codeIdExistInPomExtend.addAll(extendGaIds);
+                        }
+                    }
+
+                    Set<Long> duplicateCodeIdExistInPom = new HashSet<>(codeGAIds);
+                    duplicateCodeIdExistInPom.removeAll(codeIdExistInPom);
+                    duplicateCodeIdExistInPom.retainAll(codeIdExistInPomExtend);
+
+                    Set<Long> codeIdNotExistInPom = new HashSet<>(codeGAIds);
+                    codeIdNotExistInPom.removeAll(codeIdExistInPom);
+                    codeIdNotExistInPom.removeAll(duplicateCodeIdExistInPom);
+
+                    Set<Long> codeIdNotExistInPomExtend = new HashSet<>();
+                    Set<Long> codeIdNotExistInPomUnique = new HashSet<>();
+                    for (Long gaId : codeIdNotExistInPom) {
+                        if(codeIdNotExistInPomExtend.contains(gaId)) continue;
+                        codeIdNotExistInPomUnique.add(gaId);
+                        codeIdNotExistInPomExtend.add(gaId);
+                        Set<Long> extendGaIds = overlapMap.get(gaId);
+                        if(extendGaIds != null) {
+                            codeIdNotExistInPomExtend.addAll(extendGaIds);
+                        }
+                    }
+
+                    try {
+                        outputLine(writer, repoName, commitId, pomGAIds.size(), codeGAIds.size(),
+                                codeIdExistInPom.size(), duplicateCodeIdExistInPom.size(),
+                                codeIdNotExistInPom.size(), codeIdNotExistInPomUnique.size());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }, commitOffset, commitLimit);
+            } finally {
+                service.closeRepository(repository);
+            }
+        }
     }
 
     public int getListSizeSafe(List<?> list) {

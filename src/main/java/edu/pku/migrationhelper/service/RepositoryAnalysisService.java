@@ -67,6 +67,8 @@ public abstract class RepositoryAnalysisService {
 
     public abstract void forEachCommit(AbstractRepository repository, Consumer<String> commitIdConsumer);
 
+    public abstract void forEachCommit(AbstractRepository repository, Consumer<String> commitIdConsumer, int offset, int limit);
+
     public abstract List<String> getCommitParents(AbstractRepository repository, String commitId);
 
     public abstract List<BlobInCommit> getBlobsInCommit(AbstractRepository repository, String commitId);
@@ -76,9 +78,6 @@ public abstract class RepositoryAnalysisService {
     public abstract Integer getCommitTime(AbstractRepository repository, String commitId);
 
     public BlobInfo getBlobInfo(AbstractRepository repository, String blobId) {
-//        if(true) { // TODO
-//            return gitObjectStorageService.getBlobById(blobId);
-//        }
         BlobInfo blobInfo = repository.blobCache.get(blobId);
         if(blobInfo == null) {
             blobInfo = gitObjectStorageService.getBlobById(blobId);
@@ -89,13 +88,10 @@ public abstract class RepositoryAnalysisService {
 
     public void saveBlobInfo(AbstractRepository repository, BlobInfo blobInfo) {
         gitObjectStorageService.saveBlob(blobInfo);
-        repository.blobCache.put(blobInfo.getBlobIdString(), blobInfo); // TODO
+        repository.blobCache.put(blobInfo.getBlobIdString(), blobInfo);
     }
 
     public CommitInfo getCommitInfo(AbstractRepository repository, String commitId) {
-//        if(true) { // TODO
-//            return gitObjectStorageService.getCommitById(commitId);
-//        }
         CommitInfo commitInfo = repository.commitCache.get(commitId);
         if(commitInfo == null) {
             commitInfo = gitObjectStorageService.getCommitById(commitId);
@@ -106,7 +102,7 @@ public abstract class RepositoryAnalysisService {
 
     public void saveCommitInfo(AbstractRepository repository, CommitInfo commitInfo) {
         gitObjectStorageService.saveCommit(commitInfo);
-        repository.commitCache.put(commitInfo.getCommitIdString(), commitInfo); // TODO
+        repository.commitCache.put(commitInfo.getCommitIdString(), commitInfo);
     }
 
     public RepositoryAnalyzeStatus.RepoType getRepoType() {

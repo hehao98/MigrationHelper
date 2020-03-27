@@ -22,6 +22,8 @@ server:
     port: 8080
 
 migration-helper:
+  job:
+    enabled: CalcLibraryOverlapJob
   thread-pool:
     thread-count: 8
     calc-thread-count: 4

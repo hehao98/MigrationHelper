@@ -50,4 +50,9 @@ public interface LibrarySignatureToVersionMapper {
     List<LibrarySignatureToVersion> findGroupArtifactByIdIn(
             @Param("tableNum") int tableNum,
             @Param("idIn") Collection<Long> signatureIds);
+
+    @Select("<script>" +
+            "select * from " + tableName + "${tableNum} limit #{offset}, #{limit} " +
+            "</script>")
+    List<LibrarySignatureToVersion> findList(@Param("tableNum") int tableNum, @Param("offset") long offset, @Param("limit") int limit);
 }

@@ -3,6 +3,8 @@ package edu.pku.migrationhelper.mapper;
 import edu.pku.migrationhelper.data.RepositoryAnalyzeStatus;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 @Mapper
 public interface RepositoryAnalyzeStatusMapper {
 
@@ -47,4 +49,13 @@ public interface RepositoryAnalyzeStatusMapper {
     RepositoryAnalyzeStatus findByRepoTypeAndRepoName(
             @Param("repoType") RepositoryAnalyzeStatus.RepoType repoType,
             @Param("repoName") String repoName);
+
+    @Select("<script>" +
+            "select * from " + tableName + " where " +
+            "analyze_status = #{analyzeStatus} limit #{offset}, #{limit} " +
+            "</script>")
+    List<RepositoryAnalyzeStatus> findListByStatus(
+            @Param("analyzeStatus") RepositoryAnalyzeStatus.AnalyzeStatus status,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
 }

@@ -33,6 +33,15 @@ CREATE TABLE `library_group_artifact` (
                                         UNIQUE KEY `unique` (`group_id`,`artifact_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `library_overlap` (
+                                   `group_artifact_id1` bigint(20) NOT NULL,
+                                   `group_artifact_id2` bigint(20) NOT NULL,
+                                   `signature_count` int(11) NOT NULL,
+                                   PRIMARY KEY (`group_artifact_id1`,`group_artifact_id2`),
+                                   KEY `ga2` (`group_artifact_id2`)
+) ENGINE=InnoDB DEFAULT CHARSET=ascii;
+
+
 CREATE TABLE `library_signature_to_version` (
                                                    `signature_id` bigint(20) NOT NULL,
                                                    `version_ids` mediumblob,
