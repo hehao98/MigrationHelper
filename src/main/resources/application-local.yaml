@@ -23,7 +23,7 @@ server:
 
 migration-helper:
   job:
-    enabled: CalcLibraryOverlapJob
+    enabled: TestJob
   thread-pool:
     thread-count: 8
     calc-thread-count: 4

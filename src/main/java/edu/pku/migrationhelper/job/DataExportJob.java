@@ -47,6 +47,9 @@ public class DataExportJob implements CommandLineRunner {
     private LibraryVersionMapper libraryVersionMapper;
 
     @Autowired
+    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+
+    @Autowired
     private MethodChangeMapper methodChangeMapper;
 
     @Autowired
@@ -95,6 +98,10 @@ public class DataExportJob implements CommandLineRunner {
             }
             case "LibraryVersion": {
                 exportLibraryVersion(writer);
+                break;
+            }
+            case "LibraryGroupArtifact": {
+                exportLibraryGroupArtifact(writer);
                 break;
             }
             case "MethodChange": {
@@ -212,6 +219,14 @@ public class DataExportJob implements CommandLineRunner {
         List<LibraryVersionMapper.CountData> counts = libraryVersionMapper.countByGroupArtifact();
         for (LibraryVersionMapper.CountData count : counts) {
             outputLine(writer, count.groupArtifactId, count.count);
+        }
+    }
+
+    public void exportLibraryGroupArtifact(FileWriter writer) throws Exception {
+        outputLine(writer, "id", "groupId", "artifactId");
+        List<LibraryGroupArtifact> gaList = libraryGroupArtifactMapper.findAll();
+        for (LibraryGroupArtifact ga : gaList) {
+            outputLine(writer, ga.getId(), ga.getGroupId(), ga.getArtifactId());
         }
     }
 

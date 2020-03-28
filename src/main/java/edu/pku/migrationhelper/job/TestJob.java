@@ -1,13 +1,19 @@
 package edu.pku.migrationhelper.job;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.LZFUtils;
 import edu.pku.migrationhelper.util.MathUtils;
+import javafx.util.Pair;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.tomcat.util.buf.HexUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +24,7 @@ import org.springframework.stereotype.Component;
 import scala.Int;
 import tokyocabinet.HDB;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,6 +76,9 @@ public class TestJob {
     @Autowired
     private MethodChangeMapper methodChangeMapper;
 
+    @Autowired
+    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
 //        testDatabase();
@@ -94,49 +100,315 @@ public class TestJob {
 //        diffCommandLine();
 //        alterTableJob();
 //        testRepositoryDepSeq();
-        testAnalyzeDepSeq();
+//        testAnalyzeDepSeq();
+//        insertGroupArtifact();
+//        calcGroundTruth();
+//        calcGAChangeInMethodChange();
+        testMiningMigration();
+//        testTruthPosition();
     }
 
-    public List<Long> simplifyLibIdList(List<Long> libIds) {
-        List<Long> result = new ArrayList<>(libIds.size());
-        Set<Long> currentLibs = new HashSet<>();
-        List<Long> currentList = new LinkedList<>();
-        for (Long libId : libIds) {
-            if(libId == 0) {
-                if(currentList.isEmpty()) continue;
-                result.addAll(currentList);
-                result.add(0L);
-                currentList.clear();
-            } else {
-                if(libId > 0) {
-                    if(currentLibs.contains(libId)) continue;
-                    currentLibs.add(libId);
-                    currentList.add(libId);
-                } else {
-                    if(!currentLibs.contains(-libId)) continue;
-                    currentLibs.remove(-libId);
-                    currentList.add(libId);
+    public void testTruthPosition() throws Exception {
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
+        Map<Double, Integer> percentCounter = new HashMap<>();
+        Map<Integer, Integer> positionCounter = new HashMap<>();
+        for (List<Long> depSeq : rdsList) {
+            depSeq = dependencyChangePatternAnalysisService.simplifyLibIdList(depSeq);
+            List<DependencyChangePatternAnalysisService.LibraryMigrationPattern> patternList =
+                    dependencyChangePatternAnalysisService.miningSingleDepSeq(depSeq, groundTruthMap.keySet());
+            for (DependencyChangePatternAnalysisService.LibraryMigrationPattern pattern : patternList) {
+                int pos = 0;
+                Set<Long> truth = groundTruthMap.get(pattern.fromId);
+                for (Long toId : pattern.toIdList) {
+                    if(truth.contains(toId)) {
+                        positionCounter.put(pos, positionCounter.getOrDefault(pos, 0) + 1);
+                        double percent = (pos) / (double) pattern.toIdList.size();
+
+                        percentCounter.put(percent, percentCounter.getOrDefault(percent, 0) + 1);
+                    }
+                    ++pos;
                 }
             }
+        }
+        positionCounter.entrySet().stream()
+                .sorted(Comparator.comparingInt(Map.Entry::getKey))
+                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
+        percentCounter.entrySet().stream()
+                .sorted(Comparator.comparingDouble(Map.Entry::getKey))
+                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
+    }
+
+    public Map<Long, Map<Long, Integer>> buildMethodChangeSupportMap(String fileName) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line = reader.readLine();
+        Map<Long, Map<Long, Integer>> result = new HashMap<>(100000);
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",");
+            Long fromId = Long.parseLong(attrs[0]);
+            Long toId = Long.parseLong(attrs[1]);
+            Integer counter = Integer.parseInt(attrs[2]);
+            result.computeIfAbsent(fromId, k -> new HashMap<>()).put(toId, counter);
         }
         return result;
     }
 
-    public void testAnalyzeDepSeq() throws Exception {
+    public void calcGAChangeInMethodChange() throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader("db/MethodChangeDetail.csv"));
+        String line = reader.readLine();
+        Map<Long, Map<Long, Integer>> result = new HashMap<>(100000);
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",");
+            if("".equals(attrs[3]) || "".equals(attrs[4])) {
+                continue;
+            }
+            String[] delGA = attrs[3].split(";");
+            String[] addGA = attrs[4].split(";");
+            int counter = Integer.parseInt(attrs[5]);
+            Set<Long> delGASet = new HashSet<>(delGA.length * 2);
+            Set<Long> addGASet = new HashSet<>(addGA.length * 2);
+            for (int i = 0; i < delGA.length; i++) {
+                delGASet.add(Long.parseLong(delGA[i]));
+            }
+            for (int i = 0; i < addGA.length; i++) {
+                addGASet.add(Long.parseLong(addGA[i]));
+            }
+            Set<Long> delGANoDup = new HashSet<>(delGASet);
+            delGANoDup.removeAll(addGASet);
+            if(delGANoDup.isEmpty()) continue;
+            Set<Long> addGaNoDup = new HashSet<>(addGASet);
+            addGaNoDup.removeAll(delGASet);
+            if(addGaNoDup.isEmpty()) continue;
+            for (Long del : delGANoDup) {
+                Map<Long, Integer> candidateMap = result.computeIfAbsent(del, k -> new HashMap<>());
+                for (Long add : addGaNoDup) {
+                    candidateMap.put(add, candidateMap.getOrDefault(add, 0) + counter);
+                }
+            }
+        }
+        reader.close();
+        FileWriter writer = new FileWriter("db/GAChangeInMethodChange.csv");
+        writer.write("fromId,toId,counter\n");
+        List<Pair<Long, List<Pair<Long, Integer>>>> outputLines = new ArrayList<>(result.size());
+        result.forEach((fromId, candidateMap) -> {
+            List<Pair<Long, Integer>> candidateList = new ArrayList<>(candidateMap.size());
+            candidateMap.forEach((toId, counter) -> candidateList.add(new Pair<>(toId, counter)));
+            candidateList.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+            outputLines.add(new Pair<>(fromId, candidateList));
+        });
+        outputLines.sort(Comparator.comparingLong(Pair::getKey));
+        for (Pair<Long, List<Pair<Long, Integer>>> outputLine : outputLines) {
+            long fromId = outputLine.getKey();
+            for (Pair<Long, Integer> subLine : outputLine.getValue()) {
+                writer.write(fromId + "," + subLine.getKey() + "," + subLine.getValue() + "\n");
+            }
+        }
+        writer.close();
+        LOG.info("Success");
+    }
+
+    public void calcGroundTruth() throws Exception {
+        List<LibraryGroupArtifact> gaList = libraryGroupArtifactMapper.findAll();
+        gaList.sort(Comparator.comparingLong(LibraryGroupArtifact::getId));
+        FileWriter writer = new FileWriter("db/ground-truth-2014-equals-multi.csv");
+        Map<String, String> libraryName2IdsMapFrom = new HashMap<>();
+        Map<String, String> libraryName2IdsMapTo = new HashMap<>();
+        writer.write("fromLibrary;toLibrary;fromIds;toIds;score\n");
+        Document document = Jsoup.parse(new File("db/rules-2014.html"), "UTF-8");
+        Elements elements = document.select("tr");
+        int i = 0;
+        for (Element element : elements) {
+            if(i++ == 0) continue;
+            String fromLibrary = element.child(0).text();
+            String toLibrary = element.child(1).text();
+            String score = element.child(2).text();
+            LOG.info("from = {}, to = {}, score = {}", fromLibrary, toLibrary, score);
+            String fromIds = calcLibraryIdsFromNameEquals(fromLibrary, gaList, libraryName2IdsMapFrom);
+            String toIds = calcLibraryIdsFromNameEquals(toLibrary, gaList, libraryName2IdsMapTo);
+            writer.write(fromLibrary);
+            writer.write(";");
+            writer.write(toLibrary);
+            writer.write(";");
+            writer.write(fromIds);
+            writer.write(";");
+            writer.write(toIds);
+            writer.write(";");
+            writer.write(score);
+            writer.write("\n");
+        }
+        writer.close();
+    }
+
+    private String calcLibraryIdsFromNameEquals(String libraryName, List<LibraryGroupArtifact> gaList, Map<String, String> libraryName2IdsMap) {
+        String res = libraryName2IdsMap.get(libraryName);
+        if(res!= null) return res;
+        List<Long> result = new LinkedList<>();
+        for (LibraryGroupArtifact ga : gaList) {
+            if(ga.getArtifactId().equals(libraryName)) {
+                result.add(ga.getId());
+//                break;
+            }
+        }
+        if(result.isEmpty()) {
+            for (LibraryGroupArtifact ga : gaList) {
+                if(ga.getArtifactId().contains(libraryName)) {
+                    result.add(ga.getId());
+//                    break;
+                }
+            }
+        }
+        res = JsonUtils.writeObjectAsString(result);
+        libraryName2IdsMap.put(libraryName, res);
+        return res;
+    }
+
+    private String calcLibraryIdsFromNameContains(String libraryName, List<LibraryGroupArtifact> gaList, Map<String, String> libraryName2IdsMap) {
+        String res = libraryName2IdsMap.get(libraryName);
+        if(res!= null) return res;
+        List<Long> result = new LinkedList<>();
+        for (LibraryGroupArtifact ga : gaList) {
+            if(ga.getArtifactId().contains(libraryName)) {
+                result.add(ga.getId());
+            }
+        }
+        res = JsonUtils.writeObjectAsString(result);
+        libraryName2IdsMap.put(libraryName, res);
+        return res;
+    }
+
+    private Map<Long, Set<Long>> buildGroundTruthMap(String fileName) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line = reader.readLine();
+        Map<Long, Set<Long>> result = new HashMap<>();
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(";");
+            List<Long> fromIds = JsonUtils.readStringAsObject(attrs[2], new TypeReference<List<Long>>() {});
+            List<Long> toIds = JsonUtils.readStringAsObject(attrs[3], new TypeReference<List<Long>>() {});
+            for (Long fromId : fromIds) {
+                result.computeIfAbsent(fromId, k -> new HashSet<>()).addAll(toIds);
+            }
+        }
+        reader.close();
+        return result;
+    }
+
+    public void insertGroupArtifact() throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader("db/LibraryGroupArtifact.csv"));
+        String line = reader.readLine();
+        int limit = 1000;
+        List<LibraryGroupArtifact> list = new ArrayList<>(limit);
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",");
+            list.add(new LibraryGroupArtifact()
+                    .setId(Long.parseLong(attrs[0]))
+                    .setGroupId(attrs[1])
+                    .setArtifactId(attrs[2]));
+            if(list.size() >= limit) {
+                libraryGroupArtifactMapper.insertWithId(list);
+                list.clear();
+            }
+        }
+        if(!list.isEmpty()) {
+            libraryGroupArtifactMapper.insertWithId(list);
+        }
+    }
+
+    public List<List<Long>> buildRepositoryDepSeq(String fileName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader("db/RepositoryDepSeq.csv"));
         String line = reader.readLine();
-        List<RepositoryDepSeq> seqList = new LinkedList<>();
-        Map<Long, Integer> libCounter = new HashMap<>();
+        List<List<Long>> result = new LinkedList<>();
         while((line = reader.readLine()) != null) {
             String[] attrs = line.split(",");
             String libIdString = attrs[2];
-            if(libIdString.length() <= 2) continue;
+            if (libIdString.length() <= 2) continue;
             String[] libIds = libIdString.replace("[", "").replace("]", "").split(" ");
             List<Long> libIdList = new ArrayList<>(libIds.length);
             for (String libId : libIds) {
                 libIdList.add(Long.parseLong(libId));
             }
-            libIdList = simplifyLibIdList(libIdList);
+            result.add(libIdList);
+        }
+        return result;
+    }
+
+    public void testMiningMigration() throws Exception {
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals-multi.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
+        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
+                        rdsList, groundTruthMap.keySet(), methodChangeSupportMap);
+        int maxK = 30;
+        Map<Long, double[]> precisionMap = new HashMap<>();
+        Map<Long, double[]> recallMap = new HashMap<>();
+        result.forEach((fromId, candidateList) -> {
+            Set<Long> groundTruth = groundTruthMap.get(fromId);
+            if(groundTruth == null) return;
+            Set<Long> thisTruth = new HashSet<>();
+            for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                if(groundTruth.contains(candidate.toId)) {
+                    thisTruth.add(candidate.toId);
+                }
+            }
+            if(thisTruth.isEmpty()) return;
+            System.out.print("fromId: " + fromId + " groundTruth.size: " + groundTruth.size() + " thisTruth.size: " + thisTruth.size());
+            int correct = 0;
+            double[] precision = new double[maxK];
+            double[] recall = new double[maxK];
+            for (int k = 1; k <= maxK; ++k) {
+                if(candidateList.size() < k) {
+                    precision[k-1] = precision[k-2];
+                    recall[k-1] = recall[k-2];
+                } else {
+                    DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate = candidateList.get(k - 1);
+                    if(groundTruth.contains(candidate.toId)) {
+                        correct++;
+                    }
+                    precision[k-1] = correct / (double) k;
+                    recall[k-1] = correct / (double) thisTruth.size();
+                    System.out.print(" Top" + k + ": " + correct);
+                }
+            }
+            System.out.println();
+            LibraryGroupArtifact fromLib = libraryGroupArtifactMapper.findById(fromId);
+            for (int i = 0; i < 3; i++) {
+                if(candidateList.size() <= i) break;
+                if(precision[i] == 0) {
+                    LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidateList.get(i).toId);
+                    System.out.println(fromLib.getGroupId() + ":" + fromLib.getArtifactId() + " -> " + toLib.getGroupId() + ":" + toLib.getArtifactId());
+                }
+            }
+            precisionMap.put(fromId, precision);
+            recallMap.put(fromId, recall);
+        });
+        double[] totalPrecision = new double[maxK];
+        for (double[] value : precisionMap.values()) {
+            for (int i = 0; i < maxK; i++) {
+                totalPrecision[i] += value[i];
+            }
+        }
+        double[] totalRecall = new double[maxK];
+        for (double[] value : recallMap.values()) {
+            for (int i = 0; i < maxK; i++) {
+                totalRecall[i] += value[i];
+            }
+        }
+        for (int k = 1; k <= maxK; k++) {
+            double p = totalPrecision[k-1] / precisionMap.size();
+            double r = totalRecall[k-1] / recallMap.size();
+            double m = p * r;
+            System.out.println("Top" + k + ": Precision: " + p + " Recall: " + r + " M:" + m);
+        }
+    }
+
+    public void testAnalyzeDepSeq() throws Exception {
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014.csv");
+        List<RepositoryDepSeq> seqList = new LinkedList<>();
+        Map<Long, Integer> libCounter = new HashMap<>();
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
+        for (List<Long> libIdList : rdsList) {
+            libIdList = dependencyChangePatternAnalysisService.simplifyLibIdList(libIdList);
             for (Long libId : libIdList) {
                 if(libId <= 0) continue;
                 libCounter.put(libId, libCounter.getOrDefault(libId, 0) + 1);
@@ -145,31 +417,25 @@ public class TestJob {
             seqList.add(new RepositoryDepSeq().setDepSeqList(libIdList));
         }
         List<DependencyChangePatternAnalysisService.DependencySequenceResult> result =
-                dependencyChangePatternAnalysisService.analyzeDependencySequence(seqList, 10000);
+                dependencyChangePatternAnalysisService.analyzeDependencySequence(seqList, 100000);
+        groundTruthMap.forEach((fromId, groundTruth) ->
+                analyzePrecisionInTopK(fromId, groundTruth, libCounter, result, 10));
+    }
+
+    private void analyzePrecisionInTopK(long fromId, Set<Long> groundTruth, Map<Long, Integer> libCounter, List<DependencyChangePatternAnalysisService.DependencySequenceResult> tksResult, int k) {
         MutableInt totalSupport = new MutableInt(0);
-        result = result.stream()
+        List<DependencyChangePatternAnalysisService.DependencySequenceResult> result = tksResult.stream()
                 .filter(pattern -> {
                     if(pattern.pattern.size() != 3) return false;
                     List<Long> first = pattern.pattern.get(0);
                     List<Long> middle = pattern.pattern.get(1);
                     List<Long> last = pattern.pattern.get(2);
-                    Set<Long> removeLib = new HashSet<>();
-                    for (Long libId : last) {
-                        if(libId < 0) removeLib.add(libId);
-                    }
-                    if(removeLib.isEmpty()) return false;
-                    boolean firstContainRemoved = false;
-                    for (Long libId : first) {
-                        if(removeLib.contains(-libId)) {
-                            firstContainRemoved = true;
-                            break;
-                        }
-                    }
-                    if(!firstContainRemoved) return false;
+                    if(!first.contains(fromId)) return false;
+                    if(!last.contains(-fromId)) return false;
                     boolean middleContainOther = false;
                     for (Long libId : middle) {
                         if(libId < 0) continue;
-                        if(!removeLib.contains(-libId)) {
+                        if(libId != fromId) {
                             middleContainOther = true;
                             break;
                         }
@@ -177,22 +443,43 @@ public class TestJob {
                     if(!middleContainOther) return false;
                     return true;
                 })
-                .filter(pattern -> pattern.pattern.get(0).containsAll(Arrays.asList(25L)))
                 .peek(pattern -> {
                     Long middle = pattern.pattern.get(1).stream().filter(e -> e > 0).findFirst().get();
                     pattern.globalSupport = pattern.support / (double) libCounter.get(middle);
                     totalSupport.add(pattern.support);
                 }).collect(Collectors.toList());
-        result.stream().peek(pattern -> {
+        if(result.isEmpty()) return;
+        result = result.stream()
+                .peek(pattern -> {
                     pattern.patternSupport = pattern.support / (double) totalSupport.getValue();
                     pattern.multipleSupport = pattern.patternSupport * pattern.globalSupport;
                 })
 //                .sorted((a, b) -> Double.compare(b.multipleSupport, a.multipleSupport))
                 .sorted((a, b) -> Double.compare(b.patternSupport, a.patternSupport))
-                .forEach(pattern -> {
-                    System.out.println(pattern.pattern);
-                    System.out.println("Rank: " + pattern.multipleSupport + " Support: " + pattern.patternSupport + "(" + pattern.support + ") Library Count: " + pattern.globalSupport);
-                });
+                .limit(k)
+                .collect(Collectors.toList());
+        k = Math.min(result.size(), k);
+        boolean[] correct = new boolean[k];
+        for (int i = 0; i < k; i++) {
+            correct[i] = false;
+        }
+        int i = 0;
+        for (DependencyChangePatternAnalysisService.DependencySequenceResult pattern : result) {
+            Long middle = pattern.pattern.get(1).stream().filter(e -> e > 0).findFirst().get();
+            if(groundTruth.contains(middle)) {
+                correct[i] = true;
+            }
+            ++i;
+        }
+
+        System.out.print("fromLib: " + fromId + ", ");
+        int totalCorrect = 0;
+        for (int j = 0; j < k; j++) {
+            if(correct[j]) ++totalCorrect;
+            int top = j + 1;
+            System.out.print("Top " + top + ": " + totalCorrect + ", ");
+        }
+        System.out.println();
     }
 
     public void testRepositoryDepSeq() throws Exception {

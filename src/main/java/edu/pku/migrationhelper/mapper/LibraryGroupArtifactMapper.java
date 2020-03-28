@@ -28,6 +28,15 @@ public interface LibraryGroupArtifactMapper {
     void createTable();
 
     @Insert("<script>" +
+            "insert into " + tableName + " " +
+            "(id, group_id, artifact_id) values " +
+            "<foreach collection='list' item='e' separator=','>" +
+            "(#{e.id}, #{e.groupId}, #{e.artifactId})" +
+            "</foreach> " +
+            "</script>")
+    int insertWithId(List<LibraryGroupArtifact> entities);
+
+    @Insert("<script>" +
             "insert  ignore into " + tableName + " " +
             "(group_id, artifact_id, version_extracted) values " +
             "<foreach collection='list' item='e' separator=','>" +
@@ -49,6 +58,13 @@ public interface LibraryGroupArtifactMapper {
 
     @Select("<script>" +
             "select * from " + tableName + " where " +
+            "id = #{id}" +
+            "</script>")
+    LibraryGroupArtifact findById(
+            @Param("id") long id);
+
+    @Select("<script>" +
+            "select * from " + tableName + " where " +
             "group_id = #{groupId}" +
             "</script>")
     List<LibraryGroupArtifact> findByGroupId(
@@ -62,4 +78,9 @@ public interface LibraryGroupArtifactMapper {
     LibraryGroupArtifact findByGroupIdAndArtifactId(
             @Param("groupId") String groupId,
             @Param("artifactId") String artifactId);
+
+    @Select("<script>" +
+            "select * from " + tableName + " " +
+            "</script>")
+    List<LibraryGroupArtifact> findAll();
 }
