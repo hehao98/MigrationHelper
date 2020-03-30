@@ -18,6 +18,14 @@ public class RepositoryDepSeq {
 
     private List<Long> codeWithoutDupList;
 
+    private byte[] pomWithCodeDel;
+
+    private List<Long> pomWithCodeDelList;
+
+    private byte[] pomWithCodeAdd;
+
+    private List<Long> pomWithCodeAddList;
+
     public long getId() {
         return id;
     }
@@ -78,6 +86,42 @@ public class RepositoryDepSeq {
 
     public RepositoryDepSeq setCodeWithoutDupList(List<Long> codeWithoutDupList) {
         GetSetHelper.berNumberListSetter(codeWithoutDupList, e -> this.codeWithoutDup = e, e -> this.codeWithoutDupList = e);
+        return this;
+    }
+
+    public byte[] getPomWithCodeDel() {
+        return pomWithCodeDel;
+    }
+
+    public RepositoryDepSeq setPomWithCodeDel(byte[] pomWithCodeDel) {
+        GetSetHelper.berNumberByteSetter(pomWithCodeDel, e -> this.pomWithCodeDel = e, e -> this.pomWithCodeDelList = e);
+        return this;
+    }
+
+    public List<Long> getPomWithCodeDelList() {
+        return pomWithCodeDelList;
+    }
+
+    public RepositoryDepSeq setPomWithCodeDelList(List<Long> pomWithCodeDelList) {
+        GetSetHelper.berNumberListSetter(pomWithCodeDelList, e -> this.pomWithCodeDel = e, e -> this.pomWithCodeDelList = e);
+        return this;
+    }
+
+    public byte[] getPomWithCodeAdd() {
+        return pomWithCodeAdd;
+    }
+
+    public RepositoryDepSeq setPomWithCodeAdd(byte[] pomWithCodeAdd) {
+        GetSetHelper.berNumberByteSetter(pomWithCodeAdd, e -> this.pomWithCodeAdd = e, e -> this.pomWithCodeAddList = e);
+        return this;
+    }
+
+    public List<Long> getPomWithCodeAddList() {
+        return pomWithCodeAddList;
+    }
+
+    public RepositoryDepSeq setPomWithCodeAddList(List<Long> pomWithCodeAddList) {
+        GetSetHelper.berNumberListSetter(pomWithCodeAddList, e -> this.pomWithCodeAdd = e, e -> this.pomWithCodeAddList = e);
         return this;
     }
 }

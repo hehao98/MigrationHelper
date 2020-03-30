@@ -366,7 +366,7 @@ public class DataExportJob implements CommandLineRunner {
         if(args.length >= 3) {
             projectLimit = Integer.parseInt(args[2]);
         }
-        outputLine(writer, "id", "repositoryName", "pomOnly", "codeWithDup", "codeWithoutDup");
+        outputLine(writer, "id", "repositoryName", "pomOnly", "codeWithDup", "codeWithoutDup", "pomWithCodeDel", "pomWithCodeAdd");
         BufferedReader reader = new BufferedReader(new FileReader(repositoryListFile));
         String line;
         Future[] futures = new Future[projectLimit];
@@ -406,7 +406,9 @@ public class DataExportJob implements CommandLineRunner {
             outputLine(writer, result.getId(), repoName,
                     concatList(result.getPomOnlyList()),
                     concatList(result.getCodeWithDupList()),
-                    concatList(result.getCodeWithoutDupList()));
+                    concatList(result.getCodeWithoutDupList()),
+                    concatList(result.getPomWithCodeDelList()),
+                    concatList(result.getPomWithCodeAddList()));
         }
     }
 

@@ -105,40 +105,114 @@ public class TestJob {
 //        insertLibraryOverlap();
 //        calcGroundTruth();
 //        calcGAChangeInMethodChange();
-        testMiningMigration();
+//        testMiningMigration();
 //        testTruthPosition();
+//        runRQ1();
+//        runRQ2();
+        runRQ3();
     }
 
-    public void testTruthPosition() throws Exception {
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange.csv");
+    public void runRQ1() throws Exception {
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
+        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
+                        rdsList, groundTruthMap.keySet(), new HashMap<>());
+        int repoTotal = rdsList.size();
+        FileWriter output = new FileWriter("db/RQ1.csv");
+        output.write("fromLib,toLib,patternSupport,RepoTotal,RepoPercent\n");
+        BufferedReader reader = new BufferedReader(new FileReader("db/ground-truth-2014.csv"));
+        String line = reader.readLine();
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(";");
+            String fromLib = attrs[0];
+            String toLib = attrs[1];
+            Set<Long> fromIds = new HashSet<>(JsonUtils.readStringAsObject(attrs[2], new TypeReference<List<Long>>() {}));
+            Set<Long> toIds = new HashSet<>(JsonUtils.readStringAsObject(attrs[3], new TypeReference<List<Long>>() {}));
+            int patternSupport = 0;
+            for (Long fromId : fromIds) {
+                if(!result.containsKey(fromId)) continue;
+                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : result.get(fromId)) {
+                    if(toIds.contains(candidate.toId)) {
+                        patternSupport += candidate.patternSupport;
+                    }
+                }
+            }
+            double repoP = patternSupport / (double) repoTotal;
+            output.write(fromLib+","+toLib+","+patternSupport+","+repoTotal+","+repoP+"\n");
+        }
+        output.close();
+        reader.close();
+        LOG.info("Success");
+    }
+
+    public void runRQ2() throws Exception {
         Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals.csv");
         List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
-        Map<Double, Integer> percentCounter = new HashMap<>();
-        Map<Integer, Integer> positionCounter = new HashMap<>();
+        FileWriter truthPercent = new FileWriter("db/RQ2-truth-percent.csv");
+        FileWriter truthPosition = new FileWriter("db/RQ2-truth-position.csv");
+        truthPercent.write("fromId,truthCount,totalCount,percent\n");
+        truthPosition.write("fromId,toId,pos,total\n");
         for (List<Long> depSeq : rdsList) {
             depSeq = dependencyChangePatternAnalysisService.simplifyLibIdList(depSeq);
             List<DependencyChangePatternAnalysisService.LibraryMigrationPattern> patternList =
                     dependencyChangePatternAnalysisService.miningSingleDepSeq(depSeq, groundTruthMap.keySet());
             for (DependencyChangePatternAnalysisService.LibraryMigrationPattern pattern : patternList) {
-                int pos = 0;
+                int pos = 1;
                 Set<Long> truth = groundTruthMap.get(pattern.fromId);
+                int truthCount = 0;
+                int totalCount = pattern.toIdList.size();
                 for (Long toId : pattern.toIdList) {
                     if(truth.contains(toId)) {
-                        positionCounter.put(pos, positionCounter.getOrDefault(pos, 0) + 1);
-                        double percent = (pos) / (double) pattern.toIdList.size();
-
-                        percentCounter.put(percent, percentCounter.getOrDefault(percent, 0) + 1);
+                        truthCount++;
+                        truthPosition.write(pattern.fromId+","+toId+","+pos+","+totalCount+"\n");
                     }
                     ++pos;
                 }
+                double p = truthCount / (double) totalCount;
+                truthPercent.write(pattern.fromId+","+truthCount+","+totalCount+","+p+"\n");
             }
         }
-        positionCounter.entrySet().stream()
-                .sorted(Comparator.comparingInt(Map.Entry::getKey))
-                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
-        percentCounter.entrySet().stream()
-                .sorted(Comparator.comparingDouble(Map.Entry::getKey))
-                .forEach(e -> System.out.println(e.getKey() + ": " + e.getValue()));
+        truthPercent.close();
+        truthPosition.close();
+        LOG.info("Success");
+    }
+
+    public void runRQ3() throws Exception {
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals-multi.csv");
+        FileWriter output = new FileWriter("db/RQ3.csv");
+        output.write("fromId,toId,support,supportTotal,supportPercent,rank,rankTotal,rankPercent\n");
+        groundTruthMap.forEach((fromId, truthSet) -> {
+            if(!methodChangeSupportMap.containsKey(fromId)) return;
+            Map<Long, Integer> supportMap = methodChangeSupportMap.get(fromId);
+            int supportTotal = 0;
+            List<Integer> supportList = new ArrayList<>(supportMap.size());
+            for (Integer support : supportMap.values()) {
+                supportTotal += support;
+                supportList.add(support);
+            }
+            supportList.sort((a, b) -> Integer.compare(b, a));
+            int rankTotal = supportList.size();
+            for (Long toId : truthSet) {
+                if(!supportMap.containsKey(toId)) return;
+                int support = supportMap.get(toId);
+                int rank = 1;
+                for (Integer v : supportList) {
+                    if(v == support) break;
+                    rank++;
+                }
+                double sp = support / (double) supportTotal;
+                double rp = rank / (double) rankTotal;
+                try {
+                    output.write(fromId+","+toId+","+support+","+supportTotal+","+sp+","+rank+","+rankTotal+","+rp+"\n");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        output.close();
+        LOG.info("Success");
     }
 
     public Map<Long, Map<Long, Integer>> buildMethodChangeSupportMap(String fileName) throws Exception {
@@ -348,6 +422,8 @@ public class TestJob {
             String libIdString = attrs[2]; // pomOnly
 //            String libIdString = attrs[3]; // codeWithDup
 //            String libIdString = attrs[4]; // codeWithoutDup
+//            String libIdString = attrs[5]; // pomWithCodeDel
+//            String libIdString = attrs[6]; // pomWithCodeAdd
             if ("".equals(libIdString)) continue;
             String[] libIds = libIdString.split(";");
             List<Long> libIdList = new ArrayList<>(libIds.length);

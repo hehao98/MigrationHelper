@@ -133,10 +133,18 @@ public abstract class RepositoryAnalysisService {
         libraryOverlapMap = Collections.unmodifiableMap(map);
     }
 
-    protected Set<Long> makeLibrarySetUnique(Set<Long> gaIds) {
+    protected Set<Long> makeLibrarySetUnique(Set<Long> pomGAIds, Set<Long> codeGaIds) {
         Set<Long> uniqueSet = new HashSet<>();
         Set<Long> extendSet = new HashSet<>();
-        List<Long> originalIds = new ArrayList<>(gaIds);
+        for (Long pomGAId : pomGAIds) {
+            uniqueSet.add(pomGAId);
+            extendSet.add(pomGAId);
+            Set<Long> overlap = libraryOverlapMap.get(pomGAId);
+            if(overlap != null) {
+                extendSet.addAll(overlap);
+            }
+        }
+        List<Long> originalIds = new ArrayList<>(codeGaIds);
         originalIds.sort(Long::compareTo);
         for (Long gaId : originalIds) {
             if(extendSet.contains(gaId)) continue;
@@ -194,6 +202,8 @@ public abstract class RepositoryAnalysisService {
             List<Long> pomOnlyList = new LinkedList<>();
             List<Long> codeWithDupList = new LinkedList<>();
             List<Long> codeWithoutDupList = new LinkedList<>();
+            List<Long> pomWithCodeDelList = new LinkedList<>();
+            List<Long> pomWithCodeAddList = new LinkedList<>();
             for (CommitInfo commitInfo : commitList) {
                 Set<Long> commitSeq = new HashSet<>();
 
@@ -246,13 +256,19 @@ public abstract class RepositoryAnalysisService {
                 Set<Long> codePreGASet = new HashSet<>(codeGAList);
                 codePreGASet.removeAll(codeAddIdList);
                 codePreGASet.addAll(codeDeleteIdList);
-                codeCurrGASet = makeLibrarySetUnique(codeCurrGASet);
-                codePreGASet = makeLibrarySetUnique(codePreGASet);
-                commitSeq.clear();
-                commitSeq.addAll(pomAddIdList);
-                for (Long gaId : pomDeleteIdList) {
-                    commitSeq.add(-gaId);
+
+                List<Long> pomGAList = commitInfo.getPomGroupArtifactIdList();
+                if(pomGAList == null) {
+                    pomGAList = new ArrayList<>(0);
                 }
+                Set<Long> pomCurrGASet = new HashSet<>(pomGAList);
+                Set<Long> pomPreGASet = new HashSet<>(pomGAList);
+                pomPreGASet.removeAll(pomAddIdList);
+                pomPreGASet.addAll(pomDeleteIdList);
+
+                codeCurrGASet = makeLibrarySetUnique(pomCurrGASet, codeCurrGASet);
+                codePreGASet = makeLibrarySetUnique(pomPreGASet, codePreGASet);
+                commitSeq.clear();
                 for (Long gaId : codePreGASet) {
                     if(!codeCurrGASet.contains(gaId)) {
                         commitSeq.add(-gaId);
@@ -269,10 +285,44 @@ public abstract class RepositoryAnalysisService {
                     codeWithoutDupList.addAll(codeWithoutDupSeq);
                     codeWithoutDupList.add(0L);
                 }
+
+                // calc pomWithCodeDel
+                commitSeq.clear();
+                commitSeq.addAll(pomAddIdList);
+                Set<Long> deleteIds = new HashSet<>();
+                for (Long codeGAId : codeDeleteIdList) {
+                    if(pomCurrGASet.contains(codeGAId)) {
+                        deleteIds.add(codeGAId);
+                    }
+                }
+                deleteIds.addAll(pomDeleteIdList);
+                for (Long delId : deleteIds) {
+                    commitSeq.add(-delId);
+                }
+                if(!commitSeq.isEmpty()) {
+                    List<Long> pomWithCodeDelSeq = new ArrayList<>(commitSeq);
+                    pomWithCodeDelSeq.sort(Long::compare);
+                    pomWithCodeDelList.addAll(pomWithCodeDelSeq);
+                    pomWithCodeDelList.add(0L);
+                }
+
+                // calc pomWithCodeAdd
+                for (Long addId : codeAddIdList) {
+                    if(pomCurrGASet.contains(addId)) continue;
+                    commitSeq.add(addId);
+                }
+                if(!commitSeq.isEmpty()) {
+                    List<Long> pomWithCodeAddSeq = new ArrayList<>(commitSeq);
+                    pomWithCodeAddSeq.sort(Long::compare);
+                    pomWithCodeAddList.addAll(pomWithCodeAddSeq);
+                    pomWithCodeAddList.add(0L);
+                }
             }
             depSeq.setPomOnlyList(pomOnlyList)
                     .setCodeWithDupList(codeWithDupList)
-                    .setCodeWithoutDupList(codeWithoutDupList);
+                    .setCodeWithoutDupList(codeWithoutDupList)
+                    .setPomWithCodeDelList(pomWithCodeDelList)
+                    .setPomWithCodeAddList(pomWithCodeAddList);
             repositoryDepSeqMapper.insert(depSeq);
             return depSeq;
         } finally {

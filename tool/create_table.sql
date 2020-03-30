@@ -121,5 +121,7 @@ CREATE TABLE `repository_dep_seq` (
                                              `pom_only` mediumblob,
                                              `code_with_dup` mediumblob,
                                              `code_without_dup` mediumblob,
+                                             `pom_with_code_del` mediumblob,
+                                             `pom_with_code_add` mediumblob,
                                              PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
