@@ -6,9 +6,17 @@ public class RepositoryDepSeq {
 
     private long id;
 
-    private byte[] depSeq;
+    private byte[] pomOnly;
 
-    private List<Long> depSeqList;
+    private List<Long> pomOnlyList;
+
+    private byte[] codeWithDup;
+
+    private List<Long> codeWithDupList;
+
+    private byte[] codeWithoutDup;
+
+    private List<Long> codeWithoutDupList;
 
     public long getId() {
         return id;
@@ -19,21 +27,57 @@ public class RepositoryDepSeq {
         return this;
     }
 
-    public byte[] getDepSeq() {
-        return depSeq;
+    public byte[] getPomOnly() {
+        return pomOnly;
     }
 
-    public RepositoryDepSeq setDepSeq(byte[] depSeq) {
-        GetSetHelper.berNumberByteSetter(depSeq, e -> this.depSeq = e, e -> this.depSeqList = e);
+    public RepositoryDepSeq setPomOnly(byte[] pomOnly) {
+        GetSetHelper.berNumberByteSetter(pomOnly, e -> this.pomOnly = e, e -> this.pomOnlyList = e);
         return this;
     }
 
-    public List<Long> getDepSeqList() {
-        return depSeqList;
+    public List<Long> getPomOnlyList() {
+        return pomOnlyList;
     }
 
-    public RepositoryDepSeq setDepSeqList(List<Long> depSeqList) {
-        GetSetHelper.berNumberListSetter(depSeqList, e -> this.depSeq = e, e -> this.depSeqList = e);
+    public RepositoryDepSeq setPomOnlyList(List<Long> pomOnlyList) {
+        GetSetHelper.berNumberListSetter(pomOnlyList, e -> this.pomOnly = e, e -> this.pomOnlyList = e);
+        return this;
+    }
+
+    public byte[] getCodeWithDup() {
+        return codeWithDup;
+    }
+
+    public RepositoryDepSeq setCodeWithDup(byte[] codeWithDup) {
+        GetSetHelper.berNumberByteSetter(codeWithDup, e -> this.codeWithDup = e, e -> this.codeWithDupList = e);
+        return this;
+    }
+
+    public List<Long> getCodeWithDupList() {
+        return codeWithDupList;
+    }
+
+    public RepositoryDepSeq setCodeWithDupList(List<Long> codeWithDupList) {
+        GetSetHelper.berNumberListSetter(codeWithDupList, e -> this.codeWithDup = e, e -> this.codeWithDupList = e);
+        return this;
+    }
+
+    public byte[] getCodeWithoutDup() {
+        return codeWithoutDup;
+    }
+
+    public RepositoryDepSeq setCodeWithoutDup(byte[] codeWithoutDup) {
+        GetSetHelper.berNumberByteSetter(codeWithoutDup, e -> this.codeWithoutDup = e, e -> this.codeWithoutDupList = e);
+        return this;
+    }
+
+    public List<Long> getCodeWithoutDupList() {
+        return codeWithoutDupList;
+    }
+
+    public RepositoryDepSeq setCodeWithoutDupList(List<Long> codeWithoutDupList) {
+        GetSetHelper.berNumberListSetter(codeWithoutDupList, e -> this.codeWithoutDup = e, e -> this.codeWithoutDupList = e);
         return this;
     }
 }

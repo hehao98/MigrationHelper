@@ -8,7 +8,6 @@ import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.LZFUtils;
 import edu.pku.migrationhelper.util.MathUtils;
 import javafx.util.Pair;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,12 +20,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import scala.Int;
 import tokyocabinet.HDB;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -79,6 +76,9 @@ public class TestJob {
     @Autowired
     private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
 
+    @Autowired
+    private LibraryOverlapMapper libraryOverlapMapper;
+
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
 //        testDatabase();
@@ -102,6 +102,7 @@ public class TestJob {
 //        testRepositoryDepSeq();
 //        testAnalyzeDepSeq();
 //        insertGroupArtifact();
+//        insertLibraryOverlap();
 //        calcGroundTruth();
 //        calcGAChangeInMethodChange();
         testMiningMigration();
@@ -293,6 +294,27 @@ public class TestJob {
         return result;
     }
 
+    public void insertLibraryOverlap() throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader("db/LibraryOverlap.csv"));
+        String line = reader.readLine();
+        int limit = 1000;
+        List<LibraryOverlap> list = new ArrayList<>(limit);
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",");
+            list.add(new LibraryOverlap()
+                    .setGroupArtifactId1(Long.parseLong(attrs[0]))
+                    .setGroupArtifactId2(Long.parseLong(attrs[1]))
+                    .setSignatureCount(Integer.parseInt(attrs[2])));
+            if(list.size() >= limit) {
+                libraryOverlapMapper.insert(list);
+                list.clear();
+            }
+        }
+        if(!list.isEmpty()) {
+            libraryOverlapMapper.insert(list);
+        }
+    }
+
     public void insertGroupArtifact() throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader("db/LibraryGroupArtifact.csv"));
         String line = reader.readLine();
@@ -315,14 +337,19 @@ public class TestJob {
     }
 
     public List<List<Long>> buildRepositoryDepSeq(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("db/RepositoryDepSeq.csv"));
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line = reader.readLine();
         List<List<Long>> result = new LinkedList<>();
         while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",");
-            String libIdString = attrs[2];
-            if (libIdString.length() <= 2) continue;
-            String[] libIds = libIdString.replace("[", "").replace("]", "").split(" ");
+            String[] attrs = line.split(",", -1);
+            if(attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+//            String libIdString = attrs[3]; // codeWithDup
+//            String libIdString = attrs[4]; // codeWithoutDup
+            if ("".equals(libIdString)) continue;
+            String[] libIds = libIdString.split(";");
             List<Long> libIdList = new ArrayList<>(libIds.length);
             for (String libId : libIds) {
                 libIdList.add(Long.parseLong(libId));
@@ -402,89 +429,11 @@ public class TestJob {
         }
     }
 
-    public void testAnalyzeDepSeq() throws Exception {
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014.csv");
-        List<RepositoryDepSeq> seqList = new LinkedList<>();
-        Map<Long, Integer> libCounter = new HashMap<>();
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
-        for (List<Long> libIdList : rdsList) {
-            libIdList = dependencyChangePatternAnalysisService.simplifyLibIdList(libIdList);
-            for (Long libId : libIdList) {
-                if(libId <= 0) continue;
-                libCounter.put(libId, libCounter.getOrDefault(libId, 0) + 1);
-            }
-            if(libIdList.isEmpty()) continue;
-            seqList.add(new RepositoryDepSeq().setDepSeqList(libIdList));
-        }
-        List<DependencyChangePatternAnalysisService.DependencySequenceResult> result =
-                dependencyChangePatternAnalysisService.analyzeDependencySequence(seqList, 100000);
-        groundTruthMap.forEach((fromId, groundTruth) ->
-                analyzePrecisionInTopK(fromId, groundTruth, libCounter, result, 10));
-    }
-
-    private void analyzePrecisionInTopK(long fromId, Set<Long> groundTruth, Map<Long, Integer> libCounter, List<DependencyChangePatternAnalysisService.DependencySequenceResult> tksResult, int k) {
-        MutableInt totalSupport = new MutableInt(0);
-        List<DependencyChangePatternAnalysisService.DependencySequenceResult> result = tksResult.stream()
-                .filter(pattern -> {
-                    if(pattern.pattern.size() != 3) return false;
-                    List<Long> first = pattern.pattern.get(0);
-                    List<Long> middle = pattern.pattern.get(1);
-                    List<Long> last = pattern.pattern.get(2);
-                    if(!first.contains(fromId)) return false;
-                    if(!last.contains(-fromId)) return false;
-                    boolean middleContainOther = false;
-                    for (Long libId : middle) {
-                        if(libId < 0) continue;
-                        if(libId != fromId) {
-                            middleContainOther = true;
-                            break;
-                        }
-                    }
-                    if(!middleContainOther) return false;
-                    return true;
-                })
-                .peek(pattern -> {
-                    Long middle = pattern.pattern.get(1).stream().filter(e -> e > 0).findFirst().get();
-                    pattern.globalSupport = pattern.support / (double) libCounter.get(middle);
-                    totalSupport.add(pattern.support);
-                }).collect(Collectors.toList());
-        if(result.isEmpty()) return;
-        result = result.stream()
-                .peek(pattern -> {
-                    pattern.patternSupport = pattern.support / (double) totalSupport.getValue();
-                    pattern.multipleSupport = pattern.patternSupport * pattern.globalSupport;
-                })
-//                .sorted((a, b) -> Double.compare(b.multipleSupport, a.multipleSupport))
-                .sorted((a, b) -> Double.compare(b.patternSupport, a.patternSupport))
-                .limit(k)
-                .collect(Collectors.toList());
-        k = Math.min(result.size(), k);
-        boolean[] correct = new boolean[k];
-        for (int i = 0; i < k; i++) {
-            correct[i] = false;
-        }
-        int i = 0;
-        for (DependencyChangePatternAnalysisService.DependencySequenceResult pattern : result) {
-            Long middle = pattern.pattern.get(1).stream().filter(e -> e > 0).findFirst().get();
-            if(groundTruth.contains(middle)) {
-                correct[i] = true;
-            }
-            ++i;
-        }
-
-        System.out.print("fromLib: " + fromId + ", ");
-        int totalCorrect = 0;
-        for (int j = 0; j < k; j++) {
-            if(correct[j]) ++totalCorrect;
-            int top = j + 1;
-            System.out.print("Top " + top + ": " + totalCorrect + ", ");
-        }
-        System.out.println();
-    }
-
     public void testRepositoryDepSeq() throws Exception {
         RepositoryDepSeq depSeq = gitRepositoryAnalysisService.getRepositoryDepSeq("jgit-cookbook");
-        System.out.println(depSeq.getDepSeqList());
+        System.out.println(depSeq.getPomOnlyList());
+        System.out.println(depSeq.getCodeWithDupList());
+        System.out.println(depSeq.getCodeWithoutDupList());
     }
 
     public void alterTableJob() throws Exception {

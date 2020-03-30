@@ -118,6 +118,8 @@ CREATE TABLE `repository_analyze_status` (
 
 CREATE TABLE `repository_dep_seq` (
                                              `id` bigint(20) NOT NULL,
-                                             `dep_seq` mediumblob,
+                                             `pom_only` mediumblob,
+                                             `code_with_dup` mediumblob,
+                                             `code_without_dup` mediumblob,
                                              PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;

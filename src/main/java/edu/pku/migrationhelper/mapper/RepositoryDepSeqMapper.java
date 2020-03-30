@@ -13,7 +13,9 @@ public interface RepositoryDepSeqMapper {
     @Update("<script>" +
             "CREATE TABLE `"+tableName+"` (\n" +
             "                           `id` bigint(20) NOT NULL,\n" +
-            "                           `dep_seq` mediumblob,\n" +
+            "                           `pom_only` mediumblob,\n" +
+            "                           `code_with_dup` mediumblob,\n" +
+            "                           `code_without_dup` mediumblob,\n" +
             "                           PRIMARY KEY (`id`)\n" +
             ") ENGINE=InnoDB DEFAULT CHARSET=ascii;" +
             "</script>")
@@ -21,9 +23,12 @@ public interface RepositoryDepSeqMapper {
 
     @Insert("<script>" +
             "insert into " + tableName + " " +
-            "(id, dep_seq) values " +
-            "(#{e.id}, #{e.depSeq}) " +
-            "on duplicate key update dep_seq = values(dep_seq)" +
+            "(id, pom_only, code_with_dup, code_without_dup) values " +
+            "(#{e.id}, #{e.pomOnly}, #{e.codeWithDup}, #{e.codeWithoutDup}) " +
+            "on duplicate key update " +
+            "pom_only = values(pom_only), " +
+            "code_with_dup = values(code_with_dup), " +
+            "code_without_dup = values(code_without_dup) " +
             "</script>")
     int insert(@Param("e") RepositoryDepSeq entity);
 

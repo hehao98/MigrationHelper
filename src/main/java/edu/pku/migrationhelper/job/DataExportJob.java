@@ -128,6 +128,10 @@ public class DataExportJob implements CommandLineRunner {
                 exportCommitLibraryOverlap(writer, args);
                 break;
             }
+            case "LibraryOverlap": {
+                exportLibraryOverlap(writer, args);
+                break;
+            }
         }
         writer.close();
         LOG.info("Export success");
@@ -284,10 +288,11 @@ public class DataExportJob implements CommandLineRunner {
         }
     }
 
-    private String concatList(List<Long> list) {
+    private <T> String concatList(List<T> list) {
+        if(list == null || list.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
-        for (Long aLong : list) {
-            sb.append(aLong);
+        for (T value : list) {
+            sb.append(value);
             sb.append(";");
         }
         if(sb.length() > 0) sb.deleteCharAt(sb.length() - 1);
@@ -361,7 +366,7 @@ public class DataExportJob implements CommandLineRunner {
         if(args.length >= 3) {
             projectLimit = Integer.parseInt(args[2]);
         }
-        outputLine(writer, "id", "repositoryName", "depSeq");
+        outputLine(writer, "id", "repositoryName", "pomOnly", "codeWithDup", "codeWithoutDup");
         BufferedReader reader = new BufferedReader(new FileReader(repositoryListFile));
         String line;
         Future[] futures = new Future[projectLimit];
@@ -397,19 +402,11 @@ public class DataExportJob implements CommandLineRunner {
                     wocRepositoryAnalysisService.getRepositoryDepSeq(repoName) :
                     gitRepositoryAnalysisService.getRepositoryDepSeq(repoName);
             if(result == null) continue;
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            if(result.getDepSeqList() != null) {
-                for (Long aLong : result.getDepSeqList()) {
-                    sb.append(aLong);
-                    sb.append(" ");
-                }
-            }
-            if(sb.length() > 1) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append("]");
-            outputLine(writer, result.getId(), repoName, sb.toString());
+
+            outputLine(writer, result.getId(), repoName,
+                    concatList(result.getPomOnlyList()),
+                    concatList(result.getCodeWithDupList()),
+                    concatList(result.getCodeWithoutDupList()));
         }
     }
 
@@ -504,6 +501,14 @@ public class DataExportJob implements CommandLineRunner {
             } finally {
                 service.closeRepository(repository);
             }
+        }
+    }
+
+    public void exportLibraryOverlap(FileWriter writer, String... args) throws Exception {
+        outputLine(writer, "groupArtifactId1", "groupArtifactId2", "signatureCount");
+        List<LibraryOverlap> overlapList = libraryOverlapMapper.findAll();
+        for (LibraryOverlap overlap : overlapList) {
+            outputLine(writer, overlap.getGroupArtifactId1(), overlap.getGroupArtifactId2(), overlap.getSignatureCount());
         }
     }
 
