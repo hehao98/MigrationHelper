@@ -176,7 +176,9 @@ public abstract class RepositoryAnalysisService {
             return null;
         }
         try {
-            buildLibraryOverlapMap();
+            if(!pomOnly) {
+                buildLibraryOverlapMap();
+            }
             List<CommitInfo> commitList = new LinkedList<>();
             forEachCommit(repository, commitId -> {
                 CommitInfo commitInfo = gitObjectStorageService.getCommitById(commitId);
@@ -229,6 +231,10 @@ public abstract class RepositoryAnalysisService {
                     pomOnlySeq.sort(Long::compare);
                     pomOnlyList.addAll(pomOnlySeq);
                     pomOnlyList.add(0L);
+                }
+
+                if(pomOnly) {
+                    continue;
                 }
 
                 // calc codeWithDup
