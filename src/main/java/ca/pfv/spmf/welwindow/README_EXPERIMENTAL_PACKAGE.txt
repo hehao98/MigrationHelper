@@ -1,1 +1,0 @@
-The code in this package "welwindow" is under development.
