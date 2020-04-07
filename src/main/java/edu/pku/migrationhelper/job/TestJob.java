@@ -109,7 +109,43 @@ public class TestJob {
 //        testTruthPosition();
 //        runRQ1();
 //        runRQ2();
-        runRQ3();
+//        runRQ3();
+        play();
+    }
+
+    public void play() throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader("db/rules-2014-artifactList.csv"));
+        FileWriter writer = new FileWriter("db/r.csv");
+        String line = reader.readLine();
+        writer.write(line);
+        writer.write("\n");
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            for (int i = 0; i < attrs.length; i++) {
+                if(i != 1 && i != 3) continue;
+                if(!"".equals(attrs[i])) {
+                    String[] ids = attrs[i].split(";");
+                    StringBuilder sb = new StringBuilder();
+                    for (String id : ids) {
+                        LibraryGroupArtifact ga = libraryGroupArtifactMapper.findById(Long.parseLong(id));
+                        sb.append(ga.getGroupId()).append(":").append(ga.getArtifactId()).append(";");
+                    }
+                    sb.deleteCharAt(sb.length() - 1);
+                    attrs[i+1] = sb.toString();
+                } else {
+                    attrs[i+1] = "";
+                }
+            }
+            for (int i = 0; i < attrs.length; i++) {
+                writer.write(attrs[i]);
+                if(i == attrs.length - 1) {
+                    writer.write("\n");
+                }else {
+                    writer.write(",");
+                }
+            }
+        }
+        writer.close();
     }
 
     public void runRQ1() throws Exception {
@@ -119,7 +155,7 @@ public class TestJob {
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
                         rdsList, groundTruthMap.keySet(), new HashMap<>());
         int repoTotal = rdsList.size();
-        FileWriter output = new FileWriter("db/RQ1.csv");
+        FileWriter output = new FileWriter("db/RQ1-pomOnly.csv");
         output.write("fromLib,toLib,patternSupport,RepoTotal,RepoPercent\n");
         BufferedReader reader = new BufferedReader(new FileReader("db/ground-truth-2014.csv"));
         String line = reader.readLine();
@@ -147,7 +183,7 @@ public class TestJob {
     }
 
     public void runRQ2() throws Exception {
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals-multi.csv");
         List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
         FileWriter truthPercent = new FileWriter("db/RQ2-truth-percent.csv");
         FileWriter truthPosition = new FileWriter("db/RQ2-truth-position.csv");
@@ -180,7 +216,7 @@ public class TestJob {
 
     public void runRQ3() throws Exception {
         Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange.csv");
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals-multi.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals.csv");
         FileWriter output = new FileWriter("db/RQ3.csv");
         output.write("fromId,toId,support,supportTotal,supportPercent,rank,rankTotal,rankPercent\n");
         groundTruthMap.forEach((fromId, truthSet) -> {
@@ -287,17 +323,25 @@ public class TestJob {
         List<LibraryGroupArtifact> gaList = libraryGroupArtifactMapper.findAll();
         gaList.sort(Comparator.comparingLong(LibraryGroupArtifact::getId));
         FileWriter writer = new FileWriter("db/ground-truth-2014-equals-multi.csv");
+        FileWriter raw = new FileWriter("db/rules-2014-raw.csv");
+        FileWriter artifactList = new FileWriter("db/rules-2014-artifactList.csv");
         Map<String, String> libraryName2IdsMapFrom = new HashMap<>();
         Map<String, String> libraryName2IdsMapTo = new HashMap<>();
         writer.write("fromLibrary;toLibrary;fromIds;toIds;score\n");
+        raw.write("fromLib,toLib,score\n");
+        artifactList.write("libName,groupArtifactIds\n");
         Document document = Jsoup.parse(new File("db/rules-2014.html"), "UTF-8");
         Elements elements = document.select("tr");
+        Set<String> nameSet = new HashSet<>();
         int i = 0;
         for (Element element : elements) {
             if(i++ == 0) continue;
             String fromLibrary = element.child(0).text();
             String toLibrary = element.child(1).text();
             String score = element.child(2).text();
+            raw.write(fromLibrary + "," + toLibrary + "," + score + "\n");
+            nameSet.add(fromLibrary);
+            nameSet.add(toLibrary);
             LOG.info("from = {}, to = {}, score = {}", fromLibrary, toLibrary, score);
             String fromIds = calcLibraryIdsFromNameEquals(fromLibrary, gaList, libraryName2IdsMapFrom);
             String toIds = calcLibraryIdsFromNameEquals(toLibrary, gaList, libraryName2IdsMapTo);
@@ -312,7 +356,12 @@ public class TestJob {
             writer.write(score);
             writer.write("\n");
         }
+        for (String libName : nameSet) {
+            artifactList.write(libName + ",\n");
+        }
         writer.close();
+        raw.close();
+        artifactList.close();
     }
 
     private String calcLibraryIdsFromNameEquals(String libraryName, List<LibraryGroupArtifact> gaList, Map<String, String> libraryName2IdsMap) {
@@ -500,9 +549,34 @@ public class TestJob {
         for (int k = 1; k <= maxK; k++) {
             double p = totalPrecision[k-1] / precisionMap.size();
             double r = totalRecall[k-1] / recallMap.size();
-            double m = p * r;
-            System.out.println("Top" + k + ": Precision: " + p + " Recall: " + r + " M:" + m);
+            double f = 2 * p * r / (p + r);
+            System.out.println("Top" + k + ": Precision: " + p + " Recall: " + r + " F-measure:" + f);
         }
+
+        FileWriter output = new FileWriter("db/test-migration.csv");
+        int outputK = 10;
+        for (int i = 1; i <= outputK; i++) {
+            output.write(",Top " + i);
+        }
+        output.write("\nPrecision");
+        for (int i = 0; i < outputK; i++) {
+            double p = totalPrecision[i] / precisionMap.size();
+            output.write("," + p);
+        }
+        output.write("\nRecall");
+        for (int i = 0; i < outputK; i++) {
+            double r = totalRecall[i] / recallMap.size();
+            output.write("," + r);
+        }
+        output.write("\nF-measure");
+        for (int i = 0; i < outputK; i++) {
+            double p = totalPrecision[i] / precisionMap.size();
+            double r = totalRecall[i] / recallMap.size();
+            double f = 2 * p * r / (p + r);
+            output.write("," + f);
+        }
+        output.write("\n");
+        output.close();
     }
 
     public void testRepositoryDepSeq() throws Exception {

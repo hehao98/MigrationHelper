@@ -145,6 +145,7 @@ public class LibraryIdentityService {
             //TODO 80% of GroupArtifacts have less than 27 versions, skip and re-run those GroupArtifacts which have more than 30 versions later
             analyzeFirstOnly = true;
         }
+        analyzeFirstOnly = true; // TODO
         int versionCount = 1;
 
         boolean containError = false;
@@ -187,6 +188,7 @@ public class LibraryIdentityService {
                 LOG.info("start parse library id = {}, size = {} MB", versionData.getId(), jarSize);
                 if(jarSize > 50) {
                     analyzeFirstOnly = true;
+                    return; // TODO
                 }
                 List<MethodSignature> signatureList = parseLibraryJar(groupId, artifactId, version, signatureCache);
                 Set<Long> signatureIds = new HashSet<>();
@@ -261,14 +263,7 @@ public class LibraryIdentityService {
     public List<MethodSignature> parseLibraryJar(String groupId, String artifactId, String version, Map<String, MethodSignature> signatureCache) throws Exception {
         String jarPath = generateJarDownloadPath(groupId, artifactId, version);
         List<MethodSignature> signatures = new LinkedList<>();
-        Future<?> result = calcThreadPool.submit(() -> {
-            try {
-                jarAnalysisService.analyzeJar(jarPath, signatures);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-        result.get();
+        jarAnalysisService.analyzeJar(jarPath, signatures);
         for (MethodSignature signature : signatures) {
             saveMethodSignature(signature, signatureCache);
         }

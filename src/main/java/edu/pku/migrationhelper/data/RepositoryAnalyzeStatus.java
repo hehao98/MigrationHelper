@@ -13,6 +13,7 @@ public class RepositoryAnalyzeStatus {
         Analyzing,
         Success,
         Error,
+        NoCommit,
     }
 
     private long id;

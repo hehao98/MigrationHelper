@@ -60,6 +60,10 @@ public class WocHdbDriver {
     }
 
     public void openDatabaseFile() {
+        openDatabaseFile(false);
+    }
+
+    public void openDatabaseFile(boolean ignoreError) {
         databaseArray = new HDB[partCount];
         for (int i = 0; i < partCount; i++) {
             HDB hdb = new HDB();
@@ -67,14 +71,20 @@ public class WocHdbDriver {
             if(!hdb.open(fileName, HDB.OREADER)) {
                 LOG.error("open tokyo cabinet database fail, name = {}, errCode = {}, errMsg = {}",
                         fileName, hdb.ecode(), hdb.errmsg());
-                throw new RuntimeException("open tokyo cabinet database fail");
+                if(ignoreError) {
+                    databaseArray[i] = null;
+                } else {
+                    throw new RuntimeException("open tokyo cabinet database fail");
+                }
+            } else {
+                databaseArray[i] = hdb;
             }
-            databaseArray[i] = hdb;
         }
     }
 
     public void closeDatabaseFile() {
         for (HDB hdb : databaseArray) {
+            if(hdb == null) continue;
             hdb.close();
         }
     }
@@ -82,6 +92,7 @@ public class WocHdbDriver {
     public byte[] getRaw(String key) {
         int slice = getSliceByKey(key);
         HDB hdb = databaseArray[slice];
+        if(hdb == null) return null;
         return hdb.get(getKeyBytes(key));
     }
 

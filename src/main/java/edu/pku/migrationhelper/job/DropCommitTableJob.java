@@ -29,6 +29,9 @@ public class DropCommitTableJob {
     @Autowired
     private MethodChangeMapper methodChangeMapper;
 
+    @Autowired
+    private RepositoryAnalyzeStatusMapper repositoryAnalyzeStatusMapper;
+
     @EventListener(ApplicationReadyEvent.class)
     public void run() throws Exception {
 
@@ -55,6 +58,8 @@ public class DropCommitTableJob {
             methodChangeMapper.dropTable(i);
         }
 
+        repositoryAnalyzeStatusMapper.dropTable();
+
         LOG.info("Drop Table Success");
 
         for (int i = 0; i < BlobInfoMapper.MAX_TABLE_COUNT; i++) {
@@ -71,6 +76,8 @@ public class DropCommitTableJob {
             methodChangeMapper.createTable(i);
             methodChangeMapper.setAutoIncrement(i, ai);
         }
+
+        repositoryAnalyzeStatusMapper.createTable();
 
         LOG.info("Create Table Success");
     }

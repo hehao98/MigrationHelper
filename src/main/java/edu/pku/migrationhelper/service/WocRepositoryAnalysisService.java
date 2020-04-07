@@ -55,7 +55,7 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 //        c2b = new WocHdbDriver(c2bBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
 //        b2f = new WocHdbDriver(b2fBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         c2ta = new WocHdbDriver(c2taBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.Text);
-        p2c.openDatabaseFile();
+        p2c.openDatabaseFile(true);
         c2pc.openDatabaseFile();
 //        c2b.openDatabaseFile();
 //        b2f.openDatabaseFile();

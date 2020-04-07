@@ -19,10 +19,15 @@ public interface RepositoryAnalyzeStatusMapper {
             "                                             `end_time` datetime DEFAULT NULL,\n" +
             "                                             `analyze_status` varchar(15) DEFAULT NULL,\n" +
             "                                             PRIMARY KEY (`id`),\n" +
-            "                                             UNIQUE KEY `index2` (`repo_type`,`repo_name`)" +
+            "                                             UNIQUE KEY `index2` (`repo_type`,`repo_name`)\n" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;" +
             "</script>")
     void createTable();
+
+    @Update("<script>" +
+            "DROP TABLE `"+tableName+"`;" +
+            "</script>")
+    void dropTable();
 
     @Insert("<script>" +
             "insert into " + tableName + " " +

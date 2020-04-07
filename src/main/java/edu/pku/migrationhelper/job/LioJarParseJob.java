@@ -97,8 +97,8 @@ public class LioJarParseJob {
                LOG.error("project not found, id = {}", projectId);
                return;
             }
-            if(!"Maven".equals(p.getPlatform()) || !"Java".equals(p.getLanguage())) {
-                LOG.error("project not Maven or not Java, id = {}", projectId);
+            if(!"Maven".equals(p.getPlatform())) {
+                LOG.error("project not Maven, id = {}", projectId);
                 return;
             }
             String name = p.getName();

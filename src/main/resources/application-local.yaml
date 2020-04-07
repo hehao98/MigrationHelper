@@ -34,6 +34,8 @@ migration-helper:
 #      - https://repo.maven.apache.org/maven2/
 #      - https://maven.aliyun.com/nexus/content/groups/public/
     download-path: jar-download
+  repository-analysis:
+    pom-only: true
   git-repository-analysis:
     repository-path: ../
   woc-repository-analysis:

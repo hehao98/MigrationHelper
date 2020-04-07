@@ -35,14 +35,16 @@ migration-helper:
 #      - https://repo.maven.apache.org/maven2/
 #      - https://maven.aliyun.com/nexus/content/groups/public/
     download-path: jar-download
+  repository-analysis:
+    pom-only: true
   git-repository-analysis:
     repository-path: git-repository
   woc-repository-analysis:
-    p2cBase: /da0_data/basemaps/p2cFullQ.
-    c2pcBase: /da0_data/basemaps/c2pcFullQ.
-    c2bBase: /da0_data/basemaps/c2bFullQ.
-    b2fBase: /da0_data/basemaps/b2fFullQ.
-    c2taBase: /da0_data/basemaps/c2taFullQ.
+    p2cBase: /da0_data/basemaps/p2cFullR.
+    c2pcBase: /da0_data/basemaps/c2pcFullR.
+#    c2bBase: /da0_data/basemaps/c2bFullQ.
+#    b2fBase: /da0_data/basemaps/b2fFullQ.
+    c2taBase: /da0_data/basemaps/c2taFullR.
     blobIndexBase: /fast/All.sha1o/sha1.blob_ # da4 only
     commitIndexBase: /fast/All.sha1c/commit_ # da4 only
     treeIndexBase: /fast/All.sha1c/tree_ # da4 only

@@ -12,6 +12,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -22,6 +23,9 @@ import java.util.function.Consumer;
 public abstract class RepositoryAnalysisService {
 
     protected Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Value("${migration-helper.repository-analysis.pom-only}")
+    private boolean pomOnly = false;
 
     @Autowired
     protected JavaCodeAnalysisService javaCodeAnalysisService;
@@ -408,7 +412,9 @@ public abstract class RepositoryAnalysisService {
             throw new RuntimeException("open repository fail");
         }
         try {
+            MutableBoolean hasCommit = new MutableBoolean(false);
             forEachCommit(repository, commitId -> {
+                hasCommit.setTrue();
                 CommitInfo thisCommit = analyzeCommitSelfInfo(repository, commitId);
                 if((!commitNeedAnalyzeDependencyChange(thisCommit)) &&
                         (!commitNeedAnalyzeMethodChange(thisCommit))) {
@@ -424,8 +430,10 @@ public abstract class RepositoryAnalysisService {
                     // ignore merge commit
                 }
             });
+            RepositoryAnalyzeStatus.AnalyzeStatus status = hasCommit.booleanValue() ?
+                    RepositoryAnalyzeStatus.AnalyzeStatus.Success : RepositoryAnalyzeStatus.AnalyzeStatus.NoCommit;
             analyzeStatus.setEndTime(new Date())
-                    .setAnalyzeStatus(RepositoryAnalyzeStatus.AnalyzeStatus.Success);
+                    .setAnalyzeStatus(status);
             repositoryAnalyzeStatusMapper.update(analyzeStatus);
         } catch (Exception e) {
             analyzeStatus.setEndTime(new Date())
@@ -437,15 +445,20 @@ public abstract class RepositoryAnalysisService {
         }
     }
 
-    public static boolean commitNeedAnalyzeDependencyChange(CommitInfo commitInfo) {
-        return commitInfo.getCodeAddGroupArtifactIdList() == null ||
-                commitInfo.getCodeDeleteGroupArtifactIdList() == null ||
-                commitInfo.getPomAddGroupArtifactIdList() == null ||
-                commitInfo.getPomDeleteGroupArtifactIdList() == null;
+    public boolean commitNeedAnalyzeDependencyChange(CommitInfo commitInfo) {
+        if(pomOnly) {
+            return commitInfo.getPomAddGroupArtifactIdList() == null ||
+                    commitInfo.getPomDeleteGroupArtifactIdList() == null;
+        } else {
+            return commitInfo.getCodeAddGroupArtifactIdList() == null ||
+                    commitInfo.getCodeDeleteGroupArtifactIdList() == null ||
+                    commitInfo.getPomAddGroupArtifactIdList() == null ||
+                    commitInfo.getPomDeleteGroupArtifactIdList() == null;
+        }
     }
 
-    public static boolean commitNeedAnalyzeMethodChange(CommitInfo commitInfo) {
-        return commitInfo.getMethodChangeIds() == null;
+    public boolean commitNeedAnalyzeMethodChange(CommitInfo commitInfo) {
+        return commitInfo.getMethodChangeIds() == null && !pomOnly;
     }
 
     public CommitInfo analyzeCommitDiff(AbstractRepository repository, CommitInfo thisCommit, CommitInfo parentCommit) {
@@ -459,8 +472,10 @@ public abstract class RepositoryAnalysisService {
                 parentCodeIds = parentCommit.getCodeGroupArtifactIdList();
                 parentPomIds = parentCommit.getPomGroupArtifactIdList();
             }
-            calcIdsDiff(thisCommit.getCodeGroupArtifactIdList(), parentCodeIds,
-                    thisCommit::setCodeAddGroupArtifactIdList, thisCommit::setCodeDeleteGroupArtifactIdList);
+            if(!pomOnly) {
+                calcIdsDiff(thisCommit.getCodeGroupArtifactIdList(), parentCodeIds,
+                        thisCommit::setCodeAddGroupArtifactIdList, thisCommit::setCodeDeleteGroupArtifactIdList);
+            }
             calcIdsDiff(thisCommit.getPomGroupArtifactIdList(), parentPomIds,
                     thisCommit::setPomAddGroupArtifactIdList, thisCommit::setPomDeleteGroupArtifactIdList);
         }
@@ -876,12 +891,20 @@ public abstract class RepositoryAnalysisService {
 
     private CommitInfo analyzeCommitSelfInfo(AbstractRepository repository, String commitId) {
         CommitInfo commitInfo = getCommitInfo(repository, commitId);
-        if(commitInfo != null &&
-                commitInfo.getCodeLibraryVersionIds() != null &&
-                commitInfo.getCodeGroupArtifactIds() != null  &&
-                commitInfo.getPomLibraryVersionIds() != null  &&
-                commitInfo.getPomGroupArtifactIds() != null ) {
-            return commitInfo;
+        if(pomOnly) {
+            if(commitInfo != null &&
+                    commitInfo.getPomLibraryVersionIds() != null  &&
+                    commitInfo.getPomGroupArtifactIds() != null ) {
+                return commitInfo;
+            }
+        } else {
+            if(commitInfo != null &&
+                    commitInfo.getCodeLibraryVersionIds() != null &&
+                    commitInfo.getCodeGroupArtifactIds() != null  &&
+                    commitInfo.getPomLibraryVersionIds() != null  &&
+                    commitInfo.getPomGroupArtifactIds() != null ) {
+                return commitInfo;
+            }
         }
         if(commitInfo == null) {
             commitInfo = new CommitInfo();
@@ -897,6 +920,9 @@ public abstract class RepositoryAnalysisService {
         Set<Long> pomVersionIds = new HashSet<>();
         Set<Long> pomGaIds = new HashSet<>();
         for (BlobInCommit blob : blobs) {
+            if(pomOnly && !isBlobPom(blob)) {
+                continue;
+            }
             BlobInfo blobInfo = analyzeBlobInfo(repository, blob);
             if(blobInfo.getBlobTypeEnum() == BlobInfo.BlobType.Java) {
                 codeVersionIds.addAll(blobInfo.getLibraryVersionIdList());
@@ -906,10 +932,15 @@ public abstract class RepositoryAnalysisService {
                 pomGaIds.addAll(blobInfo.getLibraryGroupArtifactIdList());
             }
         }
-        commitInfo.setCodeLibraryVersionIdList(new ArrayList<>(codeVersionIds));
-        commitInfo.setCodeGroupArtifactIdList(new ArrayList<>(codeGaIds));
-        commitInfo.setPomLibraryVersionIdList(new ArrayList<>(pomVersionIds));
-        commitInfo.setPomGroupArtifactIdList(new ArrayList<>(pomGaIds));
+        if(pomOnly) {
+            commitInfo.setPomLibraryVersionIdList(new ArrayList<>(pomVersionIds));
+            commitInfo.setPomGroupArtifactIdList(new ArrayList<>(pomGaIds));
+        } else {
+            commitInfo.setCodeLibraryVersionIdList(new ArrayList<>(codeVersionIds));
+            commitInfo.setCodeGroupArtifactIdList(new ArrayList<>(codeGaIds));
+            commitInfo.setPomLibraryVersionIdList(new ArrayList<>(pomVersionIds));
+            commitInfo.setPomGroupArtifactIdList(new ArrayList<>(pomGaIds));
+        }
         commitInfo.setBlobInCommit(blobs);
         saveCommitInfo(repository, commitInfo);
         return commitInfo;

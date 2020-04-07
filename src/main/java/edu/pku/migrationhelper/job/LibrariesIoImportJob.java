@@ -42,7 +42,7 @@ public class LibrariesIoImportJob {
         int insertLimit = 100;
         List<LioProjectWithRepository> results = new ArrayList<>(insertLimit);
         for (CSVRecord record : parser) {
-            if ("Maven".equals(record.get("Platform")) && "Java".equals(record.get("Language"))) {
+            if ("Maven".equals(record.get("Platform"))) {
                 LioProjectWithRepository p = new LioProjectWithRepository();
                 p.setId(getRecordLong(record, "ID"));
                 p.setPlatform(record.get("Platform"));
