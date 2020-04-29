@@ -161,48 +161,36 @@ public class TestJob {
         }
         writer.close();
     }
-
+// TODO 仅保留包含truth的样例来作图，否则图像会被大量未知真假的点扭曲
     public void runRQ1() throws Exception {
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, groundTruthMap.keySet(), new HashMap<>());
+                        rdsList, groundTruthMap.keySet(), new HashMap<>(), 0, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent);
         int repoTotal = rdsList.size();
-        FileWriter output = new FileWriter("db/RQ1-pomOnly.csv");
-        output.write("fromLib,toLib,patternSupport,RepoTotal,RepoPercent\n");
-        BufferedReader reader = new BufferedReader(new FileReader("db/ground-truth-2014.csv"));
-        String line = reader.readLine();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(";");
-            String fromLib = attrs[0];
-            String toLib = attrs[1];
-            Set<Long> fromIds = new HashSet<>(JsonUtils.readStringAsObject(attrs[2], new TypeReference<List<Long>>() {}));
-            Set<Long> toIds = new HashSet<>(JsonUtils.readStringAsObject(attrs[3], new TypeReference<List<Long>>() {}));
-            int patternSupport = 0;
-            for (Long fromId : fromIds) {
-                if(!result.containsKey(fromId)) continue;
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : result.get(fromId)) {
-                    if(toIds.contains(candidate.toId)) {
-                        patternSupport += candidate.patternSupport;
-                    }
-                }
+        FileWriter output = new FileWriter("db/RQ0421/RQ1-pomOnly.csv");
+        output.write("fromLib,toLib,isTruth,patternSupport,patternSupportP,occurCount,occurSupportP\n");
+        for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
+            for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                output.write(candidate.fromId + "," + candidate.toId + "," +
+                        groundTruthMap.get(candidate.fromId).contains(candidate.toId) + "," +
+                        candidate.patternSupport + "," +candidate.patternSupportPercent2 + "," +
+                        candidate.occurCount + "," + candidate.occurSupportPercent + "\n"
+                );
             }
-            double repoP = patternSupport / (double) repoTotal;
-            output.write(fromLib+","+toLib+","+patternSupport+","+repoTotal+","+repoP+"\n");
         }
         output.close();
-        reader.close();
         LOG.info("Success");
     }
 
     public void runRQ2() throws Exception {
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals-multi.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq.csv");
-        FileWriter truthPercent = new FileWriter("db/RQ2-truth-percent.csv");
-        FileWriter truthPosition = new FileWriter("db/RQ2-truth-position.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
+        FileWriter truthPercent = new FileWriter("db/RQ0421/RQ2-truth-percent.csv");
+        FileWriter truthPosition = new FileWriter("db/RQ0421/RQ2-truth-position.csv");
         truthPercent.write("fromId,truthCount,totalCount,percent\n");
-        truthPosition.write("fromId,toId,pos,total\n");
+        truthPosition.write("fromId,toId,isTruth,pos,total\n");
         for (List<Long> depSeq : rdsList) {
             depSeq = dependencyChangePatternAnalysisService.simplifyLibIdList(depSeq);
             List<DependencyChangePatternAnalysisService.LibraryMigrationPattern> patternList =
@@ -213,10 +201,12 @@ public class TestJob {
                 int truthCount = 0;
                 int totalCount = pattern.toIdList.size();
                 for (Long toId : pattern.toIdList) {
+                    boolean isTruth = false;
                     if(truth.contains(toId)) {
+                        isTruth = true;
                         truthCount++;
-                        truthPosition.write(pattern.fromId+","+toId+","+pos+","+totalCount+"\n");
                     }
+                    truthPosition.write(pattern.fromId+","+toId+","+isTruth+","+pos+","+totalCount+"\n");
                     ++pos;
                 }
                 double p = truthCount / (double) totalCount;
@@ -229,38 +219,26 @@ public class TestJob {
     }
 
     public void runRQ3() throws Exception {
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange.csv");
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-equals.csv");
-        FileWriter output = new FileWriter("db/RQ3.csv");
-        output.write("fromId,toId,support,supportTotal,supportPercent,rank,rankTotal,rankPercent\n");
-        groundTruthMap.forEach((fromId, truthSet) -> {
-            if(!methodChangeSupportMap.containsKey(fromId)) return;
-            Map<Long, Integer> supportMap = methodChangeSupportMap.get(fromId);
-            int supportTotal = 0;
-            List<Integer> supportList = new ArrayList<>(supportMap.size());
-            for (Integer support : supportMap.values()) {
-                supportTotal += support;
-                supportList.add(support);
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
+        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
+                        rdsList, groundTruthMap.keySet(), methodChangeSupportMap, DependencyChangePatternAnalysisService.DefaultMinPatternSupport, 0);
+        FileWriter output = new FileWriter("db/RQ0421/RQ3.csv");
+        output.write("fromId,toId,isTruth,mcSupport,mcSupportPercent,patternSupport\n");
+        for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
+            boolean containsTruth = false;
+            for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                containsTruth = groundTruthMap.get(candidate.fromId).contains(candidate.toId);
+                if(containsTruth) break;
             }
-            supportList.sort((a, b) -> Integer.compare(b, a));
-            int rankTotal = supportList.size();
-            for (Long toId : truthSet) {
-                if(!supportMap.containsKey(toId)) return;
-                int support = supportMap.get(toId);
-                int rank = 1;
-                for (Integer v : supportList) {
-                    if(v == support) break;
-                    rank++;
-                }
-                double sp = support / (double) supportTotal;
-                double rp = rank / (double) rankTotal;
-                try {
-                    output.write(fromId+","+toId+","+support+","+supportTotal+","+sp+","+rank+","+rankTotal+","+rp+"\n");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            if(!containsTruth) continue;
+            for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                boolean isTruth = groundTruthMap.get(candidate.fromId).contains(candidate.toId);
+                output.write(candidate.fromId+","+candidate.toId+","+isTruth+","+candidate.methodChangeSupport+","+candidate.methodChangeSupportPercent2+","+candidate.patternSupport+"\n");
             }
-        });
+        }
         output.close();
         LOG.info("Success");
     }
@@ -280,7 +258,7 @@ public class TestJob {
     }
 
     public void calcGAChangeInMethodChange() throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("db/MethodChangeDetail.csv"));
+        BufferedReader reader = new BufferedReader(new FileReader("db/MethodChangeDetail-all.csv"));
         String line = reader.readLine();
         Map<Long, Map<Long, Integer>> result = new HashMap<>(100000);
         while((line = reader.readLine()) != null) {
@@ -313,7 +291,7 @@ public class TestJob {
             }
         }
         reader.close();
-        FileWriter writer = new FileWriter("db/GAChangeInMethodChange.csv");
+        FileWriter writer = new FileWriter("db/GAChangeInMethodChange-all.csv");
         writer.write("fromId,toId,counter\n");
         List<Pair<Long, List<Pair<Long, Integer>>>> outputLines = new ArrayList<>(result.size());
         result.forEach((fromId, candidateMap) -> {
@@ -565,9 +543,9 @@ public class TestJob {
 
     public void testMiningMigration() throws Exception {
         buildGroupArtifactCache();
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange.csv");
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
         Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-pomOnly.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
                         rdsList, groundTruthMap.keySet(), methodChangeSupportMap);
@@ -581,11 +559,13 @@ public class TestJob {
                     LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
                     List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList = entry.getValue();
                     candidateList = candidateList.stream()
-                            .filter(candidate -> candidate.patternSupport >= 10)
+//                            .filter(candidate -> candidate.patternSupport >= 10)
+//                            .filter(candidate -> candidate.multipleSupport > 0)
                             .filter(candidate -> {
                                 LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
                                 return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
                             }).collect(Collectors.toList());
+                    if(candidateList.isEmpty()) return;
                     Set<Long> groundTruth = groundTruthMap.get(fromId);
                     if(groundTruth == null) return;
                     Set<Long> thisTruth = new HashSet<>();
@@ -616,7 +596,9 @@ public class TestJob {
                             LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
                             System.out.println(" Top" + k + ": " + correct + "," + thisCorrect + ", " + toLib.getId() + ":" + toLib.getGroupId() + ":" + toLib.getArtifactId() +
                                     ", patternSupport: " + candidate.patternSupport + ", occurCount: " + candidate.occurCount +
-                                    ", patternSupportPercent: " + candidate.patternSupportPercent + ", occurSupportPercent: " + candidate.occurSupportPercent);
+                                    ", patternSupportPercent: " + candidate.patternSupportPercent + ", patternSupportPercent2: " + candidate.patternSupportPercent2 + ", occurSupportPercent: " + candidate.occurSupportPercent +
+                                    ", positionSupportPercent: " + candidate.positionSupportPercent + ", methodChangeSupportPercent: " + candidate.methodChangeSupportPercent + ", methodChangeSupportPercent2: " + candidate.methodChangeSupportPercent2
+                            );
                         }
                     }
                     System.out.println();

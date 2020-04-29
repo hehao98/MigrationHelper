@@ -9,17 +9,26 @@ import java.util.stream.Collectors;
 @Service
 public class DependencyChangePatternAnalysisService {
 
+    public static final int DefaultMinPatternSupport = 8;
+
+    public static final double DefaultMinMCSupportPercent = 0.6;
+
     public static class LibraryMigrationCandidate {
         public long fromId;
         public long toId;
         public int patternSupport = 0;
         public int methodChangeSupport = 0;
         public int occurCount = 0;
+        public int maxPatternSupport = 0;
+        public int maxMethodChangeSupport = 0;
         public double patternSupportPercent = 0;
+        public double patternSupportPercent2 = 0;
         public double methodChangeSupportPercent = 0;
+        public double methodChangeSupportPercent2 = 0;
         public double occurSupportPercent = 0;
         public double positionSupportPercent = 0;
         public double multipleSupport = 0;
+        public double multipleSupport2 = 0;
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
 
         public LibraryMigrationCandidate(long fromId, long toId) {
@@ -43,6 +52,16 @@ public class DependencyChangePatternAnalysisService {
             Set<Long> fromIdLimit,
             Map<Long, Map<Long, Integer>> methodChangeSupportMap
     ) {
+        return miningLibraryMigrationCandidate(depSeqCollection, fromIdLimit, methodChangeSupportMap, DefaultMinPatternSupport, DefaultMinMCSupportPercent);
+    }
+
+    public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
+            Collection<List<Long>> depSeqCollection,
+            Set<Long> fromIdLimit,
+            Map<Long, Map<Long, Integer>> methodChangeSupportMap,
+            int minPatternSupport,
+            double mcSupportLowerBound
+    ) {
         Map<Long, Map<Long, Integer>> occurCounter = new HashMap<>();
         Map<Long, Map<Long, LibraryMigrationCandidate>> candidateMap = new HashMap<>();
         for (List<Long> depSeq : depSeqCollection) {
@@ -63,19 +82,23 @@ public class DependencyChangePatternAnalysisService {
         Map<Long, List<LibraryMigrationCandidate>> result = new HashMap<>();
         candidateMap.forEach((fromId, toIdCandidateMap) -> {
             List<LibraryMigrationCandidate> candidateList = new ArrayList<>(toIdCandidateMap.values());
-//            candidateList = candidateList.stream()
-//                    .filter(candidate -> candidate.patternSupport >= 10)
-//                    .collect(Collectors.toList());
+            candidateList = candidateList.stream()
+                    .filter(candidate -> candidate.patternSupport >= minPatternSupport)
+                    .collect(Collectors.toList());
             result.put(fromId, candidateList);
         });
         result.forEach((fromId, candidateList) -> {
             int totalPatternSupport = 0;
             int totalMCSupport = 0;
+            int maxPatternSupport = 0;
+            int maxMCSupport = 0;
             for (LibraryMigrationCandidate candidate : candidateList) {
                 if(methodChangeSupportMap.containsKey(fromId)) {
                     candidate.methodChangeSupport = methodChangeSupportMap.get(fromId)
                             .getOrDefault(candidate.toId, 0);
                 }
+                maxPatternSupport = Math.max(maxPatternSupport, candidate.patternSupport);
+                maxMCSupport = Math.max(maxMCSupport, candidate.methodChangeSupport);
                 long lib1 = fromId;
                 long lib2 = candidate.toId;
                 if(lib1 > lib2) {
@@ -91,26 +114,46 @@ public class DependencyChangePatternAnalysisService {
             }
             for (LibraryMigrationCandidate candidate : candidateList) {
                 double positionSupport = 0;
+                double positionA = 1;
+                int positionB = 5;
                 for (Pair<Integer, Integer> position : candidate.positionList) {
-                    positionSupport += Math.pow(1 / ((double) position.getKey() + 5), 0.4);
+                    positionSupport += Math.pow((positionB + 1) / (double)(position.getKey() + positionB), positionA);
                 }
                 candidate.positionSupportPercent = positionSupport / candidate.positionList.size();
                 if(totalPatternSupport != 0) {
                     candidate.patternSupportPercent = candidate.patternSupport / (double) totalPatternSupport;
                 }
+                if(maxPatternSupport != 0) {
+                    candidate.maxPatternSupport = maxPatternSupport;
+                    candidate.patternSupportPercent2 = candidate.patternSupport / (double) maxPatternSupport;
+                }
                 if(totalMCSupport != 0) {
                     candidate.methodChangeSupportPercent = candidate.methodChangeSupport / (double) totalMCSupport;
+                }
+                if(maxMCSupport != 0) {
+                    candidate.maxMethodChangeSupport = maxMCSupport;
+                    candidate.methodChangeSupportPercent2 = candidate.methodChangeSupport / (double) maxMCSupport;
+                }
+                if(candidate.methodChangeSupportPercent2 < mcSupportLowerBound) {
+                    candidate.methodChangeSupportPercent2 = mcSupportLowerBound;
                 }
                 if(candidate.occurCount != 0) {
                     candidate.occurSupportPercent = candidate.patternSupport / (double) candidate.occurCount;
                 }
-                candidate.multipleSupport =
-                        Math.pow(candidate.patternSupportPercent, 1) *
-                                Math.pow(candidate.occurSupportPercent, 0) *
-                                Math.pow(candidate.methodChangeSupportPercent, 0) *
-                                Math.pow(candidate.positionSupportPercent, 0);
+                candidate.multipleSupport2 =
+                        Math.pow(candidate.patternSupportPercent2, 1) *
+                                Math.pow(candidate.occurSupportPercent, 0.5) *
+                                Math.pow(candidate.positionSupportPercent, 2);
+                candidate.multipleSupport = candidate.multipleSupport2 *
+//                        1;
+                        Math.pow(candidate.methodChangeSupportPercent2, 0.5);
+
             }
-            candidateList.sort((a, b) -> Double.compare(b.multipleSupport, a.multipleSupport));
+            candidateList.sort((a, b) -> {
+                int r = Double.compare(b.multipleSupport, a.multipleSupport);
+                if(r != 0) return r;
+                return Double.compare(b.multipleSupport2, a.multipleSupport2);
+            });
 //            candidateList.sort((a, b) -> Double.compare(b.methodChangeSupportPercent, a.methodChangeSupportPercent));
 //            candidateList.sort((a, b) -> Double.compare(b.patternSupportPercent, a.patternSupportPercent));
         });

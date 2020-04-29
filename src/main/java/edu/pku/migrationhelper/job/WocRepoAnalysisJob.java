@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -39,11 +42,18 @@ public class WocRepoAnalysisJob {
         BufferedReader reader = new BufferedReader(new FileReader(repositoryListFile));
         int jobId = 1;
         String line;
+        List<String> repoNameList = new LinkedList<>();
         while((line = reader.readLine()) != null) {
             String repoName = getRepoNameFromUrl(line);
             if(repoName == null) continue;
-            executorService.submit(new SingleRepoJob(jobId++, repoName));
+            repoNameList.add(repoName);
         }
+        reader.close();
+        repoNameList = new ArrayList<>(repoNameList);
+        for (int i = repoNameList.size() - 1; i >= 0; i--) {
+            executorService.submit(new SingleRepoJob(jobId++, repoNameList.get(i)));
+        }
+        repoNameList = null;
     }
 
     public static String getRepoNameFromUrl(String url) {
