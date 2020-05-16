@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import sun.rmi.runtime.Log;
 import tokyocabinet.HDB;
 
 import java.io.*;
@@ -109,7 +110,8 @@ public class TestJob {
 //        calcGroundTruth();
 //        calcGroundTruth2();
 //        calcGAChangeInMethodChange();
-        testMiningMigration();
+        migrationRulesSave2File();
+//        testMiningMigration();
 //        testTruthPosition();
 //        runRQ1();
 //        runRQ2();
@@ -167,16 +169,17 @@ public class TestJob {
         List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, groundTruthMap.keySet(), new HashMap<>(), 0, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent);
+                        rdsList, groundTruthMap.keySet(), new HashMap<>(), 0, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent, null, null);
         int repoTotal = rdsList.size();
         FileWriter output = new FileWriter("db/RQ0421/RQ1-pomOnly.csv");
-        output.write("fromLib,toLib,isTruth,patternSupport,patternSupportP,occurCount,occurSupportP\n");
+        output.write("fromLib,toLib,isTruth,patternSupport,patternSupportP,occurCount,hot,hotRank\n");
         for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
             for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                 output.write(candidate.fromId + "," + candidate.toId + "," +
                         groundTruthMap.get(candidate.fromId).contains(candidate.toId) + "," +
                         candidate.patternSupport + "," +candidate.patternSupportPercent2 + "," +
-                        candidate.occurCount + "," + candidate.occurSupportPercent + "\n"
+                        candidate.occurCount + "," + candidate.occurSupportPercent + "," +
+                        (candidate.patternSupportPercent2 * candidate.occurSupportPercent) + "\n"
                 );
             }
         }
@@ -190,11 +193,11 @@ public class TestJob {
         FileWriter truthPercent = new FileWriter("db/RQ0421/RQ2-truth-percent.csv");
         FileWriter truthPosition = new FileWriter("db/RQ0421/RQ2-truth-position.csv");
         truthPercent.write("fromId,truthCount,totalCount,percent\n");
-        truthPosition.write("fromId,toId,isTruth,pos,total\n");
+        truthPosition.write("fromId,toId,isTruth,distance,total\n");
         for (List<Long> depSeq : rdsList) {
-            depSeq = dependencyChangePatternAnalysisService.simplifyLibIdList(depSeq);
+            depSeq = dependencyChangePatternAnalysisService.simplifyLibIdList(depSeq, null, null);
             List<DependencyChangePatternAnalysisService.LibraryMigrationPattern> patternList =
-                    dependencyChangePatternAnalysisService.miningSingleDepSeq(depSeq, groundTruthMap.keySet());
+                    dependencyChangePatternAnalysisService.miningSingleDepSeq(depSeq, groundTruthMap.keySet(), null);
             for (DependencyChangePatternAnalysisService.LibraryMigrationPattern pattern : patternList) {
                 int pos = 1;
                 Set<Long> truth = groundTruthMap.get(pattern.fromId);
@@ -224,9 +227,9 @@ public class TestJob {
         Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, groundTruthMap.keySet(), methodChangeSupportMap, DependencyChangePatternAnalysisService.DefaultMinPatternSupport, 0);
+                        rdsList, groundTruthMap.keySet(), methodChangeSupportMap, DependencyChangePatternAnalysisService.DefaultMinPatternSupport, 0, null, null);
         FileWriter output = new FileWriter("db/RQ0421/RQ3.csv");
-        output.write("fromId,toId,isTruth,mcSupport,mcSupportPercent,patternSupport\n");
+        output.write("fromId,toId,isTruth,APISupport,APIRank0,patternSupport\n");
         for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
             boolean containsTruth = false;
             for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
@@ -541,11 +544,117 @@ public class TestJob {
         return result;
     }
 
+    public List<List<String>> buildDepSeqCommitList(String fileName) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line = reader.readLine();
+        List<List<String>> result = new LinkedList<>();
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if(attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            String commitListString = attrs[7];
+            int len = commitListString.length();
+            int commitCount = len / 40;
+            List<String> commitList = new ArrayList<>(commitCount);
+            for (int i = 0; i < commitCount; i++) {
+                commitList.add(commitListString.substring(i * 40, i * 40 + 40));
+            }
+            result.add(commitList);
+        }
+        return result;
+    }
+
+    public List<String> buildDepSeqRepoList(String fileName) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line = reader.readLine();
+        List<String> result = new LinkedList<>();
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if(attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            result.add(attrs[1]);
+        }
+        return result;
+    }
+
+    public void migrationRulesSave2File() throws Exception {
+        buildGroupArtifactCache();
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-withCommit.csv");
+        List<List<String>> commitList = buildDepSeqCommitList("db/RepositoryDepSeq-withCommit.csv");
+        List<String> repoList = buildDepSeqRepoList("db/RepositoryDepSeq-withCommit.csv");
+        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
+                        rdsList, null, methodChangeSupportMap,
+                        DependencyChangePatternAnalysisService.DefaultMinPatternSupport, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent,
+                        repoList, commitList);
+        FileWriter correct = new FileWriter("db/correct-library-migration.csv");
+        FileWriter unknown = new FileWriter("db/unknown-library-migration.csv");
+        result.forEach((fromId, candidateList) -> {
+            LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
+            candidateList = candidateList.stream()
+                    .filter(candidate -> {
+                        LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                        return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
+                    }).collect(Collectors.toList());
+            if(candidateList.isEmpty()) return;
+            boolean isTruth;
+            if(groundTruthMap.containsKey(fromId)) {
+                isTruth = true;
+                Set<Long> thisTruth = groundTruthMap.get(fromId);
+                candidateList = candidateList.stream()
+                        .filter(candidate -> thisTruth.contains(candidate.toId))
+                        .limit(20)
+                        .collect(Collectors.toList());
+            } else {
+                isTruth = false;
+                candidateList = candidateList.stream()
+                        .limit(20)
+                        .collect(Collectors.toList());
+            }
+            if(candidateList.isEmpty()) return;
+            FileWriter writer = isTruth ? correct : unknown;
+            try {
+                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    writer.write(fromLib.getGroupId());
+                    writer.write(":");
+                    writer.write(fromLib.getArtifactId());
+                    LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                    writer.write(",");
+                    writer.write(toLib.getGroupId());
+                    writer.write(":");
+                    writer.write(toLib.getArtifactId());
+                    for (String[] repoCommit : candidate.repoCommitList) {
+                        writer.write(",");
+                        writer.write(repoCommit[0]);
+                        writer.write(";");
+                        writer.write(repoCommit[1]);
+                        writer.write(";");
+                        writer.write(repoCommit[2]);
+                    }
+                    writer.write("\n");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        correct.close();
+        unknown.close();
+        LOG.info("Success");
+    }
+
     public void testMiningMigration() throws Exception {
         buildGroupArtifactCache();
         Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
         Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-withCommit.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
                         rdsList, groundTruthMap.keySet(), methodChangeSupportMap);

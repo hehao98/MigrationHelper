@@ -170,7 +170,9 @@ public abstract class RepositoryAnalysisService {
         if(analyzeStatus.getAnalyzeStatus() != RepositoryAnalyzeStatus.AnalyzeStatus.Success) return null;
         RepositoryDepSeq depSeq = repositoryDepSeqMapper.findById(analyzeStatus.getId());
         if(depSeq != null) return depSeq;
-        depSeq = new RepositoryDepSeq().setId(analyzeStatus.getId());
+        depSeq = new RepositoryDepSeq()
+                .setId(analyzeStatus.getId())
+                .setRepoName(analyzeStatus.getRepoName());
         AbstractRepository repository = openRepository(repositoryName);
         if(repository == null) {
             return null;
@@ -206,6 +208,7 @@ public abstract class RepositoryAnalysisService {
             });
             commitList.sort(Comparator.comparingInt(CommitInfo::getCommitTime));
             List<Long> pomOnlyList = new LinkedList<>();
+            List<CommitInfo> pomOnlyCommits = new LinkedList<>();
             List<Long> codeWithDupList = new LinkedList<>();
             List<Long> codeWithoutDupList = new LinkedList<>();
             List<Long> pomWithCodeDelList = new LinkedList<>();
@@ -231,6 +234,7 @@ public abstract class RepositoryAnalysisService {
                     pomOnlySeq.sort(Long::compare);
                     pomOnlyList.addAll(pomOnlySeq);
                     pomOnlyList.add(0L);
+                    pomOnlyCommits.add(commitInfo);
                 }
 
                 if(pomOnly) {
@@ -328,7 +332,15 @@ public abstract class RepositoryAnalysisService {
                     pomWithCodeAddList.add(0L);
                 }
             }
+            byte[] pomOnlyCommitsBytes = new byte[pomOnlyCommits.size()*20];
+            int i = 0;
+            for (CommitInfo pomOnlyCommit : pomOnlyCommits) {
+                for (byte b : pomOnlyCommit.getCommitId()) {
+                    pomOnlyCommitsBytes[i++] = b;
+                }
+            }
             depSeq.setPomOnlyList(pomOnlyList)
+                    .setPomOnlyCommits(pomOnlyCommitsBytes)
                     .setCodeWithDupList(codeWithDupList)
                     .setCodeWithoutDupList(codeWithoutDupList)
                     .setPomWithCodeDelList(pomWithCodeDelList)

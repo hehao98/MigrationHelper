@@ -6,9 +6,13 @@ public class RepositoryDepSeq {
 
     private long id;
 
+    private String repoName;
+
     private byte[] pomOnly;
 
     private List<Long> pomOnlyList;
+
+    private byte[] pomOnlyCommits;
 
     private byte[] codeWithDup;
 
@@ -35,6 +39,15 @@ public class RepositoryDepSeq {
         return this;
     }
 
+    public String getRepoName() {
+        return repoName;
+    }
+
+    public RepositoryDepSeq setRepoName(String repoName) {
+        this.repoName = repoName;
+        return this;
+    }
+
     public byte[] getPomOnly() {
         return pomOnly;
     }
@@ -50,6 +63,15 @@ public class RepositoryDepSeq {
 
     public RepositoryDepSeq setPomOnlyList(List<Long> pomOnlyList) {
         GetSetHelper.berNumberListSetter(pomOnlyList, e -> this.pomOnly = e, e -> this.pomOnlyList = e);
+        return this;
+    }
+
+    public byte[] getPomOnlyCommits() {
+        return pomOnlyCommits;
+    }
+
+    public RepositoryDepSeq setPomOnlyCommits(byte[] pomOnlyCommits) {
+        this.pomOnlyCommits = pomOnlyCommits;
         return this;
     }
 

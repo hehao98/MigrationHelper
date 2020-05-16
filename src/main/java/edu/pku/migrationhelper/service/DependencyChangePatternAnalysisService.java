@@ -30,6 +30,7 @@ public class DependencyChangePatternAnalysisService {
         public double multipleSupport = 0;
         public double multipleSupport2 = 0;
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
+        public List<String[]> repoCommitList = new LinkedList<>();
 
         public LibraryMigrationCandidate(long fromId, long toId) {
             this.fromId = fromId;
@@ -40,44 +41,58 @@ public class DependencyChangePatternAnalysisService {
     public static class LibraryMigrationPattern {
         public long fromId;
         public List<Long> toIdList; // order by timestamp desc
+        public List<String[]> startEndCommitList;
 
-        public LibraryMigrationPattern(long fromId, List<Long> toIdList) {
+        public LibraryMigrationPattern(long fromId, List<Long> toIdList, List<String[]> startEndCommitList) {
             this.fromId = fromId;
             this.toIdList = toIdList;
+            this.startEndCommitList = startEndCommitList;
         }
     }
 
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
-            Collection<List<Long>> depSeqCollection,
+            List<List<Long>> depSeqCollection,
             Set<Long> fromIdLimit,
             Map<Long, Map<Long, Integer>> methodChangeSupportMap
     ) {
-        return miningLibraryMigrationCandidate(depSeqCollection, fromIdLimit, methodChangeSupportMap, DefaultMinPatternSupport, DefaultMinMCSupportPercent);
+        return miningLibraryMigrationCandidate(depSeqCollection, fromIdLimit, methodChangeSupportMap, DefaultMinPatternSupport, DefaultMinMCSupportPercent,null, null);
     }
 
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
-            Collection<List<Long>> depSeqCollection,
+            List<List<Long>> depSeqCollection,
             Set<Long> fromIdLimit,
             Map<Long, Map<Long, Integer>> methodChangeSupportMap,
             int minPatternSupport,
-            double mcSupportLowerBound
+            double mcSupportLowerBound,
+            List<String> repoNameCollection,
+            List<List<String>> depSeqCommitsCollection
     ) {
         Map<Long, Map<Long, Integer>> occurCounter = new HashMap<>();
         Map<Long, Map<Long, LibraryMigrationCandidate>> candidateMap = new HashMap<>();
+        Iterator<String> repoNameIt = repoNameCollection == null ? null : repoNameCollection.iterator();
+        Iterator<List<String>> commitListIt = depSeqCommitsCollection == null ? null : depSeqCommitsCollection.iterator();
         for (List<Long> depSeq : depSeqCollection) {
-            depSeq = simplifyLibIdList(depSeq);
+            String repoName = repoNameIt == null ? null : repoNameIt.next();
+            System.out.println(repoName);
+            List<String> commitList0 = commitListIt == null ? null : commitListIt.next();
+            List<String> commitList = commitList0 == null ? null : new ArrayList<>(commitList0.size());
+            depSeq = simplifyLibIdList(depSeq, commitList0, commitList);
             calcOccurCounter(depSeq, occurCounter);
-            List<LibraryMigrationPattern> patternList = miningSingleDepSeq(depSeq, fromIdLimit);
+            List<LibraryMigrationPattern> patternList = miningSingleDepSeq(depSeq, fromIdLimit, commitList);
             for (LibraryMigrationPattern pattern : patternList) {
                 Map<Long, LibraryMigrationCandidate> toId2Candidate = candidateMap.computeIfAbsent(pattern.fromId, k -> new HashMap<>());
                 int position = 1;
+                Iterator<String[]> startEndCommitIt = pattern.startEndCommitList.iterator();
                 for (Long toId : pattern.toIdList) {
+                    String[] startEndCommit = startEndCommitIt.next();
                     LibraryMigrationCandidate candidate = toId2Candidate.computeIfAbsent(
                             toId, k -> new LibraryMigrationCandidate(pattern.fromId, toId));
                     candidate.patternSupport++;
                     candidate.positionList.add(new Pair<>(position++, pattern.toIdList.size()));
+                    candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1]});
                 }
             }
+            System.out.println(repoName);
         }
         Map<Long, List<LibraryMigrationCandidate>> result = new HashMap<>();
         candidateMap.forEach((fromId, toIdCandidateMap) -> {
@@ -185,11 +200,19 @@ public class DependencyChangePatternAnalysisService {
         }
     }
 
-    public List<LibraryMigrationPattern> miningSingleDepSeq(List<Long> depSeq, Set<Long> fromIdLimit) {
+    public List<LibraryMigrationPattern> miningSingleDepSeq(List<Long> depSeq, Set<Long> fromIdLimit, List<String> commitList) {
         Map<Long, LibraryMigrationPattern> patternMap = new HashMap<>();
         Set<Long> removeIds = new HashSet<>();
+        Map<Long, String> removeId2Commit = new HashMap<>();
         int i = depSeq.size() - 1;
+        int commitIt = 0;
+        if(commitList != null) commitIt = commitList.size() - 1;
         while(i > 0) {
+            String currCommit0 = null;
+            if(commitList != null) {
+                currCommit0 = commitList.get(commitIt--);
+            }
+            String currCommit = currCommit0;
             long currentId = depSeq.get(i--);
             List<Long> addIds = new LinkedList<>();
             while(i >= 0 && (currentId = depSeq.get(i--)) != 0L) {
@@ -200,6 +223,7 @@ public class DependencyChangePatternAnalysisService {
                         continue;
                     }
                     removeIds.add(-currentId);
+                    removeId2Commit.put(-currentId, currCommit);
                 }
             }
             ++i;
@@ -207,14 +231,19 @@ public class DependencyChangePatternAnalysisService {
                 removeIds.remove(addId);
             }
             for (Long addId : addIds) {
-                removeIds.forEach(removeId -> patternMap.computeIfAbsent(
-                        removeId, k -> new LibraryMigrationPattern(k, new LinkedList<>()))
-                        .toIdList.add(addId));
+                removeIds.forEach(removeId -> {
+                    LibraryMigrationPattern pattern = patternMap.computeIfAbsent(
+                            removeId, k -> new LibraryMigrationPattern(k, new LinkedList<>(), new LinkedList<>()));
+                    pattern.toIdList.add(addId);
+                    pattern.startEndCommitList.add(new String[]{currCommit, removeId2Commit.get(removeId)});
+                });
             }
         }
         for (LibraryMigrationPattern pattern : patternMap.values()) {
             List<Long> toIdList = new ArrayList<>(pattern.toIdList);
             List<Long> tmp = new ArrayList<>(toIdList.size());
+            List<String[]> startEndCommitList = new ArrayList<>(pattern.startEndCommitList);
+            List<String[]> tmp2 = new ArrayList<>(startEndCommitList.size());
             Set<Long> idSet = new HashSet<>();
             int len = toIdList.size();
             for (int index = len - 1; index >= 0; index--) {
@@ -222,27 +251,38 @@ public class DependencyChangePatternAnalysisService {
                 if(!idSet.contains(id)) {
                     idSet.add(id);
                     tmp.add(id);
+                    tmp2.add(startEndCommitList.get(index));
                 }
             }
             len = tmp.size();
             pattern.toIdList.clear();
+            pattern.startEndCommitList.clear();
             for (int index = len - 1; index >= 0; index--) {
                 pattern.toIdList.add(tmp.get(index));
+                pattern.startEndCommitList.add(tmp2.get(index));
             }
         }
         return new ArrayList<>(patternMap.values());
     }
 
-    public List<Long> simplifyLibIdList(List<Long> libIds) {
+    public List<Long> simplifyLibIdList(List<Long> libIds, List<String> commitList, List<String> commitResult) {
         List<Long> result = new ArrayList<>(libIds.size());
         Set<Long> currentLibs = new HashSet<>();
         List<Long> currentList = new LinkedList<>();
+        Iterator<String> commitIt = null;
+        if(commitList != null) {
+            commitIt = commitList.iterator();
+        }
         for (Long libId : libIds) {
             if(libId == 0) {
+                String commitId = commitIt == null ? null : commitIt.next();
                 if(currentList.isEmpty()) continue;
                 result.addAll(currentList);
                 result.add(0L);
                 currentList.clear();
+                if(commitResult != null) {
+                    commitResult.add(commitId);
+                }
             } else {
                 if(libId > 0) {
                     if(currentLibs.contains(libId)) continue;

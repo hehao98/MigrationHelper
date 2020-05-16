@@ -118,7 +118,9 @@ CREATE TABLE `repository_analyze_status` (
 
 CREATE TABLE `repository_dep_seq` (
                                              `id` bigint(20) NOT NULL,
+                                             `repo_name` varchar(255),
                                              `pom_only` mediumblob,
+                                             `pom_only_commits` mediumblob,
                                              `code_with_dup` mediumblob,
                                              `code_without_dup` mediumblob,
                                              `pom_with_code_del` mediumblob,

@@ -13,7 +13,9 @@ public interface RepositoryDepSeqMapper {
     @Update("<script>" +
             "CREATE TABLE `"+tableName+"` (\n" +
             "                           `id` bigint(20) NOT NULL,\n" +
+            "                           `repo_name` varchar(255),\n" +
             "                           `pom_only` mediumblob,\n" +
+            "                           `pom_only_commits` mediumblob,\n" +
             "                           `code_with_dup` mediumblob,\n" +
             "                           `code_without_dup` mediumblob,\n" +
             "                           `pom_with_code_del` mediumblob,\n" +
@@ -25,10 +27,12 @@ public interface RepositoryDepSeqMapper {
 
     @Insert("<script>" +
             "insert into " + tableName + " " +
-            "(id, pom_only, code_with_dup, code_without_dup, pom_with_code_del, pom_with_code_add) values " +
-            "(#{e.id}, #{e.pomOnly}, #{e.codeWithDup}, #{e.codeWithoutDup}, #{e.pomWithCodeDel}, #{e.pomWithCodeAdd}) " +
+            "(id, repo_name, pom_only, pom_only_commits, code_with_dup, code_without_dup, pom_with_code_del, pom_with_code_add) values " +
+            "(#{e.id}, #{e.repoName}, #{e.pomOnly}, #{e.pomOnlyCommits}, #{e.codeWithDup}, #{e.codeWithoutDup}, #{e.pomWithCodeDel}, #{e.pomWithCodeAdd}) " +
             "on duplicate key update " +
+            "repo_name = values(repo_name), " +
             "pom_only = values(pom_only), " +
+            "pom_only_commits = values(pom_only_commits), " +
             "code_with_dup = values(code_with_dup), " +
             "code_without_dup = values(code_without_dup), " +
             "pom_with_code_del = values(pom_with_code_del), " +

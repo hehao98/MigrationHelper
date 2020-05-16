@@ -6,6 +6,7 @@ import edu.pku.migrationhelper.service.GitObjectStorageService;
 import edu.pku.migrationhelper.service.GitRepositoryAnalysisService;
 import edu.pku.migrationhelper.service.RepositoryAnalysisService;
 import edu.pku.migrationhelper.service.WocRepositoryAnalysisService;
+import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -366,7 +367,7 @@ public class DataExportJob implements CommandLineRunner {
         if(args.length >= 3) {
             projectLimit = Integer.parseInt(args[2]);
         }
-        outputLine(writer, "id", "repositoryName", "pomOnly", "codeWithDup", "codeWithoutDup", "pomWithCodeDel", "pomWithCodeAdd");
+        outputLine(writer, "id", "repositoryName", "pomOnly", "codeWithDup", "codeWithoutDup", "pomWithCodeDel", "pomWithCodeAdd", "pomOnlyCommits");
         BufferedReader reader = new BufferedReader(new FileReader(repositoryListFile));
         String line;
         Future[] futures = new Future[projectLimit];
@@ -408,7 +409,8 @@ public class DataExportJob implements CommandLineRunner {
                     concatList(result.getCodeWithDupList()),
                     concatList(result.getCodeWithoutDupList()),
                     concatList(result.getPomWithCodeDelList()),
-                    concatList(result.getPomWithCodeAddList()));
+                    concatList(result.getPomWithCodeAddList()),
+                    HexUtils.toHexString(result.getPomOnlyCommits()));
         }
     }
 
