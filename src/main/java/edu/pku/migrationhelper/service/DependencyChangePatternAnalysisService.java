@@ -73,7 +73,7 @@ public class DependencyChangePatternAnalysisService {
         Iterator<List<String>> commitListIt = depSeqCommitsCollection == null ? null : depSeqCommitsCollection.iterator();
         for (List<Long> depSeq : depSeqCollection) {
             String repoName = repoNameIt == null ? null : repoNameIt.next();
-            System.out.println(repoName);
+//            System.out.println(repoName);
             List<String> commitList0 = commitListIt == null ? null : commitListIt.next();
             List<String> commitList = commitList0 == null ? null : new ArrayList<>(commitList0.size());
             depSeq = simplifyLibIdList(depSeq, commitList0, commitList);
@@ -92,7 +92,7 @@ public class DependencyChangePatternAnalysisService {
                     candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1]});
                 }
             }
-            System.out.println(repoName);
+//            System.out.println(repoName);
         }
         Map<Long, List<LibraryMigrationCandidate>> result = new HashMap<>();
         candidateMap.forEach((fromId, toIdCandidateMap) -> {

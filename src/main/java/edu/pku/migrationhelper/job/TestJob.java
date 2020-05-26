@@ -110,8 +110,8 @@ public class TestJob {
 //        calcGroundTruth();
 //        calcGroundTruth2();
 //        calcGAChangeInMethodChange();
-        migrationRulesSave2File();
-//        testMiningMigration();
+//        migrationRulesSave2File();
+        testMiningMigration();
 //        testTruthPosition();
 //        runRQ1();
 //        runRQ2();
@@ -658,6 +658,7 @@ public class TestJob {
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
                         rdsList, groundTruthMap.keySet(), methodChangeSupportMap);
+//                        rdsList, null, methodChangeSupportMap);
         int maxK = 10;
         Map<Long, double[]> precisionMap = new HashMap<>();
         Map<Long, double[]> recallMap = new HashMap<>();
@@ -677,6 +678,7 @@ public class TestJob {
                     if(candidateList.isEmpty()) return;
                     Set<Long> groundTruth = groundTruthMap.get(fromId);
                     if(groundTruth == null) return;
+//                    if(groundTruth != null) return; groundTruth = new HashSet<>();
                     Set<Long> thisTruth = new HashSet<>();
                     for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                         if(groundTruth.contains(candidate.toId)) {
@@ -702,11 +704,12 @@ public class TestJob {
                             }
                             precision[k-1] = correct / (double) k;
                             recall[k-1] = correct / (double) thisTruth.size();
+//                            recall[k-1] = correct / (double) groundTruth.size();
                             LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
                             System.out.println(" Top" + k + ": " + correct + "," + thisCorrect + ", " + toLib.getId() + ":" + toLib.getGroupId() + ":" + toLib.getArtifactId() +
-                                    ", patternSupport: " + candidate.patternSupport + ", occurCount: " + candidate.occurCount +
-                                    ", patternSupportPercent: " + candidate.patternSupportPercent + ", patternSupportPercent2: " + candidate.patternSupportPercent2 + ", occurSupportPercent: " + candidate.occurSupportPercent +
-                                    ", positionSupportPercent: " + candidate.positionSupportPercent + ", methodChangeSupportPercent: " + candidate.methodChangeSupportPercent + ", methodChangeSupportPercent2: " + candidate.methodChangeSupportPercent2
+                                    ", RuleFreq: " + candidate.patternSupport + ", RelativeRuleFreq: " + candidate.patternSupportPercent2 +
+                                    ", CoOccurrence: " + candidate.occurCount + ", CA: " + candidate.occurSupportPercent + ", PR: " + (candidate.occurSupportPercent*candidate.patternSupportPercent2) +
+                                    ", CommitDistance: " + candidate.positionSupportPercent + ", APISupport: " + candidate.methodChangeSupportPercent2 + ", FinalConfidenceValue: " + candidate.multipleSupport
                             );
                         }
                     }
