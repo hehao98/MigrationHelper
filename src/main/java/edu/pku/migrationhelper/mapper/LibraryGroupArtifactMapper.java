@@ -72,6 +72,13 @@ public interface LibraryGroupArtifactMapper {
 
     @Select("<script>" +
             "select * from " + tableName + " where " +
+            "artifact_id = #{artifactId}" +
+            "</script>")
+    List<LibraryGroupArtifact> findByArtifactId(
+            @Param("artifactId") String artifactId);
+
+    @Select("<script>" +
+            "select * from " + tableName + " where " +
             "group_id = #{groupId} and " +
             "artifact_id = #{artifactId}" +
             "</script>")
