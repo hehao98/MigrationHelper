@@ -1,7 +1,6 @@
 package anonymous.migrationhelper.job;
 
 import anonymous.migrationhelper.mapper.*;
-import edu.pku.migrationhelper.mapper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * Created by xuyul on 2020/2/29.
+ * Created by xxx on 2020/2/29.
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "CreateTableJob")

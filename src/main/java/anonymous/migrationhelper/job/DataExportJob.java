@@ -6,8 +6,6 @@ import anonymous.migrationhelper.service.GitObjectStorageService;
 import anonymous.migrationhelper.service.GitRepositoryAnalysisService;
 import anonymous.migrationhelper.service.RepositoryAnalysisService;
 import anonymous.migrationhelper.service.WocRepositoryAnalysisService;
-import edu.pku.migrationhelper.data.*;
-import edu.pku.migrationhelper.mapper.*;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 /**
- * Created by xuyul on 2020/2/24.
+ * Created by xxx on 2020/2/24.
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DataExportJob")

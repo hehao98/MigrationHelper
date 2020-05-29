@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Created by xuyul on 2020/2/28.
+ * Created by xxx on 2020/2/28.
  */
 public class GetSetHelper {
 

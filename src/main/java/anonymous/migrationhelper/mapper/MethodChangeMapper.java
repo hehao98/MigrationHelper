@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.*;
 import java.util.List;
 
 /**
- * Created by xuyul on 2020/3/5.
+ * Created by xxx on 2020/3/5.
  */
 @Mapper
 public interface MethodChangeMapper {

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Created by xuyul on 2020/2/4.
+ * Created by xxx on 2020/2/4.
  */
 @Service
 public class GitRepositoryAnalysisService extends RepositoryAnalysisService {

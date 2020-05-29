@@ -6,8 +6,6 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.DeltaType;
 import com.github.difflib.patch.Patch;
-import edu.pku.migrationhelper.data.*;
-import edu.pku.migrationhelper.mapper.*;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +16,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * Created by xuyul on 2020/2/4.
+ * Created by xxx on 2020/2/4.
  */
 public abstract class RepositoryAnalysisService {
 

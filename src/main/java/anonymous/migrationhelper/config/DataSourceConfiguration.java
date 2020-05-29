@@ -14,7 +14,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import javax.sql.DataSource;
 
 /**
- * Created by xuyul on 2020/1/2.
+ * Created by xxx on 2020/1/2.
  */
 @Configuration
 @MapperScan(value = "edu.pku.migrationhelper.mapper")

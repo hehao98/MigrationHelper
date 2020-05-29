@@ -3,8 +3,6 @@ package anonymous.migrationhelper.service;
 import anonymous.migrationhelper.data.*;
 import anonymous.migrationhelper.mapper.*;
 import com.twitter.hashing.KeyHasher;
-import edu.pku.migrationhelper.data.*;
-import edu.pku.migrationhelper.mapper.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -29,7 +27,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Created by xuyul on 2020/1/2.
+ * Created by xxx on 2020/1/2.
  */
 @Service
 @ConfigurationProperties(prefix = "migration-helper.library-identity")

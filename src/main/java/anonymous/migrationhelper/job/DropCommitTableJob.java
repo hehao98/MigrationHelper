@@ -4,7 +4,6 @@ import anonymous.migrationhelper.mapper.BlobInfoMapper;
 import anonymous.migrationhelper.mapper.CommitInfoMapper;
 import anonymous.migrationhelper.mapper.MethodChangeMapper;
 import anonymous.migrationhelper.mapper.RepositoryAnalyzeStatusMapper;
-import edu.pku.migrationhelper.mapper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.Scanner;
 
 /**
- * Created by xuyul on 2020/2/29.
+ * Created by xxx on 2020/2/29.
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DropCommitTableJob")

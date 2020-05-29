@@ -7,9 +7,6 @@ import anonymous.migrationhelper.util.JsonUtils;
 import anonymous.migrationhelper.util.LZFUtils;
 import anonymous.migrationhelper.util.MathUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
-import edu.pku.migrationhelper.data.*;
-import edu.pku.migrationhelper.mapper.*;
-import edu.pku.migrationhelper.service.*;
 import javafx.util.Pair;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.tomcat.util.buf.HexUtils;
@@ -31,7 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by xuyul on 2020/1/2.
+ * Created by xxx on 2020/1/2.
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "TestJob")

@@ -3,7 +3,7 @@ package anonymous.migrationhelper.data;
 import java.util.List;
 
 /**
- * Created by xuyul on 2020/2/28.
+ * Created by xxx on 2020/2/28.
  */
 public class LibraryVersionToSignature {
 

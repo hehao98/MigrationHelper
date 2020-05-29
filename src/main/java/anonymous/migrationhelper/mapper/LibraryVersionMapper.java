@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by xuyul on 2020/1/2.
+ * Created by xxx on 2020/1/2.
  */
 @Mapper
 public interface LibraryVersionMapper {

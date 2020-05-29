@@ -5,7 +5,7 @@ import anonymous.migrationhelper.service.RepositoryAnalysisService;
 import java.util.List;
 
 /**
- * Created by xuyul on 2020/2/4.
+ * Created by xxx on 2020/2/4.
  */
 public class CommitInfo {
 

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Created by xuyul on 2020/2/23.
+ * Created by xxx on 2020/2/23.
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocRepoAnalysisJob")

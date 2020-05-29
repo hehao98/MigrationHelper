@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by xuyul on 2020/2/7.
+ * Created by xxx on 2020/2/7.
  */
 @Mapper
 public interface CommitInfoMapper {

@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by xuyul on 2020/2/21.
+ * Created by xxx on 2020/2/21.
  */
 public class MathUtils {
 

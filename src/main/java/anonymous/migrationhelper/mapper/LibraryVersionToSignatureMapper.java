@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 /**
- * Created by xuyul on 2020/2/28.
+ * Created by xxx on 2020/2/28.
  */
 public interface LibraryVersionToSignatureMapper {
 

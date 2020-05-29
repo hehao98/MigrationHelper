@@ -11,12 +11,12 @@ Configutation:
       AppenderRef:
         - ref: console
     Logger:
-      - name: edu.pku.migrationhelper
+      - name: anonymous.migrationhelper
         additivity: false
         level: info
         AppenderRef:
           - ref: console
-      - name: edu.pku.migrationhelper.mapper
+      - name: anonymous.migrationhelper.mapper
         additivity: false
         level: info
         AppenderRef:

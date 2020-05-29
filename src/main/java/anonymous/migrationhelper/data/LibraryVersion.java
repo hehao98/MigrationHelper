@@ -1,7 +1,7 @@
 package anonymous.migrationhelper.data;
 
 /**
- * Created by xuyul on 2020/1/2.
+ * Created by xxx on 2020/1/2.
  */
 public class LibraryVersion {
 

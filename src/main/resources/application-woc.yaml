@@ -3,17 +3,11 @@ spring:
   datasource:
     # MySQL
     dbcp2:
-      url: jdbc:mysql://da3.eecs.utk.edu:5330/migration_helper?serverTimezone=UTC
-      username: kylinxyl
-      password: if48SrV7#e
+      url: jdbc:mysql://localhost:3306/migration_helper?serverTimezone=UTC
+      username: xxx
+      password: xxx
       driver-class-name: com.mysql.cj.jdbc.Driver
       max-total: 500
-    # SQLite
-#    dbcp2:
-#      url: jdbc:sqlite:db/migration_helper.db
-#      username: root
-#      password: kylinsql
-#      driver-class-name: org.sqlite.JDBC
 
 logging:
   config: classpath:log4j2.woc.yaml
