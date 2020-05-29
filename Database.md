@@ -24,7 +24,7 @@ Format definition: from http://perldoc.perl.org/functions/pack.html
 
 (see "w" template description)
 
-同时可参考 oscar.py 项目 oscar.py 文件的 unber(s) 函数的实现，以及本项目的 edu.pku.migrationhelper.util.MathUtils 的 unberNumberList 函数的实现。同时本项目还有反向的实现函数 berNumberList
+同时可参考 oscar.py 项目 oscar.py 文件的 unber(s) 函数的实现，以及本项目的 MathUtils 的 unberNumberList 函数的实现。同时本项目还有反向的实现函数 berNumberList
 
 ## 库标识符映射相关表
 
