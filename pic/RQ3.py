@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+plt.rcParams["figure.figsize"] = (5,4)
 originData = pd.read_csv('RQ3.csv')
 
 cols = ['APISupport', 'APIRank0']
@@ -22,8 +23,10 @@ for i in [0, 1]:
 		x = currData[cols[i]].tolist()
 		bins = ranges[i]
 		plt.hist(x,bins,color='blue',alpha=0.5)
-		plt.xlabel(cols[i])
+		labelmapping={"APIRank0": "API Support (AS)", "APISupport": "API Support"}
+		plt.xlabel(labelmapping[cols[i]])
 		plt.ylabel("count")
+		plt.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.1)
 		plt.savefig('RQ3-'+cols[i]+'-'+condNames[j]+suffix, dpi=288)	
 		
 print('success')
