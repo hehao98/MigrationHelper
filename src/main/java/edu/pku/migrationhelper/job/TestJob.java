@@ -8,6 +8,7 @@ import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.LZFUtils;
 import edu.pku.migrationhelper.util.MathUtils;
 import javafx.util.Pair;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -112,6 +113,7 @@ public class TestJob {
 //        calcGAChangeInMethodChange();
 //        migrationRulesSave2File();
         testMiningMigration();
+//        miningLibrariesSave2File();
 //        testTruthPosition();
 //        runRQ1();
 //        runRQ2();
@@ -583,6 +585,58 @@ public class TestJob {
         return result;
     }
 
+    public List<LibraryGroupArtifact> readLibraryFromArtifactIdFile(String fileName) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line;
+        List<LibraryGroupArtifact> result = new LinkedList<>();
+        while((line = reader.readLine()) != null) {
+            result.addAll(libraryGroupArtifactMapper.findByArtifactId(line));
+        }
+        return result;
+    }
+
+    public void miningLibrariesSave2File() throws Exception {
+        buildGroupArtifactCache();
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-withCommit.csv");
+        List<LibraryGroupArtifact> queryList = readLibraryFromArtifactIdFile("db/libs.txt");
+        Set<Long> fromIdLimit = new HashSet<>();
+        queryList.forEach(e -> fromIdLimit.add(e.getId()));
+        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
+                        rdsList, fromIdLimit, methodChangeSupportMap);
+        FileWriter resultWriter = new FileWriter("db/libs-result.csv");
+        result.forEach((fromId, candidateList) -> {
+            LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
+            candidateList = candidateList.stream()
+                    .filter(candidate -> {
+                        LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                        return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
+                    }).collect(Collectors.toList());
+            if(candidateList.isEmpty()) return;
+            candidateList = candidateList.stream()
+                    .limit(20)
+                    .collect(Collectors.toList());
+            try {
+                resultWriter.write(fromLib.getGroupId());
+                resultWriter.write(":");
+                resultWriter.write(fromLib.getArtifactId());
+                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                    resultWriter.write(",");
+                    resultWriter.write(toLib.getGroupId());
+                    resultWriter.write(":");
+                    resultWriter.write(toLib.getArtifactId());
+                }
+                resultWriter.write("\n");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        resultWriter.close();
+        LOG.info("Success");
+    }
+
     public void migrationRulesSave2File() throws Exception {
         buildGroupArtifactCache();
         Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
@@ -662,6 +716,7 @@ public class TestJob {
         int maxK = 10;
         Map<Long, double[]> precisionMap = new HashMap<>();
         Map<Long, double[]> recallMap = new HashMap<>();
+        MutableInt ruleCounter = new MutableInt(0);
         result.entrySet().stream()
                 .sorted(Comparator.comparingLong(Map.Entry::getKey))
                 .forEach(entry -> {
@@ -679,6 +734,7 @@ public class TestJob {
                     Set<Long> groundTruth = groundTruthMap.get(fromId);
                     if(groundTruth == null) return;
 //                    if(groundTruth != null) return; groundTruth = new HashSet<>();
+                    ruleCounter.add(candidateList.size());
                     Set<Long> thisTruth = new HashSet<>();
                     for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                         if(groundTruth.contains(candidate.toId)) {
@@ -725,6 +781,7 @@ public class TestJob {
                     precisionMap.put(fromId, precision);
                     recallMap.put(fromId, recall);
                 });
+        System.out.println("Rule Count: " + ruleCounter.intValue());
         double[] totalPrecision = new double[maxK];
         for (double[] value : precisionMap.values()) {
             for (int i = 0; i < maxK; i++) {
