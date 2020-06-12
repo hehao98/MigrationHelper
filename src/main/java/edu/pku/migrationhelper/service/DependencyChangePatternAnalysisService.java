@@ -58,6 +58,17 @@ public class DependencyChangePatternAnalysisService {
         return miningLibraryMigrationCandidate(depSeqCollection, fromIdLimit, methodChangeSupportMap, DefaultMinPatternSupport, DefaultMinMCSupportPercent,null, null);
     }
 
+    /**
+     * 依赖变更序列挖掘算法，从依赖变更序列中，挖掘库迁移规则
+     * @param depSeqCollection 依赖变更序列的列表，每一个列表项是一个依赖变更序列，序列中正数表示添加该库，负数表示删除该库，0表示分隔两个项集（即两个0之间的添加删除都是在一个Commit内完成的）
+     * @param fromIdLimit 挖掘出来的库迁移规则的原库限定范围，null表示不限定
+     * @param methodChangeSupportMap APISupport的映射关系，fromId -> toId -> counter
+     * @param minPatternSupport 最小支持度值
+     * @param mcSupportLowerBound APISupport指标值中的最小值，范围[0,1]
+     * @param repoNameCollection 项目名称列表，长度和顺序与depSeqCollection参数一致，可以为null，填写后可以溯源库迁移规则
+     * @param depSeqCommitsCollection Commit来源列表，长度和顺序与depSeqCollection参数一致，且内部列表的长度和顺序与depSeqCollection的内部列表一致，可以为null，填写后可以溯源库迁移规则
+     * @return 挖掘出来的库迁移规则，Key是原库Id，Value是该原库拥有的所有库迁移规则列表，以推荐顺序排序
+     */
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
             List<List<Long>> depSeqCollection,
             Set<Long> fromIdLimit,

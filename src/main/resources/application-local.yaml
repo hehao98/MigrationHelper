@@ -23,7 +23,7 @@ server:
 
 migration-helper:
   job:
-    enabled: TestJob
+    enabled: LibraryRecommendJob
   thread-pool:
     thread-count: 8
     calc-thread-count: 4
@@ -55,3 +55,8 @@ migration-helper:
   lio-jar-parse:
     limit-count: 1000
     extract-version-only: false
+  library-recommend-job:
+    api-support-file: db/GAChangeInMethodChange-all.csv
+    dependency-seq-file: db/RepositoryDepSeq-withCommit.csv
+    query-file: test_data/test-lib-input.txt
+    output-file: test-recommend-output.csv

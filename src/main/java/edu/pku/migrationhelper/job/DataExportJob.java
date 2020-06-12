@@ -6,6 +6,8 @@ import edu.pku.migrationhelper.service.GitObjectStorageService;
 import edu.pku.migrationhelper.service.GitRepositoryAnalysisService;
 import edu.pku.migrationhelper.service.RepositoryAnalysisService;
 import edu.pku.migrationhelper.service.WocRepositoryAnalysisService;
+import edu.pku.migrationhelper.util.JsonUtils;
+import javafx.util.Pair;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -113,6 +116,10 @@ public class DataExportJob implements CommandLineRunner {
                 exportMethodChangeDetail(writer);
                 break;
             }
+            case "APISupport": {
+                exportApiSupport(writer);
+                break;
+            }
             case "LioProject": {
                 exportLioProject(writer);
                 break;
@@ -131,6 +138,10 @@ public class DataExportJob implements CommandLineRunner {
             }
             case "LibraryOverlap": {
                 exportLibraryOverlap(writer, args);
+                break;
+            }
+            case "GroundTruth": {
+                exportGroundTruth(writer, args);
                 break;
             }
         }
@@ -285,6 +296,61 @@ public class DataExportJob implements CommandLineRunner {
                         concatList(methodChange.getDeleteGroupArtifactIdList()),
                         concatList(methodChange.getAddGroupArtifactIdList()),
                         methodChange.getCounter());
+            }
+        }
+    }
+
+    public void exportApiSupport(FileWriter writer) throws Exception {
+        int tableNum = 0;
+        long offset = 0;
+        int limit = 10000;
+        boolean end = false;
+        Map<Long, Map<Long, Long>> result = new HashMap<>(100000);
+        while(!end) {
+            LOG.info("start export table = {}, offset = {}", tableNum, offset);
+            List<MethodChange> methodChangeList = methodChangeMapper.findList(tableNum, offset, limit);
+            offset += methodChangeList.size();
+            end = methodChangeList.size() < limit;
+            if(end && tableNum < 127) {
+                end = false;
+                offset = 0;
+                tableNum++;
+            }
+            for (MethodChange methodChange : methodChangeList) {
+                if(methodChange.getDeleteGroupArtifactIdList().isEmpty() || methodChange.getAddGroupArtifactIdList().isEmpty()) {
+                    continue;
+                }
+                Set<Long> delGASet = new HashSet<>(methodChange.getDeleteGroupArtifactIdList());
+                Set<Long> addGASet = new HashSet<>(methodChange.getAddGroupArtifactIdList());
+                long counter = methodChange.getCounter();
+                Set<Long> delGANoDup = new HashSet<>(delGASet);
+                delGANoDup.removeAll(addGASet);
+                if(delGANoDup.isEmpty()) continue;
+                Set<Long> addGaNoDup = new HashSet<>(addGASet);
+                addGaNoDup.removeAll(delGASet);
+                if(addGaNoDup.isEmpty()) continue;
+                for (Long del : delGANoDup) {
+                    Map<Long, Long> candidateMap = result.computeIfAbsent(del, k -> new HashMap<>());
+                    for (Long add : addGaNoDup) {
+                        candidateMap.put(add, candidateMap.getOrDefault(add, 0L) + counter);
+                    }
+                }
+            }
+        }
+
+        outputLine(writer, "fromId", "toId", "counter");
+        List<Pair<Long, List<Pair<Long, Long>>>> outputLines = new ArrayList<>(result.size());
+        result.forEach((fromId, candidateMap) -> {
+            List<Pair<Long, Long>> candidateList = new ArrayList<>(candidateMap.size());
+            candidateMap.forEach((toId, counter) -> candidateList.add(new Pair<>(toId, counter)));
+            candidateList.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
+            outputLines.add(new Pair<>(fromId, candidateList));
+        });
+        outputLines.sort(Comparator.comparingLong(Pair::getKey));
+        for (Pair<Long, List<Pair<Long, Long>>> outputLine : outputLines) {
+            long fromId = outputLine.getKey();
+            for (Pair<Long, Long> subLine : outputLine.getValue()) {
+                outputLine(writer, fromId, subLine.getKey(), subLine.getValue());
             }
         }
     }
@@ -514,6 +580,73 @@ public class DataExportJob implements CommandLineRunner {
         for (LibraryOverlap overlap : overlapList) {
             outputLine(writer, overlap.getGroupArtifactId1(), overlap.getGroupArtifactId2(), overlap.getSignatureCount());
         }
+    }
+
+    public void exportGroundTruth(FileWriter writer, String... args) throws Exception {
+        if (args.length < 4) {
+            LOG.info("Usage: GroundTruth <OutputFile> <RawFile> <ArtifactFile>");
+            return;
+        }
+        BufferedReader rawReader = new BufferedReader(new FileReader(args[2]));
+        BufferedReader artifactReader = new BufferedReader(new FileReader(args[3]));
+        Map<String, List<Long>> artifact2Ids = new HashMap<>();
+        Map<String, List<Long>> artifact2IdsSimilar = new HashMap<>();
+        String line = artifactReader.readLine();
+        while((line = artifactReader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            String name = attrs[0];
+            String ids = attrs[1];
+            if("".equals(ids)) {
+                artifact2Ids.put(name, new ArrayList<>(0));
+            } else {
+                String[] idss = ids.split(";");
+                List<Long> idList = new ArrayList<>(idss.length);
+                for (String id : idss) {
+                    idList.add(Long.parseLong(id));
+                }
+                artifact2Ids.put(name, idList);
+            }
+            ids = attrs[3];
+            if("".equals(ids)) {
+                artifact2IdsSimilar.put(name, new ArrayList<>(0));
+            } else {
+                String[] idss = ids.split(";");
+                List<Long> idList = new ArrayList<>(idss.length);
+                for (String id : idss) {
+                    idList.add(Long.parseLong(id));
+                }
+                artifact2IdsSimilar.put(name, idList);
+            }
+        }
+        line = rawReader.readLine();
+        writer.write("fromLibrary;toLibrary;fromIds;toIds;score\n");
+        while((line = rawReader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            String fromLib = attrs[0];
+            String toLib = attrs[1];
+            String score = attrs[2];
+            Set<Long> fromIds = new HashSet<>();
+            Set<Long> toIds = new HashSet<>();
+            fromIds.addAll(artifact2Ids.get(fromLib));
+            toIds.addAll(artifact2Ids.get(fromLib));
+            toIds.addAll(artifact2IdsSimilar.get(fromLib));
+            toIds.addAll(artifact2Ids.get(toLib));
+            toIds.addAll(artifact2IdsSimilar.get(toLib));
+            String fromIdList = JsonUtils.writeObjectAsString(new ArrayList<>(fromIds));
+            String toIdList = JsonUtils.writeObjectAsString(new ArrayList<>(toIds));
+            writer.write(fromLib);
+            writer.write(";");
+            writer.write(toLib);
+            writer.write(";");
+            writer.write(fromIdList);
+            writer.write(";");
+            writer.write(toIdList);
+            writer.write(";");
+            writer.write(score);
+            writer.write("\n");
+        }
+        rawReader.close();
+        artifactReader.close();
     }
 
     public int getListSizeSafe(List<?> list) {
