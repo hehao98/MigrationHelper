@@ -140,12 +140,7 @@ public class LibraryIdentityService {
         Map<Long, Set<Long>> signature2Version = new HashMap<>();
         List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
 
-        boolean analyzeFirstOnly = false;
-        if(versionDatas.size() > 30) {
-            //TODO 80% of GroupArtifacts have less than 27 versions, skip and re-run those GroupArtifacts which have more than 30 versions later
-            analyzeFirstOnly = true;
-        }
-        analyzeFirstOnly = true; // TODO
+        boolean analyzeFirstOnly = false; // 如果需要在某种条件下只分析最新版本的库，跳过其他版本，则将这个值设置为true
         int versionCount = 1;
 
         boolean containError = false;
