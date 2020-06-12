@@ -1,5 +1,17 @@
 # MySQL表结构文档
 
+## 如何访问数据库
+
+```
+url: da3.eecs.utk.edu:5330
+username: heh
+password: HeHMgt2020
+```
+
+```shell script
+/home/kylinxyl/mysql/bin/mysql --host=da3.eecs.utk.edu --port=5330 -u heh -p
+```
+
 ## 特殊存储方式说明
 
 ### 分表存储
