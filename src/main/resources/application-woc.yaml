@@ -57,7 +57,7 @@ migration-helper:
     limit-count: 1000
     extract-version-only: false
   library-recommend-job:
-    api-support-file: db/GAChangeInMethodChange-all.csv
-    dependency-seq-file: db/RepositoryDepSeq-withCommit.csv
+    api-support-file: export/APISupport.csv
+    dependency-seq-file: export/RepositoryDepSeq.csv
     query-file: test_data/test-lib-input.txt
     output-file: test_data/test-recommend-output.csv
