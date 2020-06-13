@@ -1,0 +1,16 @@
+junit:junit,com.google.guava:guava,org.hamcrest:hamcrest-library,org.mockito:mockito-all,org.testng:testng,org.hamcrest:hamcrest-all,com.google.android:android,commons-io:commons-io,org.mockito:mockito-core,commons-lang:commons-lang,com.fasterxml.jackson.core:jackson-databind,org.apache.commons:commons-lang3,mysql:mysql-connector-java,com.google.code.gson:gson,org.javassist:javassist,org.apache.httpcomponents:httpclient,log4j:log4j,joda-time:joda-time,com.google.inject:guice,org.springframework:spring-core,org.hibernate:hibernate-core
+org.codehaus.jackson:jackson-core-asl,com.fasterxml.jackson.core:jackson-databind
+com.google.guava:guava,org.apache.commons:commons-lang3,junit:junit,org.apache.httpcomponents:httpclient
+log4j:log4j,ch.qos.logback:logback-classic,org.hamcrest:hamcrest-all,org.slf4j:slf4j-api,commons-io:commons-io,org.slf4j:slf4j-log4j12,hsqldb:hsqldb,junit:junit,commons-lang:commons-lang,org.slf4j:slf4j-simple
+org.mockito:mockito-all,com.google.guava:guava,org.slf4j:slf4j-api
+org.slf4j:slf4j-log4j12,ch.qos.logback:logback-classic
+commons-lang:commons-lang,org.apache.commons:commons-lang3,com.google.guava:guava,junit:junit,com.fasterxml.jackson.core:jackson-databind,commons-codec:commons-codec,org.codehaus.groovy:groovy-all,org.hamcrest:hamcrest-all,org.mockito:mockito-all,javax.servlet:servlet-api,commons-io:commons-io,org.slf4j:slf4j-simple,org.slf4j:slf4j-log4j12,log4j:log4j,commons-collections:commons-collections,org.slf4j:slf4j-api,javax.mail:mail
+postgresql:postgresql,org.postgresql:postgresql
+org.apache.commons:commons-io,commons-io:commons-io
+commons-io:commons-io,com.google.guava:guava,junit:junit
+org.testng:testng,junit:junit
+org.slf4j:slf4j-simple,junit:junit
+commons-logging:commons-logging,org.springframework:spring-core,commons-io:commons-io,org.slf4j:slf4j-api,log4j:log4j
+org.codehaus.jackson:jackson-mapper-asl,com.fasterxml.jackson.core:jackson-databind,com.google.guava:guava
+hsqldb:hsqldb,org.hsqldb:hsqldb
+commons-httpclient:commons-httpclient,org.apache.httpcomponents:httpclient
