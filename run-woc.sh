@@ -1,5 +1,5 @@
 if [ "$1" != "DataExportJob" ] && [ "$1" != "LibraryRecommendJob" ] && [ "$1" != "+" ]; then
-  echo "Usage: run-woc.sh <Job Name>"
+  echo "Usage: run-woc.sh <Job Name> <Arg1> <Arg2>"
   exit
 fi
 echo "Pulling Latest Version..."
@@ -12,4 +12,4 @@ echo "MigrationHelper: Running Job $1..."
      -Dspoon.log.path=./spoon.log \
      -Dspring.profiles.active=woc \
      -Dmigration-helper.job.enabled=$1 \
-     -jar MigrationHelperJAR/migration-helper-1.0-SNAPSHOT.jar
+     -jar MigrationHelperJAR/migration-helper-1.0-SNAPSHOT.jar $2 $3
