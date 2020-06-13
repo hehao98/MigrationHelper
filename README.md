@@ -46,4 +46,8 @@ bash -x ./run-woc.sh DataExportJob GroundTruth test_data/ground_truth.csv \
 - LibraryRecommendJob
 
   使用数据导出阶段的APISupport和RepositoryDepSeq，根据文件输入的依赖库列表，进行替代库推荐
+  
+```shell script
+bash -x ./run-woc.sh LibraryRecommendJob
+```
 

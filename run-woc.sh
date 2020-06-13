@@ -1,5 +1,6 @@
-if [ "$1" != "DataExportJob" ] && [ "$1" != "LibraryRecommendJob" ] && [ "$1" != "+" ]; then
+if [ "$1" != "DataExportJob" ] && [ "$1" != "LibraryRecommendJob" ]; then
   echo "Usage: run-woc.sh <Job Name> <Arg1> <Arg2> <Arg3> <Arg4>"
+  echo "Currently Supported Jobs: DataExportJob, LibraryRecommendJob"
   exit
 fi
 echo "Pulling Latest Version..."
