@@ -6,6 +6,7 @@ target
 .gradle
 /bin/
 lib/
+export/
 tempdata/
 /build/
 MigrationHelperJAR/
