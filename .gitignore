@@ -4,6 +4,8 @@ target
 .project
 .gradle
 /bin/
+lib/
+tempdata/
 /build/
 MigrationHelperJAR/
 

@@ -50,7 +50,7 @@ migration-helper:
     treeIndexBase: /fast/All.sha1c/tree_ # da4 only
     blobContentBase: /data/All.blobs/blob_ # da4 only
   woc-repo-analysis-job:
-    repository-list-file: repositories.csv
+    repository-list-file: test_data/repositories.csv
   libraries-io-import:
     project-with-repository-path: db/projects_with_repository_fields-1.6.0-2020-01-12.csv
   lio-jar-parse:
@@ -60,4 +60,4 @@ migration-helper:
     api-support-file: db/GAChangeInMethodChange-all.csv
     dependency-seq-file: db/RepositoryDepSeq-withCommit.csv
     query-file: test_data/test-lib-input.txt
-    output-file: test-recommend-output.csv
+    output-file: test_data/test-recommend-output.csv
