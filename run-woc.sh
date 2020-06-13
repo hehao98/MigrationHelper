@@ -12,4 +12,4 @@ echo "MigrationHelper: Running Job $1..."
      -Dspoon.log.path=./spoon.log \
      -Dspring.profiles.active=woc \
      -Dmigration-helper.job.enabled=$1 \
-     -jar MigrationHelperJAR/migration-helper-1.0-SNAPSHOT.jar $2 $3
+     -jar MigrationHelperJAR/migration-helper-1.0-SNAPSHOT.jar $2 $3 $4
