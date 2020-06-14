@@ -22,6 +22,14 @@
 
 ### 数据导出为文件阶段
 
+- DataExportJob: APIMapping
+
+  导出库与API的映射关系（仅用于测试）
+  
+  ```shell script
+  bash -x ./run-woc.sh DataExportJob APIMapping export/Lib.csv export/API.csv test_data/test-lib-input.txt
+  ```
+
 - DataExportJob： APISupport
 
   导出APISupport指标计算所需数据

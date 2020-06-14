@@ -2,10 +2,7 @@ package edu.pku.migrationhelper.job;
 
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
-import edu.pku.migrationhelper.service.GitObjectStorageService;
-import edu.pku.migrationhelper.service.GitRepositoryAnalysisService;
-import edu.pku.migrationhelper.service.RepositoryAnalysisService;
-import edu.pku.migrationhelper.service.WocRepositoryAnalysisService;
+import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import javafx.util.Pair;
 import org.apache.tomcat.util.buf.HexUtils;
@@ -18,13 +15,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * Created by xuyul on 2020/2/24.
@@ -64,6 +59,12 @@ public class DataExportJob implements CommandLineRunner {
 
     @Autowired
     private RepositoryAnalyzeStatusMapper repositoryAnalyzeStatusMapper;
+
+    @Autowired
+    private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
+
+    @Autowired
+    private MethodSignatureMapper methodSignatureMapper;
 
     @Autowired
     private WocRepositoryAnalysisService wocRepositoryAnalysisService;
@@ -118,6 +119,10 @@ public class DataExportJob implements CommandLineRunner {
             }
             case "APISupport": {
                 exportApiSupport(writer);
+                break;
+            }
+            case "APIMapping": {
+                exportApiMapping(writer, args);
                 break;
             }
             case "LioProject": {
@@ -353,6 +358,66 @@ public class DataExportJob implements CommandLineRunner {
                 outputLine(writer, fromId, subLine.getKey(), subLine.getValue());
             }
         }
+    }
+
+    public void exportApiMapping(FileWriter libraryWriter, String... args) throws IOException {
+        if (args.length < 4) {
+            LOG.info("Usage: APIMapping <LibraryOutputFile> <APIOutputFile> <InputFile>");
+            return;
+        }
+        BufferedReader reader = new BufferedReader(new FileReader(args[3]));
+        FileWriter apiWriter = new FileWriter(args[2]);
+        libraryWriter.write("groupArtifactId,groupArtifactName,signatureIds\n");
+        String line;
+        Set<Long> allSigIds = new HashSet<>();
+        while((line = reader.readLine()) != null) {
+            String[] ga = line.split(":");
+            LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]);
+            if(groupArtifact == null) {
+                LOG.warn("groupArtifact not found: {}", line);
+                continue;
+            }
+            List<LibraryVersion> versions = libraryVersionMapper.findByGroupArtifactId(groupArtifact.getId());
+            List<LibraryVersionToSignature> v2sList = libraryVersionToSignatureMapper.findByIdIn(
+                    versions.stream().map(LibraryVersion::getId).collect(Collectors.toList()));
+            Set<Long> sigIds = new HashSet<>();
+            for (LibraryVersionToSignature v2s : v2sList) {
+                sigIds.addAll(v2s.getSignatureIdList());
+            }
+            allSigIds.addAll(sigIds);
+            libraryWriter.write(groupArtifact.getId() + "," + line + ",");
+            int i = 0;
+            for (Long sigId : sigIds) {
+                if(i > 0) {
+                    libraryWriter.write(";");
+                }
+                libraryWriter.write(String.valueOf(sigId));
+                i++;
+            }
+            libraryWriter.write("\n");
+        }
+        apiWriter.write("signatureId,packageName,className,methodName,paramList\n");
+        for (Long sigId : allSigIds) {
+            int slice = LibraryIdentityService.getMethodSignatureSliceKey(sigId);
+            MethodSignature ms = methodSignatureMapper.findById(slice, sigId);
+            if(ms == null) {
+                LOG.warn("MethodSignature not found: {}", sigId);
+                continue;
+            }
+            apiWriter.write(String.valueOf(sigId));
+            apiWriter.write(",");
+            apiWriter.write(ms.getPackageName());
+            apiWriter.write(",");
+            apiWriter.write(ms.getClassName());
+            apiWriter.write(",");
+            apiWriter.write(ms.getMethodName());
+            apiWriter.write(",");
+            apiWriter.write(ms.getParamList().replace(",", ";"));
+            apiWriter.write("\n");
+        }
+        reader.close();
+        libraryWriter.close();
+        apiWriter.close();
     }
 
     private <T> String concatList(List<T> list) {
