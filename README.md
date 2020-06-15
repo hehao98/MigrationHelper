@@ -22,6 +22,12 @@
 
 ### 数据导出为文件阶段
 
+- DataExportJob: LibraryGroupArtifact
+  
+  ```shell script
+  bash -x ./run-woc.sh DataExportJob LibraryGroupArtifact export/GroupArtifact.csv
+  ```
+
 - DataExportJob: APIMapping
 
   导出库与API的映射关系（仅用于测试）
@@ -42,12 +48,12 @@
 
   根据原始的GroundTruth手动标记文件，导出GroundTruth
   
-```shell script
-bash -x ./run-woc.sh DataExportJob APISupport export/APISupport.csv
-bash -x ./run-woc.sh DataExportJob RepositoryDepSeq export/RepositoryDepSeq.csv
-bash -x ./run-woc.sh DataExportJob GroundTruth test_data/ground_truth.csv \
+  ```shell script
+  bash -x ./run-woc.sh DataExportJob APISupport export/APISupport.csv
+  bash -x ./run-woc.sh DataExportJob RepositoryDepSeq export/RepositoryDepSeq.csv
+  bash -x ./run-woc.sh DataExportJob GroundTruth test_data/ground_truth.csv \
      test_data/rules-2014-raw.csv test_data/rules-2014-artifactList.csv
-```
+  ```
 
 ### 库推荐阶段
 
@@ -55,7 +61,7 @@ bash -x ./run-woc.sh DataExportJob GroundTruth test_data/ground_truth.csv \
 
   使用数据导出阶段的APISupport和RepositoryDepSeq，根据文件输入的依赖库列表，进行替代库推荐
   
-```shell script
-bash -x ./run-woc.sh LibraryRecommendJob
-```
+  ```shell script
+  bash -x ./run-woc.sh LibraryRecommendJob
+  ```
 
