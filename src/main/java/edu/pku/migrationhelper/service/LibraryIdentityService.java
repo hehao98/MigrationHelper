@@ -181,10 +181,10 @@ public class LibraryIdentityService {
                 }
                 long jarSize = jarFile.length() / (1024 * 1024);
                 LOG.info("start parse library id = {}, size = {} MB", versionData.getId(), jarSize);
-                if(jarSize > 50) {
-                    analyzeFirstOnly = true;
-                    return; // TODO
-                }
+                // 如果某个版本超过50MB 则只分析最新版本
+//                if(jarSize > 50) {
+//                    analyzeFirstOnly = true;
+//                }
                 List<MethodSignature> signatureList = parseLibraryJar(groupId, artifactId, version, signatureCache);
                 Set<Long> signatureIds = new HashSet<>();
                 signatureList.forEach(e -> signatureIds.add(e.getId()));
