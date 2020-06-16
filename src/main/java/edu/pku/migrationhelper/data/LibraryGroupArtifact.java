@@ -44,6 +44,8 @@ public class LibraryGroupArtifact {
         return this;
     }
 
+    public String getGroupArtifactId() { return groupId + ":" + artifactId; }
+
     public boolean isVersionExtracted() {
         return versionExtracted;
     }

@@ -104,7 +104,10 @@ public class LibraryIdentityService {
             groupArtifact = libraryGroupArtifactMapper
                     .findByGroupIdAndArtifactId(groupId, artifactId);
         }
-        if(groupArtifact.isParsed()) return;
+        if(groupArtifact.isParsed() && !groupArtifact.isParseError())  {
+            LOG.info("skip {} because it is parsed and does not contain error", groupArtifact);
+            return;
+        }
         long groupArtifactId = groupArtifact.getId();
         LOG.info("parse group artifact start id = {}, groupId = {}, artifactId = {}",
                 groupArtifactId, groupId, artifactId);

@@ -6,11 +6,14 @@ import edu.pku.migrationhelper.service.DependencyChangePatternAnalysisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.event.EventListener;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVFormat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -22,7 +25,10 @@ import java.util.stream.Collectors;
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LibraryRecommendJob")
 @ConfigurationProperties(prefix = "migration-helper.library-recommend-job")
-public class LibraryRecommendJob {
+public class LibraryRecommendJob implements CommandLineRunner {
+
+    @Autowired
+    private ConfigurableApplicationContext context;
 
     @Autowired
     private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
@@ -42,18 +48,57 @@ public class LibraryRecommendJob {
 
     private String outputFile;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void miningLibrariesSave2File() throws Exception {
+    @Override
+    public void run(String... args) throws Exception {
+        if (args.length < 2) {
+            LOG.info("Usage: LibraryRecommendJob <Query File> <Output File>");
+            System.exit(SpringApplication.exit(context));
+        }
+
+        this.queryFile = args[0];
+        this.outputFile = args[1];
+
         buildGroupArtifactCache();
+
         Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap(apiSupportFile);
         List<List<Long>> rdsList = buildRepositoryDepSeq(dependencySeqFile);
         List<LibraryGroupArtifact> queryList = readLibraryFromQueryFile(queryFile);
         Set<Long> fromIdLimit = new HashSet<>();
         queryList.forEach(e -> fromIdLimit.add(e.getId()));
+
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
                         rdsList, fromIdLimit, methodChangeSupportMap);
-        FileWriter resultWriter = new FileWriter(outputFile);
+
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.EXCEL)) {
+            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "Confidence");
+            result.forEach((fromId, candidateList) -> {
+                LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
+                candidateList = candidateList.stream()
+                        .filter(candidate -> {
+                            LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                            return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
+                        }).collect(Collectors.toList());
+                if(candidateList.isEmpty()) return;
+                candidateList = candidateList.stream()
+                        .limit(20)
+                        .collect(Collectors.toList());
+                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    LibraryGroupArtifact toLib =  groupArtifactCache.get(candidate.toId);
+                    try {
+                        printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
+                                toLib.getGroupArtifactId(), candidate.multipleSupport);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            });
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+
+
+        /*FileWriter resultWriter = new FileWriter(outputFile);
         result.forEach((fromId, candidateList) -> {
             LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
             candidateList = candidateList.stream()
@@ -81,8 +126,9 @@ public class LibraryRecommendJob {
                 throw new RuntimeException(e);
             }
         });
-        resultWriter.close();
+        resultWriter.close();*/
         LOG.info("Success");
+        System.exit(SpringApplication.exit(context));
     }
 
     public synchronized void buildGroupArtifactCache() {

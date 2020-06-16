@@ -68,6 +68,6 @@
   使用数据导出阶段的APISupport和RepositoryDepSeq，根据文件输入的依赖库列表，进行替代库推荐
   
   ```shell script
-  bash -x ./run-woc.sh LibraryRecommendJob
+  bash -x ./run-woc.sh LibraryRecommendJob test_data/test-lib-input.txt test_data/test-recommend-output.csv
   ```
 
