@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -35,6 +37,9 @@ public class DataExportJob implements CommandLineRunner {
     private String repositoryListFile;
 
     Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private ConfigurableApplicationContext context;
 
     @Autowired
     private BlobInfoMapper blobInfoMapper;
@@ -152,6 +157,7 @@ public class DataExportJob implements CommandLineRunner {
         }
         writer.close();
         LOG.info("Export success");
+        System.exit(SpringApplication.exit(context));
     }
 
     public void exportBlobInfo(FileWriter writer) throws Exception {

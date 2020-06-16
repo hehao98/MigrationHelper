@@ -56,7 +56,7 @@
   
   ```shell script
   bash -x ./run-woc.sh DataExportJob APISupport export/APISupport.csv
-  bash -x ./run-woc.sh DataExportJob RepositoryDepSeq export/RepositoryDepSeq.csv
+  bash -x ./run-woc.sh DataExportJob RepositoryDepSeq export/RepositoryDepSeq.csv 100000
   bash -x ./run-woc.sh DataExportJob GroundTruth test_data/ground_truth.csv \
      test_data/rules-2014-raw.csv test_data/rules-2014-artifactList.csv
   ```
