@@ -16,6 +16,12 @@
 
   从Maven下载之前导入的LibrariesIO库数据并分析，构建库与API签名映射关系
 
+  ```shell script
+  bash +x ./run-woc.sh LioJarParseJob -Xms160g -Xmx160g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
+        -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
+        -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20
+  ```
+
 - WocRepoAnalysisJob
 
   在WoC上分析一系列Java仓库，获得API替换关系、依赖变更等数据
