@@ -16,19 +16,19 @@ public class DependencyChangePatternAnalysisService {
     public static class LibraryMigrationCandidate {
         public long fromId;
         public long toId;
-        public int patternSupport = 0;
-        public int methodChangeSupport = 0;
-        public int occurCount = 0;
-        public int maxPatternSupport = 0;
-        public int maxMethodChangeSupport = 0;
-        public double patternSupportPercent = 0;
-        public double patternSupportPercent2 = 0;
-        public double methodChangeSupportPercent = 0;
-        public double methodChangeSupportPercent2 = 0;
-        public double occurSupportPercent = 0;
-        public double positionSupportPercent = 0;
-        public double multipleSupport = 0;
-        public double multipleSupport2 = 0;
+        public int ruleCount = 0;               // Number of times a rule occur in dependency sequence
+        public int methodChangeCount = 0;       // Number of times API modifications occur in data
+        public int libraryConcurrenceCount = 0; // Number of times l1 and l2 are used in same commit
+        public int maxRuleCount = 0;            // For all candidates, max value of RuleCount
+        public int maxMethodChangeCount = 0;    // For all candidates, max value of methodChangeCount
+        public double ruleSupportByTotal = 0;
+        public double ruleSupportByMax = 0;
+        public double methodChangeSupportByTotal = 0;
+        public double methodChangeSupportByMax = 0;
+        public double libraryConcurrenceSupport = 0;
+        public double commitDistance = 0;
+        public double confidence = 0;
+        public double confidence2 = 0;
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
         public List<String[]> repoCommitList = new LinkedList<>();
 
@@ -98,7 +98,7 @@ public class DependencyChangePatternAnalysisService {
                     String[] startEndCommit = startEndCommitIt.next();
                     LibraryMigrationCandidate candidate = toId2Candidate.computeIfAbsent(
                             toId, k -> new LibraryMigrationCandidate(pattern.fromId, toId));
-                    candidate.patternSupport++;
+                    candidate.ruleCount++;
                     candidate.positionList.add(new Pair<>(position++, pattern.toIdList.size()));
                     candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1]});
                 }
@@ -109,7 +109,7 @@ public class DependencyChangePatternAnalysisService {
         candidateMap.forEach((fromId, toIdCandidateMap) -> {
             List<LibraryMigrationCandidate> candidateList = new ArrayList<>(toIdCandidateMap.values());
             candidateList = candidateList.stream()
-                    .filter(candidate -> candidate.patternSupport >= minPatternSupport)
+                    .filter(candidate -> candidate.ruleCount >= minPatternSupport)
                     .collect(Collectors.toList());
             result.put(fromId, candidateList);
         });
@@ -120,11 +120,11 @@ public class DependencyChangePatternAnalysisService {
             int maxMCSupport = 0;
             for (LibraryMigrationCandidate candidate : candidateList) {
                 if(methodChangeSupportMap.containsKey(fromId)) {
-                    candidate.methodChangeSupport = methodChangeSupportMap.get(fromId)
+                    candidate.methodChangeCount = methodChangeSupportMap.get(fromId)
                             .getOrDefault(candidate.toId, 0);
                 }
-                maxPatternSupport = Math.max(maxPatternSupport, candidate.patternSupport);
-                maxMCSupport = Math.max(maxMCSupport, candidate.methodChangeSupport);
+                maxPatternSupport = Math.max(maxPatternSupport, candidate.ruleCount);
+                maxMCSupport = Math.max(maxMCSupport, candidate.methodChangeCount);
                 long lib1 = fromId;
                 long lib2 = candidate.toId;
                 if(lib1 > lib2) {
@@ -133,10 +133,10 @@ public class DependencyChangePatternAnalysisService {
                 }
                 Map<Long, Integer> lib2Count = occurCounter.get(lib1);
                 if(lib2Count != null) {
-                    candidate.occurCount = lib2Count.getOrDefault(lib2, 0);
+                    candidate.libraryConcurrenceCount = lib2Count.getOrDefault(lib2, 0);
                 }
-                totalPatternSupport += candidate.patternSupport;
-                totalMCSupport += candidate.methodChangeSupport;
+                totalPatternSupport += candidate.ruleCount;
+                totalMCSupport += candidate.methodChangeCount;
             }
             for (LibraryMigrationCandidate candidate : candidateList) {
                 double positionSupport = 0;
@@ -145,40 +145,40 @@ public class DependencyChangePatternAnalysisService {
                 for (Pair<Integer, Integer> position : candidate.positionList) {
                     positionSupport += Math.pow((positionB + 1) / (double)(position.getKey() + positionB), positionA);
                 }
-                candidate.positionSupportPercent = positionSupport / candidate.positionList.size();
+                candidate.commitDistance = positionSupport / candidate.positionList.size();
                 if(totalPatternSupport != 0) {
-                    candidate.patternSupportPercent = candidate.patternSupport / (double) totalPatternSupport;
+                    candidate.ruleSupportByTotal = candidate.ruleCount / (double) totalPatternSupport;
                 }
                 if(maxPatternSupport != 0) {
-                    candidate.maxPatternSupport = maxPatternSupport;
-                    candidate.patternSupportPercent2 = candidate.patternSupport / (double) maxPatternSupport;
+                    candidate.maxRuleCount = maxPatternSupport;
+                    candidate.ruleSupportByMax = candidate.ruleCount / (double) maxPatternSupport;
                 }
                 if(totalMCSupport != 0) {
-                    candidate.methodChangeSupportPercent = candidate.methodChangeSupport / (double) totalMCSupport;
+                    candidate.methodChangeSupportByTotal = candidate.methodChangeCount / (double) totalMCSupport;
                 }
                 if(maxMCSupport != 0) {
-                    candidate.maxMethodChangeSupport = maxMCSupport;
-                    candidate.methodChangeSupportPercent2 = candidate.methodChangeSupport / (double) maxMCSupport;
+                    candidate.maxMethodChangeCount = maxMCSupport;
+                    candidate.methodChangeSupportByMax = candidate.methodChangeCount / (double) maxMCSupport;
                 }
-                if(candidate.methodChangeSupportPercent2 < mcSupportLowerBound) {
-                    candidate.methodChangeSupportPercent2 = mcSupportLowerBound;
+                if(candidate.methodChangeSupportByMax < mcSupportLowerBound) {
+                    candidate.methodChangeSupportByMax = mcSupportLowerBound;
                 }
-                if(candidate.occurCount != 0) {
-                    candidate.occurSupportPercent = candidate.patternSupport / (double) candidate.occurCount;
+                if(candidate.libraryConcurrenceCount != 0) {
+                    candidate.libraryConcurrenceSupport = candidate.ruleCount / (double) candidate.libraryConcurrenceCount;
                 }
-                candidate.multipleSupport2 =
-                        Math.pow(candidate.patternSupportPercent2, 1) *
-                                Math.pow(candidate.occurSupportPercent, 0.5) *
-                                Math.pow(candidate.positionSupportPercent, 2);
-                candidate.multipleSupport = candidate.multipleSupport2 *
+                candidate.confidence2 =
+                        Math.pow(candidate.ruleSupportByMax, 1) *
+                                Math.pow(candidate.libraryConcurrenceSupport, 0.5) *
+                                Math.pow(candidate.commitDistance, 2);
+                candidate.confidence = candidate.confidence2 *
 //                        1;
-                        Math.pow(candidate.methodChangeSupportPercent2, 0.5);
+                        Math.pow(candidate.methodChangeSupportByMax, 0.5);
 
             }
             candidateList.sort((a, b) -> {
-                int r = Double.compare(b.multipleSupport, a.multipleSupport);
+                int r = Double.compare(b.confidence, a.confidence);
                 if(r != 0) return r;
-                return Double.compare(b.multipleSupport2, a.multipleSupport2);
+                return Double.compare(b.confidence2, a.confidence2);
             });
 //            candidateList.sort((a, b) -> Double.compare(b.methodChangeSupportPercent, a.methodChangeSupportPercent));
 //            candidateList.sort((a, b) -> Double.compare(b.patternSupportPercent, a.patternSupportPercent));

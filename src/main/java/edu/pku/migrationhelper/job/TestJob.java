@@ -21,7 +21,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import sun.rmi.runtime.Log;
 import tokyocabinet.HDB;
 
 import java.io.*;
@@ -179,9 +178,9 @@ public class TestJob {
             for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                 output.write(candidate.fromId + "," + candidate.toId + "," +
                         groundTruthMap.get(candidate.fromId).contains(candidate.toId) + "," +
-                        candidate.patternSupport + "," +candidate.patternSupportPercent2 + "," +
-                        candidate.occurCount + "," + candidate.occurSupportPercent + "," +
-                        (candidate.patternSupportPercent2 * candidate.occurSupportPercent) + "\n"
+                        candidate.ruleCount + "," +candidate.ruleSupportByMax + "," +
+                        candidate.libraryConcurrenceCount + "," + candidate.libraryConcurrenceSupport + "," +
+                        (candidate.ruleSupportByMax * candidate.libraryConcurrenceSupport) + "\n"
                 );
             }
         }
@@ -241,7 +240,7 @@ public class TestJob {
             if(!containsTruth) continue;
             for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                 boolean isTruth = groundTruthMap.get(candidate.fromId).contains(candidate.toId);
-                output.write(candidate.fromId+","+candidate.toId+","+isTruth+","+candidate.methodChangeSupport+","+candidate.methodChangeSupportPercent2+","+candidate.patternSupport+"\n");
+                output.write(candidate.fromId+","+candidate.toId+","+isTruth+","+candidate.methodChangeCount +","+candidate.methodChangeSupportByMax +","+candidate.ruleCount +"\n");
             }
         }
         output.close();
@@ -763,9 +762,9 @@ public class TestJob {
 //                            recall[k-1] = correct / (double) groundTruth.size();
                             LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
                             System.out.println(" Top" + k + ": " + correct + "," + thisCorrect + ", " + toLib.getId() + ":" + toLib.getGroupId() + ":" + toLib.getArtifactId() +
-                                    ", RuleFreq: " + candidate.patternSupport + ", RelativeRuleFreq: " + candidate.patternSupportPercent2 +
-                                    ", CoOccurrence: " + candidate.occurCount + ", CA: " + candidate.occurSupportPercent + ", PR: " + (candidate.occurSupportPercent*candidate.patternSupportPercent2) +
-                                    ", CommitDistance: " + candidate.positionSupportPercent + ", APISupport: " + candidate.methodChangeSupportPercent2 + ", FinalConfidenceValue: " + candidate.multipleSupport
+                                    ", RuleFreq: " + candidate.ruleCount + ", RelativeRuleFreq: " + candidate.ruleSupportByMax +
+                                    ", CoOccurrence: " + candidate.libraryConcurrenceCount + ", CA: " + candidate.libraryConcurrenceSupport + ", PR: " + (candidate.libraryConcurrenceSupport *candidate.ruleSupportByMax) +
+                                    ", CommitDistance: " + candidate.commitDistance + ", APISupport: " + candidate.methodChangeSupportByMax + ", FinalConfidenceValue: " + candidate.confidence
                             );
                         }
                     }

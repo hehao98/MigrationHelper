@@ -36,7 +36,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     @Autowired
     private DependencyChangePatternAnalysisService dependencyChangePatternAnalysisService;
 
-    private Logger LOG = LoggerFactory.getLogger(getClass());
+    final private Logger LOG = LoggerFactory.getLogger(getClass());
 
     private Map<Long, LibraryGroupArtifact> groupArtifactCache = null;
 
@@ -71,62 +71,35 @@ public class LibraryRecommendJob implements CommandLineRunner {
                         rdsList, fromIdLimit, methodChangeSupportMap);
 
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.EXCEL)) {
-            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "Confidence");
-            result.forEach((fromId, candidateList) -> {
-                LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
+            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "confidence",
+                    "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
+            for (LibraryGroupArtifact fromLib : queryList) {
+                Long fromId = fromLib.getId();
+                List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
+                        candidateList = result.get(fromId);
+
                 candidateList = candidateList.stream()
                         .filter(candidate -> {
                             LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
                             return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
                         }).collect(Collectors.toList());
-                if(candidateList.isEmpty()) return;
+
+                if(candidateList.isEmpty()) continue;
                 candidateList = candidateList.stream()
                         .limit(20)
                         .collect(Collectors.toList());
+
                 for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                     LibraryGroupArtifact toLib =  groupArtifactCache.get(candidate.toId);
-                    try {
-                        printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
-                                toLib.getGroupArtifactId(), candidate.multipleSupport);
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
+                            toLib.getGroupArtifactId(), candidate.confidence, candidate.ruleCount,
+                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount, candidate.libraryConcurrenceSupport,
+                            candidate.commitDistance, candidate.methodChangeSupportByMax);
                 }
-            });
+            }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-
-
-        /*FileWriter resultWriter = new FileWriter(outputFile);
-        result.forEach((fromId, candidateList) -> {
-            LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
-            candidateList = candidateList.stream()
-                    .filter(candidate -> {
-                        LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                        return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                    }).collect(Collectors.toList());
-            if(candidateList.isEmpty()) return;
-            candidateList = candidateList.stream()
-                    .limit(20)
-                    .collect(Collectors.toList());
-            try {
-                resultWriter.write(fromLib.getGroupId());
-                resultWriter.write(":");
-                resultWriter.write(fromLib.getArtifactId());
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                    resultWriter.write(",");
-                    resultWriter.write(toLib.getGroupId());
-                    resultWriter.write(":");
-                    resultWriter.write(toLib.getArtifactId());
-                }
-                resultWriter.write("\n");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        resultWriter.close();*/
         LOG.info("Success");
         System.exit(SpringApplication.exit(context));
     }
