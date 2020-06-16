@@ -1,4 +1,4 @@
-if ["$1" != "LioJarParseJob"] && ["$1" != "DataExportJob"] && ["$1" != "LibraryRecommendJob"]; then
+if [ "$1" != "LioJarParseJob" ] && [ "$1" != "DataExportJob" ] && [ "$1" != "LibraryRecommendJob" ]; then
   echo "Usage: run-woc.sh <Job Name> <Arg1> <Arg2> <Arg3> <Arg4>"
   echo "Currently Supported Jobs: LioJarParseJob, DataExportJob, LibraryRecommendJob"
   echo "See README.md for usage examples"
