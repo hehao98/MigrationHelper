@@ -1,3 +1,6 @@
+log4j:log4j
+mysql:mysql-connector-java
+commons-dbcp:commons-dbcp
 org.junit.jupiter:junit-jupiter-engine
 commons-discovery:commons-discovery
 org.assertj:assertj-core
@@ -50,7 +53,6 @@ postgresql:postgresql
 com.fasterxml.jackson.core:jackson-core
 org.easytesting:fest-assert
 ch.qos.logback:logback-core
-log4j:log4j
 org.seleniumhq.selenium:selenium-server
 ch.qos.logback:logback-classic
 org.dom4j:dom4j
@@ -81,7 +83,6 @@ jdom:jdom
 org.apache.httpcomponents:httpmime
 org.apache.derby:derby
 com.h2database:h2
-mysql:mysql-connector-java
 jaxen:jaxen
 org.apache.commons:commons-io
 org.powermock:powermock-module-junit4
