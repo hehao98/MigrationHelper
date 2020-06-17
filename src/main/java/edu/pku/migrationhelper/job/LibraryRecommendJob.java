@@ -1,8 +1,11 @@
 package edu.pku.migrationhelper.job;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import edu.pku.migrationhelper.data.LibraryGroupArtifact;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.service.DependencyChangePatternAnalysisService;
+import edu.pku.migrationhelper.util.JsonUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,8 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
     private String dependencySeqFile;
 
+    private String groundTruthFile;
+
     private String queryFile;
 
     private String outputFile;
@@ -57,54 +62,34 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
         this.queryFile = args[0];
         this.outputFile = args[1];
+        LOG.info("Read libraries from {} and output results to {}", this.queryFile, this.outputFile);
 
+        LOG.info("Building necessary data...");
         buildGroupArtifactCache();
-
         Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap(apiSupportFile);
         List<List<Long>> rdsList = buildRepositoryDepSeq(dependencySeqFile);
+
         List<LibraryGroupArtifact> queryList = readLibraryFromQueryFile(queryFile);
         Set<Long> fromIdLimit = new HashSet<>();
         queryList.forEach(e -> fromIdLimit.add(e.getId()));
 
+        LOG.info("Generating recommendation result...");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
                         rdsList, fromIdLimit, methodChangeSupportMap);
 
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.EXCEL)) {
-            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "confidence",
-                    "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
-            for (LibraryGroupArtifact fromLib : queryList) {
-                Long fromId = fromLib.getId();
-                List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
-                        candidateList = result.get(fromId);
+        LOG.info("Writing results to csv...");
+        outputCsv(queryList, result);
 
-                candidateList = candidateList.stream()
-                        .filter(candidate -> {
-                            LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                            return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                        }).collect(Collectors.toList());
+        LOG.info("Doing evaluation using ground truth from {}", groundTruthFile);
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap(groundTruthFile);
+        evaluateResult(result, groundTruthMap);
 
-                if(candidateList.isEmpty()) continue;
-                candidateList = candidateList.stream()
-                        .limit(20)
-                        .collect(Collectors.toList());
-
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    LibraryGroupArtifact toLib =  groupArtifactCache.get(candidate.toId);
-                    printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
-                            toLib.getGroupArtifactId(), candidate.confidence, candidate.ruleCount,
-                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount, candidate.libraryConcurrenceSupport,
-                            candidate.commitDistance, candidate.methodChangeSupportByMax);
-                }
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
         LOG.info("Success");
         System.exit(SpringApplication.exit(context));
     }
 
-    public synchronized void buildGroupArtifactCache() {
+    private synchronized void buildGroupArtifactCache() {
         if(groupArtifactCache != null) return;
         List<LibraryGroupArtifact> list = libraryGroupArtifactMapper.findAll();
         Map<Long, LibraryGroupArtifact> map = new HashMap<>(list.size() * 2);
@@ -114,7 +99,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
         groupArtifactCache = Collections.unmodifiableMap(map);
     }
 
-    public List<LibraryGroupArtifact> readLibraryFromQueryFile(String fileName) throws Exception {
+    private List<LibraryGroupArtifact> readLibraryFromQueryFile(String fileName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
         List<LibraryGroupArtifact> result = new LinkedList<>();
@@ -131,7 +116,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
         return result;
     }
 
-    public static Map<Long, Map<Long, Integer>> buildMethodChangeSupportMap(String fileName) throws Exception {
+    private static Map<Long, Map<Long, Integer>> buildMethodChangeSupportMap(String fileName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line = reader.readLine();
         Map<Long, Map<Long, Integer>> result = new HashMap<>(100000);
@@ -146,7 +131,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
         return result;
     }
 
-    public static List<List<Long>> buildRepositoryDepSeq(String fileName) throws Exception {
+    private static List<List<Long>> buildRepositoryDepSeq(String fileName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line = reader.readLine();
         List<List<Long>> result = new LinkedList<>();
@@ -167,6 +152,22 @@ public class LibraryRecommendJob implements CommandLineRunner {
                 libIdList.add(Long.parseLong(libId));
             }
             result.add(libIdList);
+        }
+        reader.close();
+        return result;
+    }
+
+    private static Map<Long, Set<Long>> buildGroundTruthMap(String fileName) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String line = reader.readLine();
+        Map<Long, Set<Long>> result = new HashMap<>();
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(";");
+            List<Long> fromIds = JsonUtils.readStringAsObject(attrs[2], new TypeReference<List<Long>>() {});
+            List<Long> toIds = JsonUtils.readStringAsObject(attrs[3], new TypeReference<List<Long>>() {});
+            for (Long fromId : fromIds) {
+                result.computeIfAbsent(fromId, k -> new HashSet<>()).addAll(toIds);
+            }
         }
         reader.close();
         return result;
@@ -213,6 +214,159 @@ public class LibraryRecommendJob implements CommandLineRunner {
         return result;
     }
 
+    private void outputCsv(List<LibraryGroupArtifact> queryList, Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.EXCEL)) {
+            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "confidence",
+                    "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
+            for (LibraryGroupArtifact fromLib : queryList) {
+                Long fromId = fromLib.getId();
+                List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
+                        candidateList = result.get(fromId);
+
+                candidateList = candidateList.stream()
+                        .filter(candidate -> {
+                            LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                            return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
+                        }).collect(Collectors.toList());
+
+                if(candidateList.isEmpty()) continue;
+                candidateList = candidateList.stream()
+                        .limit(20)
+                        .collect(Collectors.toList());
+
+                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    LibraryGroupArtifact toLib =  groupArtifactCache.get(candidate.toId);
+                    printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
+                            toLib.getGroupArtifactId(), candidate.confidence, candidate.ruleCount,
+                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount, candidate.libraryConcurrenceSupport,
+                            candidate.commitDistance, candidate.methodChangeSupportByMax);
+                }
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void evaluateResult(
+            Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result,
+            Map<Long, Set<Long>> groundTruthMap
+    ) {
+        int maxK = 10;
+        Map<Long, double[]> precisionMap = new HashMap<>();
+        Map<Long, double[]> recallMap = new HashMap<>();
+        MutableInt ruleCounter = new MutableInt(0);
+        result.entrySet().stream()
+                .sorted(Comparator.comparingLong(Map.Entry::getKey))
+                .forEach(entry -> {
+                    long fromId = entry.getKey();
+                    LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
+                    List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList = entry.getValue();
+                    candidateList = candidateList.stream()
+//                            .filter(candidate -> candidate.patternSupport >= 10)
+//                            .filter(candidate -> candidate.multipleSupport > 0)
+                            .filter(candidate -> {
+                                LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                                return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
+                            }).collect(Collectors.toList());
+                    if(candidateList.isEmpty()) return;
+                    Set<Long> groundTruth = groundTruthMap.get(fromId);
+                    if(groundTruth == null) return;
+//                    if(groundTruth != null) return; groundTruth = new HashSet<>();
+                    ruleCounter.add(candidateList.size());
+                    Set<Long> thisTruth = new HashSet<>();
+                    for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                        if(groundTruth.contains(candidate.toId)) {
+                            thisTruth.add(candidate.toId);
+                        }
+                    }
+                    if(thisTruth.isEmpty()) return;
+                    //System.out.println("fromId: " + fromId + " groundTruth.size: " + groundTruth.size() + " thisTruth.size: " + thisTruth.size());
+                    //System.out.println(fromLib.getId() + ":" + fromLib.getGroupId() + ":" + fromLib.getArtifactId());
+                    int correct = 0;
+                    double[] precision = new double[maxK];
+                    double[] recall = new double[maxK];
+                    for (int k = 1; k <= maxK; ++k) {
+                        if(candidateList.size() < k) {
+                            precision[k-1] = precision[k-2];
+                            recall[k-1] = recall[k-2];
+                        } else {
+                            DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate = candidateList.get(k - 1);
+                            boolean thisCorrect = false;
+                            if(groundTruth.contains(candidate.toId)) {
+                                thisCorrect = true;
+                                correct++;
+                            }
+                            precision[k-1] = correct / (double) k;
+                            recall[k-1] = correct / (double) thisTruth.size();
+//                            recall[k-1] = correct / (double) groundTruth.size();
+                            LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                            /*System.out.println(" Top" + k + ": " + correct + "," + thisCorrect + ", " + toLib.getId() + ":" + toLib.getGroupId() + ":" + toLib.getArtifactId() +
+                                    ", RuleFreq: " + candidate.ruleCount + ", RelativeRuleFreq: " + candidate.ruleSupportByMax +
+                                    ", CoOccurrence: " + candidate.libraryConcurrenceCount + ", CA: " + candidate.libraryConcurrenceSupport + ", PR: " + (candidate.libraryConcurrenceSupport *candidate.ruleSupportByMax) +
+                                    ", CommitDistance: " + candidate.commitDistance + ", APISupport: " + candidate.methodChangeSupportByMax + ", FinalConfidenceValue: " + candidate.confidence
+                            );*/
+                        }
+                    }
+                    // System.out.println();
+//                    for (int i = 0; i < 10; i++) {
+//                        if(candidateList.size() <= i) break;
+//                        if((i == 0 && precision[i] == 0) || (i > 0 && precision[i] <= precision[i-1])) {
+//                            LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidateList.get(i).toId);
+//                            System.out.println(fromLib.getId() + ":" + fromLib.getGroupId() + ":" + fromLib.getArtifactId() +
+//                                    " -> " + toLib.getId() + ":" + toLib.getGroupId() + ":" + toLib.getArtifactId());
+//                        }
+//                    }
+                    precisionMap.put(fromId, precision);
+                    recallMap.put(fromId, recall);
+                });
+        System.out.println("Rule Count: " + ruleCounter.intValue());
+        double[] totalPrecision = new double[maxK];
+        for (double[] value : precisionMap.values()) {
+            for (int i = 0; i < maxK; i++) {
+                totalPrecision[i] += value[i];
+            }
+        }
+        double[] totalRecall = new double[maxK];
+        for (double[] value : recallMap.values()) {
+            for (int i = 0; i < maxK; i++) {
+                totalRecall[i] += value[i];
+            }
+        }
+        for (int k = 1; k <= maxK; k++) {
+            double p = totalPrecision[k-1] / precisionMap.size();
+            double r = totalRecall[k-1] / recallMap.size();
+            double f = 2 * p * r / (p + r);
+            System.out.println("Top" + k + ": Precision: " + p + " Recall: " + r + " F-measure:" + f);
+        }
+
+        try (FileWriter output = new FileWriter("test_data/evaluation.csv")) {
+            int outputK = 10;
+            for (int i = 1; i <= outputK; i++) {
+                output.write(",Top " + i);
+            }
+            output.write("\nPrecision");
+            for (int i = 0; i < outputK; i++) {
+                double p = totalPrecision[i] / precisionMap.size();
+                output.write("," + p);
+            }
+            output.write("\nRecall");
+            for (int i = 0; i < outputK; i++) {
+                double r = totalRecall[i] / recallMap.size();
+                output.write("," + r);
+            }
+            output.write("\nF-measure");
+            for (int i = 0; i < outputK; i++) {
+                double p = totalPrecision[i] / precisionMap.size();
+                double r = totalRecall[i] / recallMap.size();
+                double f = 2 * p * r / (p + r);
+                output.write("," + f);
+            }
+            output.write("\n");
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     /* configuration getter and setter */
 
     public String getApiSupportFile() {
@@ -232,6 +386,15 @@ public class LibraryRecommendJob implements CommandLineRunner {
         this.dependencySeqFile = dependencySeqFile;
         return this;
     }
+
+    public String getGroundTruthFile() {
+        return groundTruthFile;
+    }
+
+    public void setGroundTruthFile(String groundTruthFile) {
+        this.groundTruthFile = groundTruthFile;
+    }
+
 
     public String getQueryFile() {
         return queryFile;
