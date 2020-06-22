@@ -845,35 +845,6 @@ public class TestJob {
         }
     }
 
-    public void testBin2List() throws Exception {
-        for (int i = 0; i < 100; i++) {
-            for (int j = 0; j < 100; j++) {
-                testBin2List(i);
-            }
-        }
-        LOG.info("testBin2List success");
-    }
-
-    public void testBin2List(int size) throws Exception {
-        Random random = new Random();
-        List<Long> list = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            list.add(random.nextLong());
-        }
-        byte[] content = MathUtils.berNumberList(list);
-        List<Long> result = MathUtils.unberNumberList(content);
-        Iterator<Long> listIt = list.iterator();
-        Iterator<Long> resultIt = result.iterator();
-        while(listIt.hasNext() && resultIt.hasNext()) {
-            if(!listIt.next().equals(resultIt.next())) {
-                throw new RuntimeException("testBin2List fail: " + list);
-            }
-        }
-        if(listIt.hasNext() != resultIt.hasNext()) {
-            throw new RuntimeException("testBin2List fail: " + list);
-        }
-    }
-
     public void testDatabaseSize() throws Exception {
         List<Long> signatureIds = testMapper.findAllSignatureIds();
         Map<Long, List<Long>> v2s = new HashMap<>();
