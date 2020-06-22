@@ -975,43 +975,6 @@ public class TestJob {
         }
     }
 
-    public void testLZF() throws Exception {
-        printFirstNByte("lzf_test/1.bin", 50);
-        printFirstNByte("lzf_test/2.bin", 50);
-        printFirstNByte("lzf_test/3.bin", 50);
-        printFirstNByte("lzf_test/4.bin", 50);
-        testLZF0("lzf_test/1.bin");
-        testLZF0("lzf_test/2.bin");
-        testLZF0("lzf_test/3.bin");
-        testLZF0("lzf_test/4.bin");
-    }
-
-    public void testLZF0(String fileName) throws Exception {
-        System.out.println(fileName);
-        File file = new File(fileName);
-        int length = (int) file.length();
-        byte[] content = new byte[length];
-        FileInputStream fis = new FileInputStream(file);
-        fis.read(content);
-        fis.close();
-        content = LZFUtils.lzfDecompressFromPerl(content);
-        System.out.println(new String(content));
-    }
-
-    public void printFirstNByte(String fileName, int n) throws Exception {
-        System.out.println(fileName);
-        byte[] content = new byte[n];
-        FileInputStream fis = new FileInputStream(fileName);
-        int len = fis.read(content);
-        fis.close();
-        for (int i = 0; i < len; i++) {
-            System.out.print("0x");
-            System.out.print(HexUtils.toHexString(new byte[]{content[i]}));
-            System.out.print(',');
-        }
-        System.out.println("");
-    }
-
     public void genBerIdsCode() throws Exception {
         String className = "BlobInfo";
         BufferedReader reader = new BufferedReader(new FileReader("db/test.txt"));
