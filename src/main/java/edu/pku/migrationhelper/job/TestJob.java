@@ -111,7 +111,6 @@ public class TestJob {
 //        calcGroundTruth2();
 //        calcGAChangeInMethodChange();
 //        migrationRulesSave2File();
-        testMiningMigration();
 //        miningLibrariesSave2File();
 //        testTruthPosition();
 //        runRQ1();
@@ -701,129 +700,6 @@ public class TestJob {
         correct.close();
         unknown.close();
         LOG.info("Success");
-    }
-
-    public void testMiningMigration() throws Exception {
-        buildGroupArtifactCache();
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-withCommit.csv");
-        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, groundTruthMap.keySet(), methodChangeSupportMap);
-//                        rdsList, null, methodChangeSupportMap);
-        int maxK = 10;
-        Map<Long, double[]> precisionMap = new HashMap<>();
-        Map<Long, double[]> recallMap = new HashMap<>();
-        MutableInt ruleCounter = new MutableInt(0);
-        result.entrySet().stream()
-                .sorted(Comparator.comparingLong(Map.Entry::getKey))
-                .forEach(entry -> {
-                    long fromId = entry.getKey();
-                    LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
-                    List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList = entry.getValue();
-                    candidateList = candidateList.stream()
-//                            .filter(candidate -> candidate.patternSupport >= 10)
-//                            .filter(candidate -> candidate.multipleSupport > 0)
-                            .filter(candidate -> {
-                                LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                                return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                            }).collect(Collectors.toList());
-                    if(candidateList.isEmpty()) return;
-                    Set<Long> groundTruth = groundTruthMap.get(fromId);
-                    if(groundTruth == null) return;
-//                    if(groundTruth != null) return; groundTruth = new HashSet<>();
-                    ruleCounter.add(candidateList.size());
-                    Set<Long> thisTruth = new HashSet<>();
-                    for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                        if(groundTruth.contains(candidate.toId)) {
-                            thisTruth.add(candidate.toId);
-                        }
-                    }
-                    if(thisTruth.isEmpty()) return;
-                    System.out.println("fromId: " + fromId + " groundTruth.size: " + groundTruth.size() + " thisTruth.size: " + thisTruth.size());
-                    System.out.println(fromLib.getId() + ":" + fromLib.getGroupId() + ":" + fromLib.getArtifactId());
-                    int correct = 0;
-                    double[] precision = new double[maxK];
-                    double[] recall = new double[maxK];
-                    for (int k = 1; k <= maxK; ++k) {
-                        if(candidateList.size() < k) {
-                            precision[k-1] = precision[k-2];
-                            recall[k-1] = recall[k-2];
-                        } else {
-                            DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate = candidateList.get(k - 1);
-                            boolean thisCorrect = false;
-                            if(groundTruth.contains(candidate.toId)) {
-                                thisCorrect = true;
-                                correct++;
-                            }
-                            precision[k-1] = correct / (double) k;
-                            recall[k-1] = correct / (double) thisTruth.size();
-//                            recall[k-1] = correct / (double) groundTruth.size();
-                            LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                            System.out.println(" Top" + k + ": " + correct + "," + thisCorrect + ", " + toLib.getId() + ":" + toLib.getGroupId() + ":" + toLib.getArtifactId() +
-                                    ", RuleFreq: " + candidate.ruleCount + ", RelativeRuleFreq: " + candidate.ruleSupportByMax +
-                                    ", CoOccurrence: " + candidate.libraryConcurrenceCount + ", CA: " + candidate.libraryConcurrenceSupport + ", PR: " + (candidate.libraryConcurrenceSupport *candidate.ruleSupportByMax) +
-                                    ", CommitDistance: " + candidate.commitDistance + ", APISupport: " + candidate.methodChangeSupportByMax + ", FinalConfidenceValue: " + candidate.confidence
-                            );
-                        }
-                    }
-                    System.out.println();
-//                    for (int i = 0; i < 10; i++) {
-//                        if(candidateList.size() <= i) break;
-//                        if((i == 0 && precision[i] == 0) || (i > 0 && precision[i] <= precision[i-1])) {
-//                            LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidateList.get(i).toId);
-//                            System.out.println(fromLib.getId() + ":" + fromLib.getGroupId() + ":" + fromLib.getArtifactId() +
-//                                    " -> " + toLib.getId() + ":" + toLib.getGroupId() + ":" + toLib.getArtifactId());
-//                        }
-//                    }
-                    precisionMap.put(fromId, precision);
-                    recallMap.put(fromId, recall);
-                });
-        System.out.println("Rule Count: " + ruleCounter.intValue());
-        double[] totalPrecision = new double[maxK];
-        for (double[] value : precisionMap.values()) {
-            for (int i = 0; i < maxK; i++) {
-                totalPrecision[i] += value[i];
-            }
-        }
-        double[] totalRecall = new double[maxK];
-        for (double[] value : recallMap.values()) {
-            for (int i = 0; i < maxK; i++) {
-                totalRecall[i] += value[i];
-            }
-        }
-        for (int k = 1; k <= maxK; k++) {
-            double p = totalPrecision[k-1] / precisionMap.size();
-            double r = totalRecall[k-1] / recallMap.size();
-            double f = 2 * p * r / (p + r);
-            System.out.println("Top" + k + ": Precision: " + p + " Recall: " + r + " F-measure:" + f);
-        }
-
-        FileWriter output = new FileWriter("db/test-migration.csv");
-        int outputK = 10;
-        for (int i = 1; i <= outputK; i++) {
-            output.write(",Top " + i);
-        }
-        output.write("\nPrecision");
-        for (int i = 0; i < outputK; i++) {
-            double p = totalPrecision[i] / precisionMap.size();
-            output.write("," + p);
-        }
-        output.write("\nRecall");
-        for (int i = 0; i < outputK; i++) {
-            double r = totalRecall[i] / recallMap.size();
-            output.write("," + r);
-        }
-        output.write("\nF-measure");
-        for (int i = 0; i < outputK; i++) {
-            double p = totalPrecision[i] / precisionMap.size();
-            double r = totalRecall[i] / recallMap.size();
-            double f = 2 * p * r / (p + r);
-            output.write("," + f);
-        }
-        output.write("\n");
-        output.close();
     }
 
     public void testRepositoryDepSeq() throws Exception {
