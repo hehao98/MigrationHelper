@@ -33,6 +33,9 @@ We have two utility scripts for executing our tool: `run-local.sh` is for runnin
  and `run-woc.sh` is for running on any of the World of Code servers. 
 However, some jobs may not work properly without access to blob database, so we strongly recommend running jobs on da4.
 
+For local usage, you need to have a running MySQL server with the configurations specified 
+ in `src/main/resources/application-local.yaml`
+
 ### Mining Data
 
 - CreateTableJob
@@ -62,6 +65,12 @@ However, some jobs may not work properly without access to blob database, so we 
 - LioJarParseJob
 
   从Maven下载之前导入的LibrariesIO库数据并分析，构建库与API签名映射关系
+
+  ```shell script
+  bash +x ./run-local.sh LioJarParseJob -Xms160g -Xmx160g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
+          -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
+          -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20
+  ```
 
   ```shell script
   bash +x ./run-woc.sh LioJarParseJob -Xms160g -Xmx160g -XX:+UseG1GC -XX:ParallelGCThreads=8 \

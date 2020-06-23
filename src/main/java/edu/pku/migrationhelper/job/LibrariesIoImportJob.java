@@ -10,8 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -24,9 +26,12 @@ import java.util.List;
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LibrariesIoImportJob")
-public class LibrariesIoImportJob {
+public class LibrariesIoImportJob implements CommandLineRunner {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private ConfigurableApplicationContext context;
 
     @Value("${migration-helper.libraries-io-import.project-with-repository-path}")
     private String projectWithRepositoryPath;
@@ -34,8 +39,8 @@ public class LibrariesIoImportJob {
     @Autowired
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void run() throws Exception {
+    @Override
+    public void run(String... args) throws Exception {
         LOG.info("start import libraries.io project with repository");
         FileReader fileReader = new FileReader(projectWithRepositoryPath);
         CSVParser parser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(fileReader);
@@ -68,6 +73,7 @@ public class LibrariesIoImportJob {
             lioProjectWithRepositoryMapper.insert(results);
         }
         LOG.info("import success");
+        System.exit(SpringApplication.exit(context));
     }
 
     private long getRecordLong(CSVRecord record, String key) {
