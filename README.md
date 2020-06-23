@@ -1,16 +1,63 @@
 # MigrationHelper
 
-## 整体流程
+## Compile
 
-### 数据挖掘阶段
+### Local
+
+First, install JDK 1.8 and Maven. Use `mvn clean package` to compile the whole project into a runnable JAR file.
+
+### Remote on World of Code
+
+We rely on [this](https://github.com/hehao98/MigrationHelperJAR) GitHub repository for uploading JAR to remote servers 
+(as direct connection is very slow). 
+With push access to the above repository, you can use this to compile and upload JAR.
+
+```shell script
+bash +x ./compile_upload.sh
+```
+
+Then, on one of the World of Code servers, clone this repository and clone the JAR repository in this repository,
+before executing any service for this tool.
+
+```shell script
+git clone https://github.com/hehao98/MigrationHelper.git
+cd MigrationHelper
+git clone https://github.com/hehao98/MigrationHelperJAR.git
+```
+
+## Usage Instructions
+
+In this section, we detail on how to run this tool either locally or remotely on World of Code servers.
+
+We have two utility scripts for executing our tool: `run-local.sh` is for running locally,
+ and `run-woc.sh` is for running on any of the World of Code servers. 
+However, some jobs may not work properly without access to blob database, so we strongly recommend running jobs on da4.
+
+### Mining Data
 
 - CreateTableJob
 
   创建MySQL数据表
+  
+  ```shell script
+  bash +x ./run-local.sh CreateTableJob
+  ```
+  
+  ```shell script
+  bash +x ./run-woc.sh CreateTableJob
+  ```
 
 - LibrariesIoImportJob
 
   将LibrariesIO的库数据导入数据库
+  
+  ```shell script
+  bash +x ./run-local.sh LibrariesIoImportJob
+  ```
+    
+  ```shell script
+  bash +x ./run-woc.sh LibrariesIoImportJob
+  ```
 
 - LioJarParseJob
 
@@ -26,7 +73,7 @@
 
   在WoC上分析一系列Java仓库，获得API替换关系、依赖变更等数据
 
-### 数据导出为文件阶段
+### Exporting Data
 
 - DataExportJob: LibraryGroupArtifact
   
@@ -61,7 +108,7 @@
      test_data/rules-2014-raw.csv test_data/rules-2014-artifactList.csv
   ```
 
-### 库推荐阶段
+### Recommending Libraries
 
 - LibraryRecommendJob
 
