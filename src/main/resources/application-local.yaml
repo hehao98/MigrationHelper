@@ -3,17 +3,11 @@ spring:
   datasource:
     # MySQL
     dbcp2:
-      url: jdbc:mysql://localhost:3306/migration_helper_4
-      username: root
-      password: kylinsql
+      url: jdbc:mysql://localhost:3306/migration_helper
+      username: migration_helper
+      password: mhsql
       driver-class-name: com.mysql.cj.jdbc.Driver
       max-total: 100
-    # SQLite
-#    dbcp2:
-#      url: jdbc:sqlite:db/migration_helper.db
-#      username: root
-#      password: kylinsql
-#      driver-class-name: org.sqlite.JDBC
 
 logging:
   config: classpath:log4j2.local.yaml
@@ -51,12 +45,12 @@ migration-helper:
   woc-repo-analysis-job:
     repository-list-file: repositories.csv
   libraries-io-import:
-    project-with-repository-path: db/projects_with_repository.csv
+    project-with-repository-path: export/LibrariesIOProjectRepositories.csv
   lio-jar-parse:
     limit-count: 1000
     extract-version-only: false
   library-recommend-job:
-    api-support-file: db/GAChangeInMethodChange-all.csv
-    dependency-seq-file: db/RepositoryDepSeq-withCommit.csv
+    api-support-file: export/GAChangeInMethodChange-all.csv
+    dependency-seq-file: export/RepositoryDepSeq-withCommit.csv
     query-file: test_data/test-lib-input.txt
-    output-file: test-recommend-output.csv
+    output-file: test_data/test-recommend-output.csv

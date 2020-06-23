@@ -52,7 +52,7 @@ migration-helper:
   woc-repo-analysis-job:
     repository-list-file: test_data/repositories.csv
   libraries-io-import:
-    project-with-repository-path: db/projects_with_repository_fields-1.6.0-2020-01-12.csv
+    project-with-repository-path: export/LibrariesIOProjectRepositories.csv
   lio-jar-parse:
     limit-count: 1000
     extract-version-only: false
