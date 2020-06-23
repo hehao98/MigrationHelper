@@ -16,6 +16,11 @@ public class MethodSignature {
 
     private int endLine; // not persistence, using by analysis of java code only
 
+    @Override
+    public String toString() {
+        return String.format("%s.%s.%s(%s)", packageName, className, methodName, paramList);
+    }
+
     public long getId() {
         return id;
     }

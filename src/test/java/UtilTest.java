@@ -65,6 +65,4 @@ public class UtilTest {
         }
         assertEquals(listIt.hasNext(), resultIt.hasNext());
     }
-
-
 }
