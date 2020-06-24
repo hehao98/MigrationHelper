@@ -12,10 +12,12 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.jsoup.HttpStatusException;
+import org.jsoup.Jsoup;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
@@ -23,9 +25,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -36,14 +37,10 @@ public class LibraryIdentityService {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private HttpClient httpClient = HttpClients.custom()
+    private final HttpClient httpClient = HttpClients.custom()
             .setMaxConnPerRoute(1000)
             .setMaxConnTotal(1000)
             .build();
-
-    @Autowired
-    @Qualifier("CalcThreadPool")
-    private ExecutorService calcThreadPool;
 
     @Autowired
     private JarAnalysisService jarAnalysisService;
@@ -63,17 +60,15 @@ public class LibraryIdentityService {
     @Autowired
     private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
 
-//    @Value("${migration-helper.library-identity.maven-url-base}")
-    private List<String> mavenUrlBase;
+    private String mavenUrlBase;
 
-//    @Value("${migration-helper.library-identity.download-path}")
     private String downloadPath;
 
-    public List<String> getMavenUrlBase() {
+    public String getMavenUrlBase() {
         return mavenUrlBase;
     }
 
-    public LibraryIdentityService setMavenUrlBase(List<String> mavenUrlBase) {
+    public LibraryIdentityService setMavenUrlBase(String mavenUrlBase) {
         this.mavenUrlBase = mavenUrlBase;
         return this;
     }
@@ -87,7 +82,7 @@ public class LibraryIdentityService {
         return this;
     }
 
-    private Timer httpTimer = new Timer("library-identity-http-timer");
+    private final Timer httpTimer = new Timer("library-identity-http-timer");
 
     public void parseGroupArtifact(String groupId, String artifactId, boolean extractVersionOnly) throws Exception {
         // create or find library information
@@ -117,14 +112,14 @@ public class LibraryIdentityService {
             LOG.info("start extract library versions id = {}", groupArtifactId);
             try {
                 List<String> versions = extractAllVersionsFromMaven(groupId, artifactId);
-                List<LibraryVersion> versionDatas = new ArrayList<>(versions.size());
-                versions.forEach(version -> versionDatas.add(new LibraryVersion()
+                List<LibraryVersion> versionData = new ArrayList<>(versions.size());
+                versions.forEach(version -> versionData.add(new LibraryVersion()
                         .setGroupArtifactId(groupArtifactId)
                         .setVersion(version)
                         .setDownloaded(false)
                         .setParsed(false)
                         .setParseError(false)));
-                libraryVersionMapper.insert(versionDatas);
+                libraryVersionMapper.insert(versionData);
                 groupArtifact.setVersionExtracted(true);
                 libraryGroupArtifactMapper.update(groupArtifact);
                 LOG.info("extract library versions success id = {}", groupArtifactId);
@@ -141,13 +136,13 @@ public class LibraryIdentityService {
         // download and parse each version of library
         Map<String, MethodSignature> signatureCache = new HashMap<>();
         Map<Long, Set<Long>> signature2Version = new HashMap<>();
-        List<LibraryVersion> versionDatas = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
+        List<LibraryVersion> versionDataList = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
 
         boolean analyzeFirstOnly = false; // 如果需要在某种条件下只分析最新版本的库，跳过其他版本，则将这个值设置为true
         int versionCount = 1;
 
         boolean containError = false;
-        for (LibraryVersion versionData : versionDatas) {
+        for (LibraryVersion versionData : versionDataList) {
             if(analyzeFirstOnly && versionCount > 1) {
                 break;
             }
@@ -158,16 +153,17 @@ public class LibraryIdentityService {
             File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
             try {
                 if (versionData.isParsed() || versionData.isParseError()) {
-                    if(versionData.isParseError()) {
-                        containError = true;
-                    }
                     LibraryVersionToSignature v2s = getVersionToSignature(versionId);
                     if(v2s != null && v2s.getSignatureIdList() != null) {
                         v2s.getSignatureIdList().forEach(sid -> signature2Version
                                 .computeIfAbsent(sid, k -> new HashSet<>())
                                 .add(versionId));
                     }
-                    continue;
+                    if (!versionData.isParseError()) {
+                        LOG.info("Skipping {}:{}-{} because it is parsed and does not contain error",
+                                groupId, artifactId, versionData.getVersion());
+                        continue;
+                    }
                 }
                 LOG.info("start download and parse library id = {}", versionData.getId());
                 if (jarFile.exists()) { // force download
@@ -175,6 +171,11 @@ public class LibraryIdentityService {
                 }
 //                if (!versionData.isDownloaded() || !jarFile.exists()) {
                 if (!jarFile.exists()) {
+                    List<String> availableFiles = extractAvailableFilesFromMaven(groupId, artifactId, version);
+                    if (!availableFiles.contains(String.format("%s-%s.jar", artifactId, version))) {
+                        LOG.info("{}:{}-{} do not have corresponding JAR file, skipping...", groupId, artifactId, version);
+                        continue;
+                    }
                     LOG.info("library need download id = {}", versionData.getId());
                     jarFile.getParentFile().mkdirs();
                     jarFile.createNewFile();
@@ -182,7 +183,8 @@ public class LibraryIdentityService {
                     versionData.setDownloaded(true);
                     libraryVersionMapper.update(versionData);
                 }
-                long jarSize = jarFile.length() / (1024 * 1024);
+
+                double jarSize = jarFile.length() / (1024.0 * 1024.0);
                 LOG.info("start parse library id = {}, size = {} MB", versionData.getId(), jarSize);
                 // 如果某个版本超过50MB 则只分析最新版本
 //                if(jarSize > 50) {
@@ -218,6 +220,7 @@ public class LibraryIdentityService {
                 versionData.setParseError(true);
                 libraryVersionMapper.update(versionData);
                 versionCount--;
+                containError = true;
             } finally {
                 if (jarFile.exists()) {
                     jarFile.delete();
@@ -372,8 +375,9 @@ public class LibraryIdentityService {
             }
 
             return ms;
-        } finally {
-
+        } catch (SQLException ex) {
+            LOG.error("Error inserting method {} into database", ms.toString());
+            return ms;
         }
     }
 
@@ -415,69 +419,57 @@ public class LibraryIdentityService {
                         .setParamList(ms.getParamList());
                 signatureCache.put(cacheKey, cacheValue);
             }
-        } finally {
-
+        } catch (SQLException ex) {
+            LOG.error("Error inserting method {} into database", ms.toString());
         }
     }
 
     public void downloadLibraryFromMaven(String groupId, String artifactId, String version, OutputStream output) throws IOException {
-        Iterator<String> baseIt = mavenUrlBase.iterator();
+        String url = mavenUrlBase
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "/" + version + "/"
+                + artifactId + "-" + version + ".jar";
+
+        HttpGet request = new HttpGet(url);
+        LOG.info("Downloading JAR from {}", url);
         try {
-            while (baseIt.hasNext()) {
-                String url = baseIt.next()
-                        + groupId.replace(".", "/") + "/"
-                        + artifactId + "/" + version + "/"
-                        + artifactId + "-" + version + ".jar";
-                HttpGet request = new HttpGet(url);
-                try {
-                    HttpResponse response = executeHttpRequest(request);
-                    response.getEntity().writeTo(output);
-                    output.flush();
-                    return;
-                } catch (Exception e) {
-                    if (!baseIt.hasNext()) throw e;
-                    LOG.info("http fail, try next, url = {}", url);
-                    continue;
-                } finally {
-                    request.releaseConnection();
-                }
-            }
+            HttpResponse response = executeHttpRequest(request);
+            response.getEntity().writeTo(output);
+            output.flush();
+        } catch (Exception e) {
+            LOG.error("Download library fail, url = {}", url);
+            throw e;
         } finally {
+            request.releaseConnection();
             output.close();
         }
-        throw new RuntimeException("no maven repository available");
     }
 
     public List<String> extractAllVersionsFromMaven(String groupId, String artifactId) throws IOException, DocumentException {
-        Iterator<String> baseIt = mavenUrlBase.iterator();
-        while(baseIt.hasNext()) {
-            String url = baseIt.next()
-                    + groupId.replace(".", "/") + "/"
-                    + artifactId + "/maven-metadata.xml";
-            HttpGet request = new HttpGet(url);
-            try {
-                HttpResponse response = executeHttpRequest(new HttpGet(url));
-                SAXReader reader = new SAXReader();
-                Document document = reader.read(response.getEntity().getContent());
-                List<Node> versionNodes = document.selectNodes("/metadata/versioning/versions/version");
-                List<String> result = new ArrayList<>(versionNodes.size());
-                versionNodes.forEach(e -> result.add(e.getStringValue().trim()));
-                return result;
-            } catch (Exception e) {
-                if(!baseIt.hasNext()) throw e;
-                LOG.info("http fail, try next, url = {}", url);
-                continue;
-            } finally {
-                request.releaseConnection();
-            }
+        String url = mavenUrlBase
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "/maven-metadata.xml";
+        HttpGet request = new HttpGet(url);
+        try {
+            HttpResponse response = executeHttpRequest(request);
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(response.getEntity().getContent());
+            List<Node> versionNodes = document.selectNodes("/metadata/versioning/versions/version");
+            List<String> result = new ArrayList<>(versionNodes.size());
+            versionNodes.forEach(e -> result.add(e.getStringValue().trim()));
+            return result;
+        } catch (Exception e) {
+            LOG.error("Download version information fail, url = {}", url);
+            throw e;
+        } finally {
+            request.releaseConnection();
         }
-        throw new RuntimeException("no maven repository available");
     }
 
     public boolean extractGroupArtifactFromMavenMeta(String metaUrl) throws IOException, DocumentException {
         HttpGet request = new HttpGet(metaUrl);
         try {
-            HttpResponse response = executeHttpRequest(new HttpGet(metaUrl));
+            HttpResponse response = executeHttpRequest(request);
             SAXReader reader = new SAXReader();
             Document document = reader.read(response.getEntity().getContent());
             Node groupNode = document.selectSingleNode("/metadata/groupId");
@@ -502,16 +494,39 @@ public class LibraryIdentityService {
         }
     }
 
-    private HttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                if(request != null) {
-                    request.abort();
-                }
+    public List<String> extractAvailableFilesFromMaven(String groupId, String artifactId, String version) throws IOException {
+        String url = mavenUrlBase
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "/" + version + "/";
+        List<String> result = new ArrayList<>();
+        HttpGet request = new HttpGet(url);
+        try {
+            org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
+            Elements files = doc.select("a");
+            for (org.jsoup.nodes.Element file : files) {
+                result.add(file.text());
             }
-        };
-        httpTimer.schedule(timerTask, 30000);
+        } catch (HttpStatusException e) {
+            if (e.getStatusCode() == 404) {
+                // In very rare cases the version string does not match the folder on Maven Central,
+                //   such as 8.0.7 of mysql-connector-java, which will cause status code 404
+                // In this case, we just consider the folder as empty and return empty list
+                LOG.warn("Url {} does not exist which may be a bug in Maven Central", url);
+                return result;
+            } else {
+                LOG.error("Http status code {} while extracting available files from maven, url = {}", e.getStatusCode(), url);
+                throw e;
+            }
+        } catch (Exception e) {
+            LOG.error("Error while extracting available files from maven, url = {}", url);
+            throw e;
+        } finally {
+            request.releaseConnection();
+        }
+        return result;
+    }
+
+    private HttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
         HttpResponse response = httpClient.execute(request);
         if(response.getStatusLine().getStatusCode() != 200) {
             throw new IOException("http status code " + response.getStatusLine().getStatusCode());

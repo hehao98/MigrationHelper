@@ -8,10 +8,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JavaCodeAnalysisTest {
+public class JavaCodeAnalysisServiceTest {
 
     public String readFile(String filePath) throws Exception {
-        File file = new File(filePath);
+        File file = new File(getClass().getResource(filePath).getFile());
         FileInputStream fileInputStream = new FileInputStream(file);
         int len = (int) file.length();
         byte[] buf = new byte[len];
@@ -24,7 +24,7 @@ public class JavaCodeAnalysisTest {
 
     @Test
     public void testJavaCodeAnalysis() throws Exception {
-        String content = readFile("src/test/JavaCodeAnalysisTest.java");
+        String content = readFile("JavaCodeAnalysisServiceTest.java");
         JavaCodeAnalysisService jcas = new JavaCodeAnalysisService();
         List<MethodSignature> msList = jcas.analyzeJavaCode(content);
         assertTrue(msList.size() >= 2);

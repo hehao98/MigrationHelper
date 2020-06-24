@@ -7,7 +7,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PomAnalysisTest {
+public class PomAnalysisServiceTest {
     
     @Test
     public void testPomAnalysis() throws Exception {

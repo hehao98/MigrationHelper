@@ -17,6 +17,9 @@ public class LibraryGroupArtifact {
 
     private boolean parseError = false;
 
+    @Override
+    public String toString() { return getGroupArtifactId(); }
+
     public long getId() {
         return id;
     }

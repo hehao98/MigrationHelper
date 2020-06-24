@@ -91,7 +91,6 @@ public class LioJarParseJob {
 
         @Override
         public void run() {
-            LOG.info("parse job start jobId = {}, projectId = {}", jobId, projectId);
             LioProjectWithRepository p = lioProjectWithRepositoryMapper.findById(projectId);
             if (p == null) {
                LOG.error("project not found, id = {}", projectId);
@@ -107,11 +106,13 @@ public class LioJarParseJob {
                 LOG.error("nameSplits.length != 2, id = {}, name = {}", projectId, name);
                 return;
             }
+            LOG.info("parse job start jobId = {}, projectId = {}, name = {}", jobId, projectId, name);
             try {
                 libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1], extractVersionOnly);
             } catch (Exception e) {
                 LOG.error("parse jar fail, id = " + projectId, e);
             }
+            LOG.info("parse job finished jobId = {}, projectId = {}, library = {}", jobId, projectId, name);
         }
     }
 }
