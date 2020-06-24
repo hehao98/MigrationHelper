@@ -17,6 +17,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -32,12 +33,9 @@ import java.util.stream.Collectors;
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "TestJob")
-public class TestJob {
+public class TestJob implements CommandLineRunner {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
-
-    @Autowired
-    private LibraryVersionMapper libraryVersionMapper;
 
     @Autowired
     private LibraryIdentityService libraryIdentityService;
@@ -46,16 +44,10 @@ public class TestJob {
     private MethodSignatureMapper methodSignatureMapper;
 
     @Autowired
-    private JarAnalysisService jarAnalysisService;
-
-    @Autowired
     private JavaCodeAnalysisService javaCodeAnalysisService;
 
     @Autowired
     private GitRepositoryAnalysisService gitRepositoryAnalysisService;
-
-    @Autowired
-    private PomAnalysisService pomAnalysisService;
 
     @Autowired
     private GitObjectStorageService gitObjectStorageService;
@@ -83,8 +75,8 @@ public class TestJob {
 
     private Map<Long, LibraryGroupArtifact> groupArtifactCache = null;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void run() throws Exception {
+    @Override
+    public void run(String ...args) throws Exception {
 //        testDatabase();
 //        testBin2List();
 //        testDatabaseSize();
@@ -92,7 +84,6 @@ public class TestJob {
 //        testPomAnalysis();
 //        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
 //        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
-//        jarAnalysisService.analyzeJar("jar-download\\org\\eclipse\\jgit\\org.eclipse.jgit-1.2.0.201112221803-r.jar");
 //        testJavaCodeAnalysis();
 //        createTable();
 //        testAnalyzeBlob();
@@ -862,29 +853,6 @@ public class TestJob {
         });
     }
 
-    public void testJavaCodeAnalysis() throws Exception {
-        String content = readFile("..\\jgit-cookbook\\src\\main\\java\\org\\dstadler\\jgit\\porcelain\\ListTags.java");
-        List<MethodSignature> msList = javaCodeAnalysisService.analyzeJavaCode(content);
-        for (MethodSignature ms : msList) {
-            MethodSignature dbms = libraryIdentityService.getMethodSignature(ms, null);
-            Long id = dbms == null ? null : dbms.getId();
-            LOG.info("id = {}, pn = {}, cn = {}, mn = {}, pl = {}, ss = {}, se = {}", id,
-                    ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList(), ms.getStartLine(), ms.getEndLine());
-        }
-    }
-
-    public String readFile(String filePath) throws Exception {
-        File file = new File(filePath);
-        FileInputStream fileInputStream = new FileInputStream(file);
-        int len = (int) file.length();
-        byte[] buf = new byte[len];
-        int res = fileInputStream.read(buf, 0, len);
-        if (res != len) {
-            throw new RuntimeException("res != len");
-        }
-        return new String(buf);
-    }
-
     public void testAnalyzeBlob() throws Exception {
         gitRepositoryAnalysisService.analyzeRepositoryLibrary("jgit-cookbook");
     }
@@ -934,18 +902,6 @@ public class TestJob {
 
     }
 
-    public void testPomAnalysis() throws Exception {
-        File pomFile = new File("pom.xml");
-        FileInputStream fis = new FileInputStream(pomFile);
-        byte[] content = new byte[(int) pomFile.length()];
-        fis.read(content);
-        List<PomAnalysisService.LibraryInfo> libraryInfoList = pomAnalysisService.analyzePom(new String(content));
-        for (PomAnalysisService.LibraryInfo libraryInfo : libraryInfoList) {
-            LOG.info("groupId = {}, artifactId = {}, version = {}",
-                    libraryInfo.groupId, libraryInfo.artifactId, libraryInfo.version);
-        }
-    }
-
     public void genBerIdsCode() throws Exception {
         String className = "BlobInfo";
         BufferedReader reader = new BufferedReader(new FileReader("db/test.txt"));
@@ -979,22 +935,6 @@ public class TestJob {
                             "    }\n" +
                             "\n"
             );
-        }
-    }
-
-    public void createTable() {
-        for (int i = 0; i < BlobInfoMapper.MAX_TABLE_COUNT; i++) {
-            blobInfoMapper.createTable(i);
-        }
-
-        for (int i = 0; i < CommitInfoMapper.MAX_TABLE_COUNT; i++) {
-            commitInfoMapper.createTable(i);
-        }
-        for (int i = 0; i < MethodChangeMapper.MAX_TABLE_COUNT; i++) {
-            long ii = (long) i;
-            long ai = ii << MethodChangeMapper.MAX_ID_BIT;
-            methodChangeMapper.createTable(i);
-            methodChangeMapper.setAutoIncrement(i, ai);
         }
     }
 }
