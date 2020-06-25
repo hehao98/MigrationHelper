@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LioJarParseJob")
-public class LioJarParseJob {
+public class LioJarParseJob implements CommandLineRunner {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -48,8 +48,8 @@ public class LioJarParseJob {
     @Autowired
     private LibraryIdentityService libraryIdentityService;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void run() throws Exception {
+    @Override
+    public void run(String ...args) throws Exception {
         Set<Long> idSet = new HashSet<>();
         List<Long> needParseIds = new LinkedList<>();
         Iterator<Long>[] idsArray = new Iterator[7];

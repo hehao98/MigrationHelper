@@ -131,6 +131,10 @@ public class TestJob implements CommandLineRunner {
                 versionStream.count(), downloadCount, parsedCount, parseErrorCount);
     }
 
+    public void printLibraryAPISummary(String groupId, String artifactId) {
+
+    }
+
     public synchronized void buildGroupArtifactCache() {
         if(groupArtifactCache != null) return;
         List<LibraryGroupArtifact> list = libraryGroupArtifactMapper.findAll();

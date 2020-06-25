@@ -50,7 +50,7 @@ migration-helper:
   libraries-io-import:
     project-with-repository-path: export/LibrariesIOProjectWithRepositories.csv
   lio-jar-parse:
-    limit-count: 1000
+    limit-count: 100000
     extract-version-only: false
   library-recommend-job:
     api-support-file: export/APISupport.csv
