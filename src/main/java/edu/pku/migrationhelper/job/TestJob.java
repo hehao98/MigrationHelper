@@ -121,14 +121,14 @@ public class TestJob implements CommandLineRunner {
         LOG.info("Number of artifacts with parse errors: {}",
                 libs.stream().filter(LibraryGroupArtifact::isParseError).count());
 
-        Stream<LibraryVersion> versionStream = libs.stream()
+        List<LibraryVersion> versions = libs.stream()
                 .map(lib -> libraryVersionMapper.findByGroupArtifactId(lib.getId()))
-                .flatMap(List::stream);
-        long downloadCount = versionStream.filter(LibraryVersion::isDownloaded).count();
-        long parsedCount = versionStream.filter(LibraryVersion::isParsed).count();
-        long parseErrorCount = versionStream.filter(LibraryVersion::isParseError).count();
+                .flatMap(List::stream).collect(Collectors.toList());
+        long downloadCount = versions.stream().filter(LibraryVersion::isDownloaded).count();
+        long parsedCount = versions.stream().filter(LibraryVersion::isParsed).count();
+        long parseErrorCount = versions.stream().filter(LibraryVersion::isParseError).count();
         LOG.info("{} versions in total, downloadCount = {}, parsedCount = {}, parseErrorCount = {}",
-                versionStream.count(), downloadCount, parsedCount, parseErrorCount);
+                versions.size(), downloadCount, parsedCount, parseErrorCount);
     }
 
     public void printLibraryAPISummary(String groupId, String artifactId) {

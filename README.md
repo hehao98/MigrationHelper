@@ -80,16 +80,11 @@ For local usage, you need to have a running MySQL server with the configurations
   从Maven下载之前导入的LibrariesIO库数据并分析，构建库与API签名映射关系
 
   ```shell script
-  # For PowerShell on Windows you need to replace \ with `
-  bash +x ./run-local.sh LioJarParseJob -Xms8g -Xmx8g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
-          -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
-          -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20
+  bash +x ./run-local.sh LioJarParseJob 
   ```
 
   ```shell script
-  bash +x ./run-woc.sh LioJarParseJob -Xms160g -Xmx160g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
-        -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
-        -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20
+  bash +x ./run-woc.sh LioJarParseJob
   ```
 
 - WocRepoAnalysisJob

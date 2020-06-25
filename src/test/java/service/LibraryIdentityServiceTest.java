@@ -61,5 +61,7 @@ public class LibraryIdentityServiceTest {
         List<String> result = lis.extractAvailableFilesFromMaven("org.tensorflow", "parentpom", "1.15.0");
         System.out.println(result);
         assertTrue(result.contains("parentpom-1.15.0.pom"));
+        result = lis.extractAvailableFilesFromMaven("org.apache.cxf", "cxf-rt-frontend-jaxrs", "2.1.10");
+        assertTrue(result.contains("cxf-rt-frontend-jaxrs-2.1.10.jar"));
     }
 }
