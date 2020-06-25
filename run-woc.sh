@@ -17,7 +17,7 @@ shift 1
 echo "MigrationHelper: Running Job $job..."
 
 if [ "$1" == "LioJarParseJob" ]; then
-  java -Djava.library.path=/home/heh/lib \
+  /home/heh/jdk1.8.0_144/bin/java -Djava.library.path=/home/heh/lib \
        -Dlog4j.configuration=mylog4j.properties \
        -Dspoon.log.path=./spoon.log \
        -Dspring.profiles.active=woc \
@@ -27,7 +27,7 @@ if [ "$1" == "LioJarParseJob" ]; then
        -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20 \
        -jar MigrationHelperJAR/migration-helper-1.0-SNAPSHOT.jar "$@"
 else
-  java -Djava.library.path=/home/heh/lib \
+  /home/heh/jdk1.8.0_144/bin/java -Djava.library.path=/home/heh/lib \
        -Dlog4j.configuration=mylog4j.properties \
        -Dspoon.log.path=./spoon.log \
        -Dspring.profiles.active=woc \
