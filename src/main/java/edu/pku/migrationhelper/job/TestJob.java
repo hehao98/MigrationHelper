@@ -29,6 +29,7 @@ import tokyocabinet.HDB;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -49,7 +50,13 @@ public class TestJob implements CommandLineRunner {
     private MethodSignatureMapper methodSignatureMapper;
 
     @Autowired
-    private JavaCodeAnalysisService javaCodeAnalysisService;
+    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+
+    @Autowired
+    private LibraryVersionMapper libraryVersionMapper;
+
+    @Autowired
+    private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
 
     @Autowired
     private GitRepositoryAnalysisService gitRepositoryAnalysisService;
@@ -71,9 +78,6 @@ public class TestJob implements CommandLineRunner {
 
     @Autowired
     private MethodChangeMapper methodChangeMapper;
-
-    @Autowired
-    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
 
     @Autowired
     private LibraryOverlapMapper libraryOverlapMapper;
@@ -105,6 +109,26 @@ public class TestJob implements CommandLineRunner {
 
         LOG.info("Running method {} finish", methodName);
         System.exit(SpringApplication.exit(context));
+    }
+
+    public void printLibraryDatabaseSummary() {
+        List<LibraryGroupArtifact> libs = libraryGroupArtifactMapper.findAll();
+        LOG.info("Number of group artifacts: {}", libs.size());
+        LOG.info("Number of artifacts that version is extracted: {}",
+                libs.stream().filter(LibraryGroupArtifact::isVersionExtracted).count());
+        LOG.info("Number of parsed group artifacts: {}",
+                libs.stream().filter(LibraryGroupArtifact::isParsed).count());
+        LOG.info("Number of artifacts with parse errors: {}",
+                libs.stream().filter(LibraryGroupArtifact::isParseError).count());
+
+        Stream<LibraryVersion> versionStream = libs.stream()
+                .map(lib -> libraryVersionMapper.findByGroupArtifactId(lib.getId()))
+                .flatMap(List::stream);
+        long downloadCount = versionStream.filter(LibraryVersion::isDownloaded).count();
+        long parsedCount = versionStream.filter(LibraryVersion::isParsed).count();
+        long parseErrorCount = versionStream.filter(LibraryVersion::isParseError).count();
+        LOG.info("{} versions in total, downloadCount = {}, parsedCount = {}, parseErrorCount = {}",
+                versionStream.count(), downloadCount, parsedCount, parseErrorCount);
     }
 
     public synchronized void buildGroupArtifactCache() {
