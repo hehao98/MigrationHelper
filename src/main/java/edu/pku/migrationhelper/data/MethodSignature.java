@@ -1,5 +1,8 @@
 package edu.pku.migrationhelper.data;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MethodSignature {
 
     private long id;
@@ -35,7 +38,11 @@ public class MethodSignature {
     }
 
     public MethodSignature setPackageName(String packageName) {
-        this.packageName = packageName;
+        final int PACKAGE_NAME_MAX_LENGTH = 255;
+        if (packageName.length() > PACKAGE_NAME_MAX_LENGTH) {
+            packageName = packageName.substring(0, PACKAGE_NAME_MAX_LENGTH);
+        }
+        this.packageName = toAscii(packageName);
         return this;
     }
 
@@ -44,7 +51,11 @@ public class MethodSignature {
     }
 
     public MethodSignature setClassName(String className) {
-        this.className = className;
+        final int CLASS_NAME_MAX_LENGTH = 255;
+        if (className.length() > CLASS_NAME_MAX_LENGTH) {
+            className = className.substring(0, CLASS_NAME_MAX_LENGTH);
+        }
+        this.className = toAscii(className);
         return this;
     }
 
@@ -53,7 +64,11 @@ public class MethodSignature {
     }
 
     public MethodSignature setMethodName(String methodName) {
-        this.methodName = methodName;
+        final int METHOD_NAME_MAX_LENGTH = 255;
+        if (methodName.length() > METHOD_NAME_MAX_LENGTH) {
+            methodName = methodName.substring(0, METHOD_NAME_MAX_LENGTH);
+        }
+        this.methodName = toAscii(methodName);
         return this;
     }
 
@@ -62,7 +77,23 @@ public class MethodSignature {
     }
 
     public MethodSignature setParamList(String paramList) {
-        this.paramList = paramList;
+        // Under very rare circumstances the length of param_list might be too long to be fit in varchar(2047)
+        // Then we have to manually truncate the param_list
+        final int PARAM_LIST_MAX_LENGTH = 2047;
+        if (paramList.length() > PARAM_LIST_MAX_LENGTH) {
+            List<String> pl = Arrays.asList(paramList.split(","));
+            int finalIndex = PARAM_LIST_MAX_LENGTH;
+            int sum = 0;
+            for (int i = 0; i < pl.size(); ++i) {
+                sum += pl.get(i).length() + 1;
+                if (sum > PARAM_LIST_MAX_LENGTH) {
+                    finalIndex = i;
+                    break;
+                }
+            }
+            paramList = String.join(",", pl.subList(0, finalIndex));
+        }
+        this.paramList = toAscii(paramList);
         return this;
     }
 
@@ -82,5 +113,14 @@ public class MethodSignature {
     public MethodSignature setEndLine(int endLine) {
         this.endLine = endLine;
         return this;
+    }
+
+    private String toAscii(String str) {
+        StringBuilder sb = new StringBuilder(str.length());
+        for (char c : str.toCharArray()) {
+            if (c <= '\u007F') sb.append(c);
+            else sb.append('?');
+        }
+        return sb.toString();
     }
 }

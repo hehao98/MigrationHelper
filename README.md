@@ -17,13 +17,26 @@ bash +x ./compile_upload.sh
 ```
 
 Then, on one of the World of Code servers, clone this repository and clone the JAR repository in this repository,
-before executing any service for this tool.
+before executing any job for this tool.
 
 ```shell script
 git clone https://github.com/hehao98/MigrationHelper.git
 cd MigrationHelper
 git clone https://github.com/hehao98/MigrationHelperJAR.git
 ```
+
+## Test
+
+We have only a limited number of unit tests (also deadly simple and not rigorous) which can be run as follows. 
+
+```shell script
+mvn clean test
+```
+
+(What a pity on our poor software engineering practices!) 
+More patches that do rigorous testing of any module is always welcome.
+
+We also rely on logging and exception handling for debugging. 
 
 ## Usage Instructions
 
@@ -67,7 +80,8 @@ For local usage, you need to have a running MySQL server with the configurations
   从Maven下载之前导入的LibrariesIO库数据并分析，构建库与API签名映射关系
 
   ```shell script
-  bash +x ./run-local.sh LioJarParseJob -Xms160g -Xmx160g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
+  # For PowerShell on Windows you need to replace \ with `
+  bash +x ./run-local.sh LioJarParseJob -Xms8g -Xmx8g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
           -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
           -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20
   ```

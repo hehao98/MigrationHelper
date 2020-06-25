@@ -29,11 +29,7 @@ migration-helper:
     thread-count: 12
     calc-thread-count: 1
   library-identity:
-    maven-url-base:
-      - https://repo1.maven.org/maven2/
-#      - https://app.camunda.com/nexus/content/groups/public/
-#      - https://repo.maven.apache.org/maven2/
-#      - https://maven.aliyun.com/nexus/content/groups/public/
+    maven-url-base: https://repo1.maven.org/maven2/
     download-path: jar-download
   repository-analysis:
     pom-only: true

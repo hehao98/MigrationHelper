@@ -91,7 +91,7 @@ public interface MethodSignatureMapper {
             @Param("packageName") String packageName,
             @Param("className") String className,
             @Param("methodName") String methodName,
-            @Param("paramList") String paramList) throws SQLException;
+            @Param("paramList") String paramList);
 
     @Select("<script>" +
             "select id from " + tableName + "${tableNum} where " +

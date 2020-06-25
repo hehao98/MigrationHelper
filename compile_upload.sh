@@ -1,4 +1,4 @@
-mvn clean package
+mvn clean package -DskipTests
 cp ./target/migration-helper-1.0-SNAPSHOT.jar MigrationHelperJAR/
 cd MigrationHelperJAR || exit
 git add migration-helper-1.0-SNAPSHOT.jar

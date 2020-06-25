@@ -1,3 +1,5 @@
+package service;
+
 import edu.pku.migrationhelper.service.PomAnalysisService;
 import org.junit.jupiter.api.Test;
 

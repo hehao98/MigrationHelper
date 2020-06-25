@@ -1,3 +1,5 @@
+package service;
+
 import edu.pku.migrationhelper.data.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.service.JarAnalysisService;
@@ -20,7 +22,7 @@ public class LibraryIdentityServiceTest {
     void testAnalyzeJar() throws Exception {
         JarAnalysisService jas = new JarAnalysisService();
         List<MethodSignature> result = new LinkedList<>();
-        String jarFilePath = getClass().getResource("jars/gson-2.8.6.jar").getPath();
+        String jarFilePath = getClass().getClassLoader().getResource("jars/gson-2.8.6.jar").getPath();
         jas.analyzeJar(jarFilePath, result);
         // System.out.println(result);
         assertTrue(result.size() > 0);

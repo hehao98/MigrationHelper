@@ -19,13 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -174,6 +174,8 @@ public class LibraryIdentityService {
                     List<String> availableFiles = extractAvailableFilesFromMaven(groupId, artifactId, version);
                     if (!availableFiles.contains(String.format("%s-%s.jar", artifactId, version))) {
                         LOG.info("{}:{}-{} do not have corresponding JAR file, skipping...", groupId, artifactId, version);
+                        versionData.setParsed(false).setParseError(false).setDownloaded(false);
+                        libraryVersionMapper.update(versionData);
                         continue;
                     }
                     LOG.info("library need download id = {}", versionData.getId());
@@ -375,8 +377,8 @@ public class LibraryIdentityService {
             }
 
             return ms;
-        } catch (SQLException ex) {
-            LOG.error("Error inserting method {} into database", ms.toString());
+        } catch (UncategorizedSQLException ex) {
+            LOG.error("Error get method {} into database, {}", ms.toString(), ex);
             return ms;
         }
     }
@@ -419,8 +421,8 @@ public class LibraryIdentityService {
                         .setParamList(ms.getParamList());
                 signatureCache.put(cacheKey, cacheValue);
             }
-        } catch (SQLException ex) {
-            LOG.error("Error inserting method {} into database", ms.toString());
+        } catch (UncategorizedSQLException ex) {
+            LOG.error("Error inserting method {} into database, {}", ms.toString(), ex);
         }
     }
 

@@ -9,13 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by xuyul on 2020/2/16.
@@ -25,6 +28,9 @@ import java.util.concurrent.ExecutorService;
 public class LioJarParseJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private ConfigurableApplicationContext context;
 
     @Autowired
     @Qualifier("ThreadPool")
@@ -76,6 +82,9 @@ public class LioJarParseJob {
             executorService.submit(new SingleProjectParse(id, size - i));
             ++i;
         }
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+        LOG.info("Finished to parse all libraries");
+        System.exit(SpringApplication.exit(context));
     }
 
     private class SingleProjectParse implements Runnable {

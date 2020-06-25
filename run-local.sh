@@ -6,7 +6,7 @@ if [ "$1" != "CreateTableJob" ] && [ "$1" != "LibrariesIoImportJob" ] \
   exit
 fi
 
-mvn clean package
+mvn clean package -DskipTests
 
 job=$1
 shift 1

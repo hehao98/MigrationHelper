@@ -18,8 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import tokyocabinet.HDB;
@@ -36,6 +38,9 @@ import java.util.stream.Collectors;
 public class TestJob implements CommandLineRunner {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private ConfigurableApplicationContext context;
 
     @Autowired
     private LibraryIdentityService libraryIdentityService;
@@ -77,37 +82,29 @@ public class TestJob implements CommandLineRunner {
 
     @Override
     public void run(String ...args) throws Exception {
-//        testDatabase();
-//        testBin2List();
-//        testDatabaseSize();
-//        testLZF();
-//        testPomAnalysis();
-//        libraryIdentityService.parseGroupArtifact("org.eclipse.jgit", "org.eclipse.jgit", false);
-//        libraryIdentityService.parseGroupArtifact("com.liferay.portal", "com.liferay.portal.impl", false);
-//        testJavaCodeAnalysis();
-//        createTable();
-//        testAnalyzeBlob();
-//        testTokyoCabinet();
-//        testBlobCommitMapper();
-//        genBerIdsCode();
-//        testCreateTable();
-//        commitInfoCommandLine();
-//        diffCommandLine();
-//        alterTableJob();
-//        testRepositoryDepSeq();
-//        testAnalyzeDepSeq();
-//        insertGroupArtifact();
-//        insertLibraryOverlap();
-//        calcGroundTruth();
-//        calcGroundTruth2();
-//        calcGAChangeInMethodChange();
-//        migrationRulesSave2File();
-//        miningLibrariesSave2File();
-//        testTruthPosition();
-//        runRQ1();
-//        runRQ2();
-//        runRQ3();
-//        play();
+        String methodName = args[0];
+
+        java.lang.reflect.Method method;
+        try {
+            method = this.getClass().getMethod(methodName);
+        } catch (NoSuchMethodException e) {
+            LOG.error("Method {} does not exist in TestJob!", methodName);
+            LOG.info("Please refer to source code to see available methods");
+            System.exit(SpringApplication.exit(context));
+            return;
+        }
+
+        LOG.info("Invoking method {}", methodName);
+        try {
+            method.invoke(this);
+        } catch (IllegalArgumentException e) {
+            LOG.error("Method {} has arguments, which is currently not supported, aborting", methodName);
+            System.exit(SpringApplication.exit(context));
+            return;
+        }
+
+        LOG.info("Running method {} finish", methodName);
+        System.exit(SpringApplication.exit(context));
     }
 
     public synchronized void buildGroupArtifactCache() {

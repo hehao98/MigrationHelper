@@ -1,3 +1,5 @@
+package service;
+
 import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.service.JavaCodeAnalysisService;
 import org.junit.jupiter.api.Test;
@@ -11,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JavaCodeAnalysisServiceTest {
 
     public String readFile(String filePath) throws Exception {
-        File file = new File(getClass().getResource(filePath).getFile());
+        File file = new File(getClass().getClassLoader().getResource(filePath).getFile());
         FileInputStream fileInputStream = new FileInputStream(file);
         int len = (int) file.length();
         byte[] buf = new byte[len];

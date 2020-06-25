@@ -1,3 +1,5 @@
+package util;
+
 import edu.pku.migrationhelper.util.LZFUtils;
 import edu.pku.migrationhelper.util.MathUtils;
 import org.junit.jupiter.api.Test;
