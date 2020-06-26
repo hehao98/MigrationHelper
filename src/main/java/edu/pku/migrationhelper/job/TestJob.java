@@ -124,11 +124,12 @@ public class TestJob implements CommandLineRunner {
         List<LibraryVersion> versions = libs.stream()
                 .map(lib -> libraryVersionMapper.findByGroupArtifactId(lib.getId()))
                 .flatMap(List::stream).collect(Collectors.toList());
+        long libCount = versions.stream().map(LibraryVersion::getGroupArtifactId).distinct().count();
         long downloadCount = versions.stream().filter(LibraryVersion::isDownloaded).count();
         long parsedCount = versions.stream().filter(LibraryVersion::isParsed).count();
         long parseErrorCount = versions.stream().filter(LibraryVersion::isParseError).count();
-        LOG.info("{} versions in total, downloadCount = {}, parsedCount = {}, parseErrorCount = {}",
-                versions.size(), downloadCount, parsedCount, parseErrorCount);
+        LOG.info("{} versions in total, libCount = {}, downloadCount = {}, parsedCount = {}, parseErrorCount = {}",
+                versions.size(), libCount, downloadCount, parsedCount, parseErrorCount);
     }
 
     public void printLibraryAPISummary(String groupId, String artifactId) {

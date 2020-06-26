@@ -13,14 +13,14 @@ shift 1
 echo "MigrationHelper: Running Job $job..."
 
 if [ "$1" == "LioJarParseJob" ]; then
-  java -Djava.library.path=/home/heh/lib \
+  java -Xms8g -Xmx12g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
+       -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
+       -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20 \
+       -Djava.library.path=/home/heh/lib \
        -Dlog4j.configuration=mylog4j.properties \
        -Dspoon.log.path=./spoon.log \
        -Dspring.profiles.active=local \
        -Dmigration-helper.job.enabled="$job" \
-       -Xms8g -Xmx8g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
-       -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
-       -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20 \
        -jar target/migration-helper-1.0-SNAPSHOT.jar "$@"
 else
   java -Djava.library.path=/home/heh/lib \

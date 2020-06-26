@@ -99,7 +99,7 @@ public class LibraryIdentityService {
             groupArtifact = libraryGroupArtifactMapper
                     .findByGroupIdAndArtifactId(groupId, artifactId);
         }
-        if(groupArtifact.isParsed() && !groupArtifact.isParseError())  {
+        if(groupArtifact.isParsed() && groupArtifact.isVersionExtracted() && !groupArtifact.isParseError())  {
             LOG.info("skip {} because it is parsed and does not contain error", groupArtifact);
             return;
         }
@@ -124,8 +124,8 @@ public class LibraryIdentityService {
                 libraryGroupArtifactMapper.update(groupArtifact);
                 LOG.info("extract library versions success id = {}", groupArtifactId);
             } catch (Exception e) {
-                LOG.error("extract library versions fail id = " + groupArtifactId, e);
-                // go on to download and parse is ok
+                LOG.error("extract library versions fail id = {}, {}", groupArtifactId, e);
+                return;
             }
         }
 

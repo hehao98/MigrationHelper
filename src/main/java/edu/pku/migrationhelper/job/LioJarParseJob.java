@@ -50,6 +50,9 @@ public class LioJarParseJob implements CommandLineRunner {
 
     @Override
     public void run(String ...args) throws Exception {
+        long memoryInBytes = Runtime.getRuntime().maxMemory();
+        LOG.info("Maximum amount of memory to use: {} MB", memoryInBytes / 1024 / 1024);
+
         Set<Long> idSet = new HashSet<>();
         List<Long> needParseIds = new LinkedList<>();
         Iterator<Long>[] idsArray = new Iterator[7];
@@ -74,6 +77,8 @@ public class LioJarParseJob implements CommandLineRunner {
             }
             if(!remain) break;
         }
+
+        // Collections.reverse(needParseIds);
 
         int i = 0;
         int size = needParseIds.size();
