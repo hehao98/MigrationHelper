@@ -135,4 +135,14 @@ For local usage, you need to have a running MySQL server with the configurations
   ```shell script
   bash -x ./run-woc.sh LibraryRecommendJob test_data/test-lib-input.txt test_data/test-recommend-output.csv
   ```
+  
+- LibraryUpgradeRecommendJob
+
+  ```shell script
+  bash -x ./run-local.sh LibraryUpgradeRecommendJob test_data/test-upgrade-input.csv test_output/
+  ```
+  
+  ```shell script
+    bash -x ./run-woc.sh LibraryUpgradeRecommendJob test_data/test-upgrade-input.csv test_output/
+  ```
 

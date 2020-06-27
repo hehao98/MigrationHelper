@@ -57,7 +57,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     public void run(String... args) throws Exception {
         if (args.length < 2) {
             LOG.info("Usage: LibraryRecommendJob <Query File> <Output File>");
-            System.exit(SpringApplication.exit(context));
+            System.exit(SpringApplication.exit(context, () -> -1));
         }
 
         this.queryFile = args[0];
@@ -86,7 +86,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
         evaluateResult(result, groundTruthMap);
 
         LOG.info("Success");
-        System.exit(SpringApplication.exit(context));
+        System.exit(SpringApplication.exit(context, () -> 0));
     }
 
     private synchronized void buildGroupArtifactCache() {
