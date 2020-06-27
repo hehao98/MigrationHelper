@@ -84,7 +84,7 @@ public class LibraryIdentityService {
 
     private final Timer httpTimer = new Timer("library-identity-http-timer");
 
-    public void parseGroupArtifact(String groupId, String artifactId, boolean extractVersionOnly) throws Exception {
+    public void parseGroupArtifact(String groupId, String artifactId, boolean extractVersionOnly) {
         // create or find library information
         LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper
                 .findByGroupIdAndArtifactId(groupId, artifactId);

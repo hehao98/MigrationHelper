@@ -143,6 +143,6 @@ For local usage, you need to have a running MySQL server with the configurations
   ```
   
   ```shell script
-    bash -x ./run-woc.sh LibraryUpgradeRecommendJob test_data/test-upgrade-input.csv test_output/
+  bash -x ./run-woc.sh LibraryUpgradeRecommendJob test_data/test-upgrade-input.csv test_output/
   ```
 

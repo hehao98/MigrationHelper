@@ -17,6 +17,9 @@ public class LibraryVersion {
 
     private boolean parseError = false;
 
+    @Override
+    public String toString() { return version; }
+
     public long getId() {
         return id;
     }
