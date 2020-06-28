@@ -56,11 +56,11 @@ For local usage, you need to have a running MySQL server with the configurations
   创建MySQL数据表
   
   ```shell script
-  bash +x ./run-local.sh CreateTableJob
+  bash -x ./run-local.sh CreateTableJob
   ```
   
   ```shell script
-  bash +x ./run-woc.sh CreateTableJob
+  bash -x ./run-woc.sh CreateTableJob
   ```
 
 - LibrariesIoImportJob
@@ -68,11 +68,11 @@ For local usage, you need to have a running MySQL server with the configurations
   将LibrariesIO的库数据导入数据库
   
   ```shell script
-  bash +x ./run-local.sh LibrariesIoImportJob
+  bash -x ./run-local.sh LibrariesIoImportJob
   ```
     
   ```shell script
-  bash +x ./run-woc.sh LibrariesIoImportJob
+  bash -x ./run-woc.sh LibrariesIoImportJob
   ```
 
 - LioJarParseJob
@@ -80,11 +80,11 @@ For local usage, you need to have a running MySQL server with the configurations
   从Maven下载之前导入的LibrariesIO库数据并分析，构建库与API签名映射关系
 
   ```shell script
-  bash +x ./run-local.sh LioJarParseJob 
+  bash -x ./run-local.sh LioJarParseJob 
   ```
 
   ```shell script
-  bash +x ./run-woc.sh LioJarParseJob
+  bash -x ./run-woc.sh LioJarParseJob
   ```
 
 - WocRepoAnalysisJob

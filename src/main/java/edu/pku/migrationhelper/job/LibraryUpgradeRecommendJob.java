@@ -4,8 +4,11 @@ import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.SemverException;
 import edu.pku.migrationhelper.data.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.LibraryVersion;
+import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
+import edu.pku.migrationhelper.mapper.LibraryVersionToSignatureMapper;
+import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -19,16 +22,17 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
-import sun.misc.Version;
 
-import javax.lang.model.type.ArrayType;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -45,6 +49,12 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
 
     @Autowired
     private LibraryVersionMapper libraryVersionMapper;
+
+    @Autowired
+    private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
+
+    @Autowired
+    private MethodSignatureMapper methodSignatureMapper;
 
     @Autowired
     private LibraryIdentityService libraryIdentityService;
@@ -104,16 +114,26 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
                         lib.getGroupId(), lib.getArtifactId(), version.toString(), toVersion.toString());
                 candidates.add(candidate);
             }
+
+            outputAllAPIs(outputFolder, version);
+            for (LibraryVersion v : toVersions) {
+                outputAllAPIs(outputFolder, v);
+            }
         }
 
         outputSummaryCSV(outputFolder, candidates);
 
+        for (VersionCandidate candidate : candidates) {
+            outputChangedAPIs(outputFolder, candidate);
+        }
+
+        LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
     }
 
     private List<LibraryVersion> readInputCSV(String path) throws IOException {
         List<LibraryVersion> result = new ArrayList<>();
-        try (CSVParser parser = new CSVParser(new FileReader(path), CSVFormat.EXCEL)) {
+        try (CSVParser parser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(new FileReader(path))) {
             for (CSVRecord record : parser) {
                 String name = record.get("Name");
                 String groupId = name.split(":")[0];
@@ -138,9 +158,6 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
 
                 result.add(version);
             }
-        } catch (IOException e) {
-            LOG.error("Error while reading CSV file {}, {}", path, e);
-            throw e;
         }
         return result;
     }
@@ -152,9 +169,66 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
             for (VersionCandidate c : candidates) {
                 printer.printRecord(c.groupId, c.artifactId, c.fromVersion, c.toVersion, c.addedAPIs, c.removedAPIs);
             }
-        } catch (IOException e) {
-            LOG.error("Error while writing to CSV file {}, {}", path, e);
-            throw e;
+        }
+    }
+
+    private void outputAllAPIs(String outputPath, LibraryVersion version) throws IOException {
+        LibraryGroupArtifact lib = libraryGroupArtifactMapper.findById(version.getGroupArtifactId());
+
+        Path path = Paths.get(outputPath, String.format("%s-%s", lib.getGroupId(), lib.getArtifactId()));
+        if (!Files.exists(path)) {
+            Files.createDirectory(path);
+        }
+        path = Paths.get(path.toString(), String.format("api-%s.csv", version));
+
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
+            printer.printRecord("signatureId", "packageName", "className", "methodName", "paramList");
+            for (long signatureId : libraryVersionToSignatureMapper.findById(version.getId()).getSignatureIdList()) {
+                int slice = LibraryIdentityService.getMethodSignatureSliceKey(signatureId);
+                MethodSignature ms = methodSignatureMapper.findById(slice, signatureId);
+                printer.printRecord(ms.getId(), ms.getPackageName(),
+                        ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            }
+        }
+    }
+
+    private void outputChangedAPIs(String outputPath, VersionCandidate candidate) throws IOException {
+        LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(
+                candidate.groupId, candidate.artifactId);
+
+        LibraryVersion fromVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.fromVersion);
+        LibraryVersion toVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.toVersion);
+        Set<Long> fromVersionSignatures = new HashSet<>(
+                libraryVersionToSignatureMapper.findById(fromVersion.getId()).getSignatureIdList());
+        Set<Long> toVersionSignatures = new HashSet<>(
+                libraryVersionToSignatureMapper.findById(toVersion.getId()).getSignatureIdList());
+        List<MethodSignature> addedSignatures = toVersionSignatures.stream()
+                .filter(l -> !fromVersionSignatures.contains(l))
+                .map(id -> methodSignatureMapper.findById(LibraryIdentityService.getMethodSignatureSliceKey(id), id))
+                .sorted().collect(Collectors.toList());
+        List<MethodSignature> removedSignatures = fromVersionSignatures.stream()
+                .filter(l -> !toVersionSignatures.contains(l))
+                .map(id -> methodSignatureMapper.findById(LibraryIdentityService.getMethodSignatureSliceKey(id), id))
+                .sorted().collect(Collectors.toList());
+
+        Path path = Paths.get(outputPath, String.format("%s-%s", lib.getGroupId(), lib.getArtifactId()));
+        if (!Files.exists(path)) {
+            Files.createDirectory(path);
+        }
+        path = Paths.get(path.toString(), String.format("changed-api-%s-%s.csv",
+                candidate.fromVersion, candidate.toVersion));
+
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
+            printer.printRecord("signatureId", "changeType", "packageName",
+                    "className", "methodName", "paramList");
+            for (MethodSignature ms: addedSignatures) {
+                printer.printRecord(ms.getId(), "add", ms.getPackageName(),
+                        ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            }
+            for (MethodSignature ms: removedSignatures) {
+                printer.printRecord(ms.getId(), "remove", ms.getPackageName(),
+                        ms.getClassName(), ms.getMethodName(), ms.getParamList());
+            }
         }
     }
 }

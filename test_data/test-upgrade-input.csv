@@ -1,5 +1,5 @@
 Name,Version
-com.typesafe.akka:akka-actor,2.5.11
+com.typesafe.akka:akka-actor_2.12,2.5.11
 org.webjars.bower:angular,1.7.8
 org.bouncycastle:bcprov-jdk15,1.45
 org.bouncycastle:bcprov-jdk15on,1.59
