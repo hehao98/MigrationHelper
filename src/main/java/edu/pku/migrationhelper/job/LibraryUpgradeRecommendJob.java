@@ -10,6 +10,7 @@ import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionToSignatureMapper;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
+import edu.pku.migrationhelper.service.MapperUtilService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -29,10 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,6 +41,9 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
 
     @Autowired
     private ConfigurableApplicationContext context;
+
+    @Autowired
+    private MapperUtilService mapperUtilService;
 
     @Autowired
     private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
@@ -64,8 +65,8 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         String artifactId;
         String fromVersion;
         String toVersion;
-        long addedAPIs = 0;
-        long removedAPIs = 0;
+        long addedAPICount = 0;
+        long removedAPICount = 0;
 
         public VersionCandidate(String groupId, String artifactId, String fromVersion, String toVersion) {
             this.groupId = groupId;
@@ -115,8 +116,10 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
                 candidates.add(candidate);
             }
 
+            LOG.info("Writing APIs of {}-{}", lib, version);
             outputAllAPIs(outputFolder, version);
             for (LibraryVersion v : toVersions) {
+                LOG.info("Writing APIs of {}-{}", lib, v);
                 outputAllAPIs(outputFolder, v);
             }
         }
@@ -143,7 +146,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
                 LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
                 if (lib == null || !lib.isParsed()) {
                     LOG.error("{}:{} does not exist or is not parsed in our library database!", groupId, artifactId);
-                    LOG.info("trying to download and parse {}:{} before proceeding...", groupId, artifactId);
+                    LOG.info("Trying to download and parse {}:{} before proceeding...", groupId, artifactId);
                     libraryIdentityService.parseGroupArtifact(groupId, artifactId, false);
                     lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
                     assert lib != null;
@@ -167,7 +170,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
             printer.printRecord("groupId", "artifactId", "fromVersion", "toVersion", "addedAPIs", "removedAPIs");
             for (VersionCandidate c : candidates) {
-                printer.printRecord(c.groupId, c.artifactId, c.fromVersion, c.toVersion, c.addedAPIs, c.removedAPIs);
+                printer.printRecord(c.groupId, c.artifactId, c.fromVersion, c.toVersion, c.addedAPICount, c.removedAPICount);
             }
         }
     }
@@ -183,9 +186,13 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
 
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
             printer.printRecord("signatureId", "packageName", "className", "methodName", "paramList");
-            for (long signatureId : libraryVersionToSignatureMapper.findById(version.getId()).getSignatureIdList()) {
-                int slice = LibraryIdentityService.getMethodSignatureSliceKey(signatureId);
-                MethodSignature ms = methodSignatureMapper.findById(slice, signatureId);
+            List<Long> signatureIds = libraryVersionToSignatureMapper.findById(version.getId()).getSignatureIdList();
+            LOG.info("{}-{} has {} different APIs", lib, version, signatureIds.size());
+
+            List<MethodSignature> signatures = mapperUtilService.getMethodSignaturesByIds(signatureIds);
+            assert signatures.size() == signatureIds.size();
+            signatures.sort(Comparator.comparing(MethodSignature::toString));
+            for (MethodSignature ms : signatures) {
                 printer.printRecord(ms.getId(), ms.getPackageName(),
                         ms.getClassName(), ms.getMethodName(), ms.getParamList());
             }
@@ -204,12 +211,16 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
                 libraryVersionToSignatureMapper.findById(toVersion.getId()).getSignatureIdList());
         List<MethodSignature> addedSignatures = toVersionSignatures.stream()
                 .filter(l -> !fromVersionSignatures.contains(l))
-                .map(id -> methodSignatureMapper.findById(LibraryIdentityService.getMethodSignatureSliceKey(id), id))
-                .sorted().collect(Collectors.toList());
+                .map(id -> methodSignatureMapper.findById(MapperUtilService.getMethodSignatureSliceKey(id), id))
+                .sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
         List<MethodSignature> removedSignatures = fromVersionSignatures.stream()
                 .filter(l -> !toVersionSignatures.contains(l))
-                .map(id -> methodSignatureMapper.findById(LibraryIdentityService.getMethodSignatureSliceKey(id), id))
-                .sorted().collect(Collectors.toList());
+                .map(id -> methodSignatureMapper.findById(MapperUtilService.getMethodSignatureSliceKey(id), id))
+                .sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
+        LOG.info("{} from {} to {}, {} added APIs and {} removed APIs", lib, fromVersion, toVersion,
+                addedSignatures.size(), removedSignatures.size());
+        candidate.addedAPICount = addedSignatures.size();
+        candidate.removedAPICount = removedSignatures.size();
 
         Path path = Paths.get(outputPath, String.format("%s-%s", lib.getGroupId(), lib.getArtifactId()));
         if (!Files.exists(path)) {

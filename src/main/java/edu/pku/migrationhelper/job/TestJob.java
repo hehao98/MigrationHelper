@@ -5,11 +5,8 @@ import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
-import edu.pku.migrationhelper.util.LZFUtils;
 import edu.pku.migrationhelper.util.MathUtils;
 import javafx.util.Pair;
-import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,16 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import tokyocabinet.HDB;
 
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by xuyul on 2020/1/2.
@@ -823,7 +817,7 @@ public class TestJob implements CommandLineRunner {
     }
 
     public void showMethodSignature(long signatureId) {
-        int slice = libraryIdentityService.getMethodSignatureSliceKey(signatureId);
+        int slice = MapperUtilService.getMethodSignatureSliceKey(signatureId);
         MethodSignature methodSignature = methodSignatureMapper.findById(slice, signatureId);
         if(methodSignature == null) {
             System.out.println("Signature: Id = " + signatureId + " null");

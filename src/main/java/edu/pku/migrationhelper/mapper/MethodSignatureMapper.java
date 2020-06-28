@@ -4,6 +4,7 @@ import edu.pku.migrationhelper.data.MethodSignature;
 import org.apache.ibatis.annotations.*;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -112,4 +113,19 @@ public interface MethodSignatureMapper {
     MethodSignature findById(
             @Param("tableNum") int tableNum,
             @Param("signatureId") long signatureId);
+
+    /**
+     * Be careful, this will only return signatureIds in one table
+     * We recommend to use MapperUtil.getMethodSignatureByIds() instead
+     */
+    @Select("<script>" +
+            "select * from " + tableName + "${tableNum} where " +
+            "<choose>" +
+            "<when test = 'signatureIds == null || signatureIds.size() == 0'> false </when>" +
+            "<otherwise> id in (<foreach collection='signatureIds' item='e' separator=','>#{e}</foreach>) </otherwise>" +
+            "</choose>" +
+            "</script>")
+    List<MethodSignature> findByIds(
+            @Param("tableNum") int tableNum,
+            @Param("signatureIds") Collection<Long> signatureIds);
 }

@@ -1,6 +1,5 @@
 package edu.pku.migrationhelper.service;
 
-import com.twitter.hashing.KeyHasher;
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
 import org.apache.http.HttpResponse;
@@ -273,23 +272,10 @@ public class LibraryIdentityService {
         return signatures;
     }
 
-    public static int getMethodSignatureSliceKey(String packageName, String className) {
-        String key = packageName + ":" + className;
-        return (int)(KeyHasher.FNV1A_32().hashKey(key.getBytes()) & (MethodSignatureMapper.MAX_TABLE_COUNT - 1));
-    }
-
-    public static int getMethodSignatureSliceKey(long signatureId) {
-        return (int)(signatureId >> MethodSignatureMapper.MAX_ID_BIT) & (MethodSignatureMapper.MAX_TABLE_COUNT - 1);
-    }
-
-    public static String getMethodSignatureCacheKey(MethodSignature ms) {
-        return ms.getPackageName() + ":" + ms.getClassName() + ":" + ms.getMethodName() + ":" + ms.getParamList();
-    }
-
     public Map<Long, List<Long>> getSignatureToGroupArtifact(Collection<Long> signatureIds) {
         Map<Integer, Set<Long>> sliceMap = new HashMap<>();
         for (Long signatureId : signatureIds) {
-            int slice = getMethodSignatureSliceKey(signatureId);
+            int slice = MapperUtilService.getMethodSignatureSliceKey(signatureId);
             sliceMap.computeIfAbsent(slice, k -> new HashSet<>()).add(signatureId);
         }
         Map<Long, List<Long>> result = new HashMap<>();
@@ -308,12 +294,12 @@ public class LibraryIdentityService {
     }
 
     public LibrarySignatureToVersion getSignatureToVersion(long signatureId) {
-        int slice = getMethodSignatureSliceKey(signatureId);
+        int slice = MapperUtilService.getMethodSignatureSliceKey(signatureId);
         return librarySignatureToVersionMapper.findById(slice, signatureId);
     }
 
     public void saveSignatureToVersion(LibrarySignatureToVersion s2v) {
-        int slice = getMethodSignatureSliceKey(s2v.getSignatureId());
+        int slice = MapperUtilService.getMethodSignatureSliceKey(s2v.getSignatureId());
         librarySignatureToVersionMapper.insertOne(slice, s2v);
     }
 
@@ -345,14 +331,14 @@ public class LibraryIdentityService {
     }
 
     public List<MethodSignature> getMethodSignatureList(String packageName, String className, String methodName) {
-        int sliceKey = getMethodSignatureSliceKey(packageName, className);
+        int sliceKey = MapperUtilService.getMethodSignatureSliceKey(packageName, className);
         return methodSignatureMapper.findList(sliceKey, packageName, className, methodName);
     }
 
     public MethodSignature getMethodSignature(MethodSignature ms, Map<String, MethodSignature> signatureCache) {
         String cacheKey = null;
         if(signatureCache != null) {
-            cacheKey = getMethodSignatureCacheKey(ms);
+            cacheKey = MapperUtilService.getMethodSignatureCacheKey(ms);
             MethodSignature cacheValue = signatureCache.get(cacheKey);
             if (cacheValue != null) {
                 ms.setId(cacheValue.getId());
@@ -361,7 +347,7 @@ public class LibraryIdentityService {
         }
 
         try {
-            int sliceKey = getMethodSignatureSliceKey(ms.getPackageName(), ms.getClassName());
+            int sliceKey = MapperUtilService.getMethodSignatureSliceKey(ms.getPackageName(), ms.getClassName());
             Long id = methodSignatureMapper.findId(sliceKey, ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());
             if(id == null) return null;
             ms.setId(id);
@@ -386,7 +372,7 @@ public class LibraryIdentityService {
     public void saveMethodSignature(MethodSignature ms, Map<String, MethodSignature> signatureCache) {
         String cacheKey = null;
         if(signatureCache != null) {
-            cacheKey = getMethodSignatureCacheKey(ms);
+            cacheKey = MapperUtilService.getMethodSignatureCacheKey(ms);
             MethodSignature cacheValue = signatureCache.get(cacheKey);
             if (cacheValue != null) {
                 ms.setId(cacheValue.getId());
@@ -395,7 +381,7 @@ public class LibraryIdentityService {
         }
 
         try {
-            int sliceKey = getMethodSignatureSliceKey(ms.getPackageName(), ms.getClassName());
+            int sliceKey = MapperUtilService.getMethodSignatureSliceKey(ms.getPackageName(), ms.getClassName());
             // there will be many duplicate records when analyzing different versions of the same library
             // insertOne is time-consuming, so we do findId first
             Long id = methodSignatureMapper.findId(sliceKey, ms.getPackageName(), ms.getClassName(), ms.getMethodName(), ms.getParamList());

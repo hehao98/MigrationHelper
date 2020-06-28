@@ -404,7 +404,7 @@ public class DataExportJob implements CommandLineRunner {
         }
         apiWriter.write("signatureId,packageName,className,methodName,paramList\n");
         for (Long sigId : allSigIds) {
-            int slice = LibraryIdentityService.getMethodSignatureSliceKey(sigId);
+            int slice = MapperUtilService.getMethodSignatureSliceKey(sigId);
             MethodSignature ms = methodSignatureMapper.findById(slice, sigId);
             if(ms == null) {
                 LOG.warn("MethodSignature not found: {}", sigId);
