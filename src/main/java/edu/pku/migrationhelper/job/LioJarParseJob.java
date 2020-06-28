@@ -1,5 +1,7 @@
 package edu.pku.migrationhelper.job;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import edu.pku.migrationhelper.data.LioProjectWithRepository;
 import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
@@ -11,9 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -40,7 +40,14 @@ public class LioJarParseJob implements CommandLineRunner {
     private int limitCount;
 
     @Value("${migration-helper.lio-jar-parse.extract-version-only}")
+    @Parameter(names = "--extract-version-only")
     private boolean extractVersionOnly = false;
+
+    @Parameter(names = "--reverse-order")
+    private boolean reverseOrder = false;
+
+    @Parameter(names = "--random-order")
+    private boolean randomOrder = false;
 
     @Autowired
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
@@ -50,6 +57,8 @@ public class LioJarParseJob implements CommandLineRunner {
 
     @Override
     public void run(String ...args) throws Exception {
+        JCommander.newBuilder().addObject(this).build().parse(args);
+
         long memoryInBytes = Runtime.getRuntime().maxMemory();
         LOG.info("Maximum amount of memory to use: {} MB", memoryInBytes / 1024 / 1024);
 
@@ -65,11 +74,11 @@ public class LioJarParseJob implements CommandLineRunner {
         idsArray[6] = lioProjectWithRepositoryMapper.selectIdOrderByRepositorySourceRankLimit(limitCount).iterator();
         while (true) {
             boolean remain = false;
-            for(int i = 0; i < idsArray.length; ++i) {
-                if(idsArray[i].hasNext()) {
+            for (Iterator<Long> longIterator : idsArray) {
+                if (longIterator.hasNext()) {
                     remain = true;
-                    long id = idsArray[i].next();
-                    if(!idSet.contains(id)) {
+                    long id = longIterator.next();
+                    if (!idSet.contains(id)) {
                         needParseIds.add(id);
                         idSet.add(id);
                     }
@@ -78,7 +87,14 @@ public class LioJarParseJob implements CommandLineRunner {
             if(!remain) break;
         }
 
-        // Collections.reverse(needParseIds);
+        if (reverseOrder) {
+            LOG.info("Reverse parse order (from least popular to most popular)");
+            Collections.reverse(needParseIds);
+        }
+        if (randomOrder) {
+            LOG.info("Randomize parse order");
+            Collections.shuffle(needParseIds);
+        }
 
         int i = 0;
         int size = needParseIds.size();
@@ -94,9 +110,9 @@ public class LioJarParseJob implements CommandLineRunner {
 
     private class SingleProjectParse implements Runnable {
 
-        private long projectId;
+        private final long projectId;
 
-        private long jobId;
+        private final long jobId;
 
         public SingleProjectParse(long projectId, long jobId) {
             this.projectId = projectId;

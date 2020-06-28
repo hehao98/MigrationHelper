@@ -8,7 +8,6 @@ import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionToSignatureMapper;
-import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import edu.pku.migrationhelper.service.MapperUtilService;
 import org.apache.commons.csv.CSVFormat;

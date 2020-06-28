@@ -209,6 +209,11 @@
             <artifactId>semver4j</artifactId>
             <version>3.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.78</version>
+        </dependency>
     </dependencies>
 
 </project>

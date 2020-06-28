@@ -253,9 +253,8 @@ public class LibraryIdentityService {
                     .setParseError(containError || analyzeFirstOnly);
             libraryGroupArtifactMapper.update(groupArtifact);
         } catch (Exception e) {
-            LOG.error("save groupArtifact fail groupId = {}, artifactId = {}",
-                    groupId, artifactId);
-            LOG.error("save groupArtifact fail", e);
+            LOG.error("save groupArtifact fail groupId = {}, artifactId = {}, {}",
+                    groupId, artifactId, e);
             groupArtifact.setParsed(true)
                     .setParseError(true);
             libraryGroupArtifactMapper.update(groupArtifact);
