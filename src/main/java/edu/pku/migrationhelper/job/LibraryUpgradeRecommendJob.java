@@ -55,9 +55,6 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
     private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
 
     @Autowired
-    private MethodSignatureMapper methodSignatureMapper;
-
-    @Autowired
     private LibraryIdentityService libraryIdentityService;
 
     private static class VersionCandidate {
@@ -74,6 +71,11 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
             this.fromVersion = fromVersion;
             this.toVersion = toVersion;
         }
+    }
+
+    private static class APIChanges {
+        List<MethodSignature> addedSignatures;
+        List<MethodSignature> removedSignatures;
     }
 
     @Override
@@ -132,12 +134,45 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         }
 
         for (VersionCandidate candidate : candidates) {
-            outputChangedAPIs(outputFolder, candidate);
+            APIChanges apiChanges = getAPIChanges(candidate);
+            candidate.addedAPICount = apiChanges.addedSignatures.size();
+            candidate.removedAPICount = apiChanges.removedSignatures.size();
+            outputChangedAPIs(outputFolder, candidate, apiChanges);
         }
         outputSummaryCSV(outputFolder, candidates);
 
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
+    }
+
+    private APIChanges getAPIChanges(VersionCandidate candidate) {
+        APIChanges result = new APIChanges();
+
+        LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(
+                candidate.groupId, candidate.artifactId);
+        LibraryVersion fromVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.fromVersion);
+        LibraryVersion toVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.toVersion);
+
+        Set<Long> fromVersionSignatures = new HashSet<>(
+                libraryVersionToSignatureMapper.findById(fromVersion.getId()).getSignatureIdList());
+        Set<Long> toVersionSignatures = new HashSet<>(
+                libraryVersionToSignatureMapper.findById(toVersion.getId()).getSignatureIdList());
+
+        List<Long> addedSignatureIds = toVersionSignatures.stream()
+                .filter(l -> !fromVersionSignatures.contains(l))
+                .collect(Collectors.toList());
+        List<MethodSignature> addedSignatures = mapperUtilService.getMethodSignaturesByIds(addedSignatureIds)
+                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
+        List<Long> removedSignatureIds =  fromVersionSignatures.stream()
+                .filter(l -> !toVersionSignatures.contains(l)).collect(Collectors.toList());
+        List<MethodSignature> removedSignatures = mapperUtilService.getMethodSignaturesByIds(removedSignatureIds)
+                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
+        LOG.info("{} from {} to {}, {} added APIs and {} removed APIs", lib, fromVersion, toVersion,
+                addedSignatures.size(), removedSignatures.size());
+
+        result.addedSignatures = addedSignatures;
+        result.removedSignatures = removedSignatures;
+        return result;
     }
 
     private List<LibraryVersion> readInputCSV(String path) throws IOException {
@@ -150,7 +185,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
                 String versionString = record.get("Version");
 
                 LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
-                if (lib == null || !lib.isParsed()) {
+                if (lib == null || !lib.isVersionExtracted() || !lib.isParsed() || lib.isParseError()) {
                     LOG.error("{}:{} does not exist or is not parsed in our library database!", groupId, artifactId);
                     LOG.info("Trying to download and parse {}:{} before proceeding...", groupId, artifactId);
                     libraryIdentityService.parseGroupArtifact(groupId, artifactId, false);
@@ -205,31 +240,9 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         }
     }
 
-    private void outputChangedAPIs(String outputPath, VersionCandidate candidate) throws IOException {
+    private void outputChangedAPIs(String outputPath, VersionCandidate candidate, APIChanges apiChanges) throws IOException {
         LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(
                 candidate.groupId, candidate.artifactId);
-
-        LibraryVersion fromVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.fromVersion);
-        LibraryVersion toVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.toVersion);
-
-        Set<Long> fromVersionSignatures = new HashSet<>(
-                libraryVersionToSignatureMapper.findById(fromVersion.getId()).getSignatureIdList());
-        Set<Long> toVersionSignatures = new HashSet<>(
-                libraryVersionToSignatureMapper.findById(toVersion.getId()).getSignatureIdList());
-
-        List<Long> addedSignatureIds = toVersionSignatures.stream()
-                .filter(l -> !fromVersionSignatures.contains(l))
-                .collect(Collectors.toList());
-        List<MethodSignature> addedSignatures = mapperUtilService.getMethodSignaturesByIds(addedSignatureIds)
-                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
-        List<Long> removedSignatureIds =  fromVersionSignatures.stream()
-                .filter(l -> !toVersionSignatures.contains(l)).collect(Collectors.toList());
-        List<MethodSignature> removedSignatures = mapperUtilService.getMethodSignaturesByIds(removedSignatureIds)
-                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
-        LOG.info("{} from {} to {}, {} added APIs and {} removed APIs", lib, fromVersion, toVersion,
-                addedSignatures.size(), removedSignatures.size());
-        candidate.addedAPICount = addedSignatures.size();
-        candidate.removedAPICount = removedSignatures.size();
 
         Path path = Paths.get(outputPath, String.format("%s-%s", lib.getGroupId(), lib.getArtifactId()));
         if (!Files.exists(path)) {
@@ -241,11 +254,11 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
             printer.printRecord("signatureId", "changeType", "packageName",
                     "className", "methodName", "paramList");
-            for (MethodSignature ms: addedSignatures) {
+            for (MethodSignature ms: apiChanges.addedSignatures) {
                 printer.printRecord(ms.getId(), "add", ms.getPackageName(),
                         ms.getClassName(), ms.getMethodName(), ms.getParamList());
             }
-            for (MethodSignature ms: removedSignatures) {
+            for (MethodSignature ms: apiChanges.removedSignatures) {
                 printer.printRecord(ms.getId(), "remove", ms.getPackageName(),
                         ms.getClassName(), ms.getMethodName(), ms.getParamList());
             }
