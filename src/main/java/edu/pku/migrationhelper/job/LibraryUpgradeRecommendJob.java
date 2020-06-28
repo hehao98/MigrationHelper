@@ -88,6 +88,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         LOG.info("Reading libraries from {} and saving results to {}", inputCSVPath, outputFolder);
 
         List<LibraryVersion> versions = readInputCSV(inputCSVPath);
+        LOG.info("{}", versions);
 
         List<VersionCandidate> candidates = new ArrayList<>();
         for (LibraryVersion version : versions) {
@@ -130,11 +131,10 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
             }
         }
 
-        outputSummaryCSV(outputFolder, candidates);
-
         for (VersionCandidate candidate : candidates) {
             outputChangedAPIs(outputFolder, candidate);
         }
+        outputSummaryCSV(outputFolder, candidates);
 
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
