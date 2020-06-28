@@ -16,7 +16,7 @@ job=$1
 shift 1
 echo "MigrationHelper: Running Job $job..."
 
-if [ "$1" == "LioJarParseJob" ]; then
+if [ "$job" == "LioJarParseJob" ]; then
   /home/heh/jdk1.8.0_144/bin/java -Xms160g -Xmx160g -XX:+UseG1GC -XX:ParallelGCThreads=8 \
        -XX:ConcGCThreads=4 -XX:MaxGCPauseMillis=600000 -XX:+UnlockExperimentalVMOptions \
        -XX:G1NewSizePercent=20 -XX:G1MaxNewSizePercent=20 \
