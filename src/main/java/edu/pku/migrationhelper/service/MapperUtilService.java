@@ -40,8 +40,10 @@ public class MapperUtilService {
         }
         List<MethodSignature> result = new ArrayList<>();
         for (int i = 0; i < tableCount; ++i) {
+            if (idsByTable.get(i).size() == 0) continue;
             result.addAll(methodSignatureMapper.findByIds(i, idsByTable.get(i)));
         }
+        assert result.size() == signatureIds.size();
         return result;
     }
 }

@@ -88,7 +88,6 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         LOG.info("Reading libraries from {} and saving results to {}", inputCSVPath, outputFolder);
 
         List<LibraryVersion> versions = readInputCSV(inputCSVPath);
-        LOG.info("{}", versions);
 
         List<VersionCandidate> candidates = new ArrayList<>();
         for (LibraryVersion version : versions) {
@@ -104,6 +103,13 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
                             LOG.warn("Illegal version string {}, {}", v, e);
                             LOG.warn("{} will be considered as a candidate", v);
                             return true;
+                        }
+                    })
+                    .filter(v -> {
+                        if (v.isDownloaded() && v.isParsed()) return true;
+                        else {
+                            LOG.info("{}-{} is skipped because it is not downloaded or contain parse error", lib, v);
+                            return false;
                         }
                     })
                     .collect(Collectors.toList());
@@ -153,8 +159,9 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
                 }
 
                 LibraryVersion version = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), versionString);
-                if (version == null) {
-                    LOG.error("{}:{}-{} does not exist in our version database! it will be skipped during recommendation",
+                if (version == null || version.isParseError() || !version.isDownloaded() || !version.isParsed()) {
+                    LOG.error("{}:{}-{} does not exist or contain parse error in our version database! " +
+                                    "it will be skipped during recommendation",
                             groupId, artifactId, versionString);
                     continue;
                 }
@@ -190,7 +197,6 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
             LOG.info("{}-{} has {} different APIs", lib, version, signatureIds.size());
 
             List<MethodSignature> signatures = mapperUtilService.getMethodSignaturesByIds(signatureIds);
-            assert signatures.size() == signatureIds.size();
             signatures.sort(Comparator.comparing(MethodSignature::toString));
             for (MethodSignature ms : signatures) {
                 printer.printRecord(ms.getId(), ms.getPackageName(),
@@ -205,18 +211,21 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
 
         LibraryVersion fromVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.fromVersion);
         LibraryVersion toVersion = libraryVersionMapper.findByGroupArtifactIdAndVersion(lib.getId(), candidate.toVersion);
+
         Set<Long> fromVersionSignatures = new HashSet<>(
                 libraryVersionToSignatureMapper.findById(fromVersion.getId()).getSignatureIdList());
         Set<Long> toVersionSignatures = new HashSet<>(
                 libraryVersionToSignatureMapper.findById(toVersion.getId()).getSignatureIdList());
-        List<MethodSignature> addedSignatures = toVersionSignatures.stream()
+
+        List<Long> addedSignatureIds = toVersionSignatures.stream()
                 .filter(l -> !fromVersionSignatures.contains(l))
-                .map(id -> methodSignatureMapper.findById(MapperUtilService.getMethodSignatureSliceKey(id), id))
-                .sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
-        List<MethodSignature> removedSignatures = fromVersionSignatures.stream()
-                .filter(l -> !toVersionSignatures.contains(l))
-                .map(id -> methodSignatureMapper.findById(MapperUtilService.getMethodSignatureSliceKey(id), id))
-                .sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
+                .collect(Collectors.toList());
+        List<MethodSignature> addedSignatures = mapperUtilService.getMethodSignaturesByIds(addedSignatureIds)
+                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
+        List<Long> removedSignatureIds =  fromVersionSignatures.stream()
+                .filter(l -> !toVersionSignatures.contains(l)).collect(Collectors.toList());
+        List<MethodSignature> removedSignatures = mapperUtilService.getMethodSignaturesByIds(removedSignatureIds)
+                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
         LOG.info("{} from {} to {}, {} added APIs and {} removed APIs", lib, fromVersion, toVersion,
                 addedSignatures.size(), removedSignatures.size());
         candidate.addedAPICount = addedSignatures.size();
