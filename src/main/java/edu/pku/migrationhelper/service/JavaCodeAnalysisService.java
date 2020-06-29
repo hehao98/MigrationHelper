@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import spoon.Launcher;
-import spoon.SpoonException;
-import spoon.compiler.SpoonResource;
 import spoon.reflect.code.*;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtClass;
@@ -17,7 +15,6 @@ import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtPackageReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.support.compiler.FileSystemFile;
-import spoon.support.compiler.VirtualFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
