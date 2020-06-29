@@ -176,7 +176,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
 
     private List<LibraryVersion> readInputCSV(String path) throws IOException {
         List<LibraryVersion> result = new ArrayList<>();
-        try (CSVParser parser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(new FileReader(path))) {
+        try (CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new FileReader(path))) {
             for (CSVRecord record : parser) {
                 String name = record.get("Name");
                 String groupId = name.split(":")[0];
@@ -208,7 +208,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
 
     private void outputSummaryCSV(String outputPath, List<VersionCandidate> candidates) throws IOException {
         Path path = Paths.get(outputPath, "summary.csv");
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.DEFAULT)) {
             printer.printRecord("groupId", "artifactId", "fromVersion", "toVersion", "addedAPIs", "removedAPIs");
             for (VersionCandidate c : candidates) {
                 printer.printRecord(c.groupId, c.artifactId, c.fromVersion, c.toVersion, c.addedAPICount, c.removedAPICount);
@@ -225,7 +225,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         }
         path = Paths.get(path.toString(), String.format("api-%s.csv", version));
 
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.DEFAULT)) {
             printer.printRecord("signatureId", "packageName", "className", "methodName", "paramList");
             List<Long> signatureIds = libraryVersionToSignatureMapper.findById(version.getId()).getSignatureIdList();
             LOG.info("{}-{} has {} different APIs", lib, version, signatureIds.size());
@@ -250,7 +250,7 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         path = Paths.get(path.toString(), String.format("changed-api-%s-%s.csv",
                 candidate.fromVersion, candidate.toVersion));
 
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.EXCEL)) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.DEFAULT)) {
             printer.printRecord("signatureId", "changeType", "packageName",
                     "className", "methodName", "paramList");
             for (MethodSignature ms: apiChanges.addedSignatures) {

@@ -2,10 +2,7 @@ package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.MethodSignature;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
-import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.classfile.Utility;
+import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.Type;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.MemorySensitiveClassPathRepository;

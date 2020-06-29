@@ -43,7 +43,7 @@ public class LibrariesIoImportJob implements CommandLineRunner {
     public void run(String... args) throws Exception {
         LOG.info("start import libraries.io project with repository");
         FileReader fileReader = new FileReader(projectWithRepositoryPath);
-        CSVParser parser = CSVFormat.EXCEL.withFirstRecordAsHeader().parse(fileReader);
+        CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader);
         int insertLimit = 100;
         List<LioProjectWithRepository> results = new ArrayList<>(insertLimit);
         for (CSVRecord record : parser) {

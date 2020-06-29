@@ -28,7 +28,8 @@ public interface LioProjectWithRepositoryMapper {
             "                                             `repository_source_rank` int(11) DEFAULT NULL,\n" +
             "                                             `dependent_projects_count` int(11) DEFAULT NULL,\n" +
             "                                             `dependent_repositories_count` int(11) DEFAULT NULL,\n" +
-            "                                             PRIMARY KEY (`id`)\n" +
+            "                                             PRIMARY KEY (`id`),\n" +
+            "                                             INDEX (`name`)" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;" +
             "</script>")
     void createTable();
@@ -50,6 +51,11 @@ public interface LioProjectWithRepositoryMapper {
             "select * from " + tableName + " where id = #{id}" +
             "</script>")
     LioProjectWithRepository findById(@Param("id") long id);
+
+    @Select("<script>" +
+            "select * from " + tableName + " where name = #{name}" +
+            "</script>")
+    LioProjectWithRepository findByName(@Param("name") String name);
 
     @Select("<script>" +
             "select id from " + tableName + " " +

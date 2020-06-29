@@ -50,11 +50,16 @@ migration-helper:
   libraries-io-import:
     project-with-repository-path: export/LibrariesIOProjectWithRepositories.csv
   lio-jar-parse:
-    limit-count: 100000
+    data-source: all
+    limit-count: 10000
     extract-version-only: false
+    reverse-order: false
+    random-order: false
   library-recommend-job:
     api-support-file: export/APISupport.csv
     dependency-seq-file: export/RepositoryDepSeq.csv
     ground-truth-file: test_data/ground-truth.csv
     # query-file: test_data/test-lib-input.txt
     # output-file: test_data/test-recommend-output.csv
+  evaluation:
+    ground-truth-file: test_data/ground-truth.csv

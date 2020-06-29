@@ -7,6 +7,8 @@ import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.MathUtils;
 import javafx.util.Pair;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,6 +25,7 @@ import tokyocabinet.HDB;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -106,6 +109,7 @@ public class TestJob implements CommandLineRunner {
     }
 
     public void printLibraryDatabaseSummary() {
+        LOG.info("========== Overview ==========");
         List<LibraryGroupArtifact> libs = libraryGroupArtifactMapper.findAll();
         LOG.info("Number of group artifacts: {}", libs.size());
         LOG.info("Number of artifacts that version is extracted: {}",
@@ -128,6 +132,30 @@ public class TestJob implements CommandLineRunner {
 
     public void printLibraryAPISummary(String groupId, String artifactId) {
 
+    }
+
+    public void dumpNewGroundTruth() throws Exception {
+        CSVPrinter printer = new CSVPrinter(new FileWriter("test_data/ground-truth2.csv"), CSVFormat.DEFAULT);
+        BufferedReader reader = new BufferedReader(new FileReader("test_data/ground-truth.csv"));
+        String line = reader.readLine();
+        printer.printRecord("fromLibrary", "toLibrary", "fromGroupArtifacts", "toGroupArtifacts");
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(";");
+            List<Long> fromIds = JsonUtils.readStringAsObject(attrs[2], new TypeReference<List<Long>>() {});
+            List<Long> toIds = JsonUtils.readStringAsObject(attrs[3], new TypeReference<List<Long>>() {});
+            List<String> fromGroupArtifactIds = fromIds.stream()
+                    .map(libraryGroupArtifactMapper::findById)
+                    .map(LibraryGroupArtifact::getGroupArtifactId)
+                    .collect(Collectors.toList());
+            List<String> toGroupArtifactIds = toIds.stream()
+                    .map(libraryGroupArtifactMapper::findById)
+                    .map(LibraryGroupArtifact::getGroupArtifactId)
+                    .collect(Collectors.toList());
+            printer.printRecord(attrs[0], attrs[1], String.join(";", fromGroupArtifactIds), String.join(";", toGroupArtifactIds));
+        }
+        reader.close();
+        printer.flush();
+        printer.close();
     }
 
     public synchronized void buildGroupArtifactCache() {

@@ -215,7 +215,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     }
 
     private void outputCsv(List<LibraryGroupArtifact> queryList, Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result) {
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.EXCEL)) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
             printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "confidence",
                     "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
             for (LibraryGroupArtifact fromLib : queryList) {

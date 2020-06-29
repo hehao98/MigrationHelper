@@ -4,6 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import edu.pku.migrationhelper.data.LioProjectWithRepository;
 import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
+import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LioJarParseJob")
 public class LioJarParseJob implements CommandLineRunner {
 
-    Logger LOG = LoggerFactory.getLogger(getClass());
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private ConfigurableApplicationContext context;
@@ -36,24 +37,34 @@ public class LioJarParseJob implements CommandLineRunner {
     @Qualifier("ThreadPool")
     private ExecutorService executorService;
 
-    @Value("${migration-helper.lio-jar-parse.limit-count}")
-    private int limitCount;
-
-    @Value("${migration-helper.lio-jar-parse.extract-version-only}")
-    @Parameter(names = "--extract-version-only")
-    private boolean extractVersionOnly = false;
-
-    @Parameter(names = "--reverse-order")
-    private boolean reverseOrder = false;
-
-    @Parameter(names = "--random-order")
-    private boolean randomOrder = false;
-
     @Autowired
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
 
     @Autowired
     private LibraryIdentityService libraryIdentityService;
+
+    @Autowired
+    private EvaluationService evaluationService;
+
+    @Value("${migration-helper.lio-jar-parse.data-source}")
+    @Parameter(names = "--data-source")
+    private String dataSource;
+
+    @Value("${migration-helper.lio-jar-parse.limit-count}")
+    @Parameter(names = "--limit")
+    private int limitCount;
+
+    @Value("${migration-helper.lio-jar-parse.extract-version-only}")
+    @Parameter(names = "--extract-version-only")
+    private boolean extractVersionOnly;
+
+    @Value("${migration-helper.lio-jar-parse.reverse-order}")
+    @Parameter(names = "--reverse-order")
+    private boolean reverseOrder;
+
+    @Value("${migration-helper.lio-jar-parse.random-order}")
+    @Parameter(names = "--random-order")
+    private boolean randomOrder;
 
     @Override
     public void run(String ...args) throws Exception {
@@ -62,29 +73,14 @@ public class LioJarParseJob implements CommandLineRunner {
         long memoryInBytes = Runtime.getRuntime().maxMemory();
         LOG.info("Maximum amount of memory to use: {} MB", memoryInBytes / 1024 / 1024);
 
-        Set<Long> idSet = new HashSet<>();
-        List<Long> needParseIds = new LinkedList<>();
-        Iterator<Long>[] idsArray = new Iterator[7];
-        idsArray[0] = lioProjectWithRepositoryMapper.selectIdOrderByDependentProjectsCountLimit(limitCount).iterator();
-        idsArray[1] = lioProjectWithRepositoryMapper.selectIdOrderByDependentRepositoriesCountLimit(limitCount).iterator();
-        idsArray[2] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryForkCountLimit(limitCount).iterator();
-        idsArray[3] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryStarCountLimit(limitCount).iterator();
-        idsArray[4] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryWatchersCountLimit(limitCount).iterator();
-        idsArray[5] = lioProjectWithRepositoryMapper.selectIdOrderBySourceRankLimit(limitCount).iterator();
-        idsArray[6] = lioProjectWithRepositoryMapper.selectIdOrderByRepositorySourceRankLimit(limitCount).iterator();
-        while (true) {
-            boolean remain = false;
-            for (Iterator<Long> longIterator : idsArray) {
-                if (longIterator.hasNext()) {
-                    remain = true;
-                    long id = longIterator.next();
-                    if (!idSet.contains(id)) {
-                        needParseIds.add(id);
-                        idSet.add(id);
-                    }
-                }
-            }
-            if(!remain) break;
+        List<Long> needParseIds = new ArrayList<>();
+        if (dataSource.equals("all")) {
+            needParseIds = evaluationService.getLioProjectIdsByCombinedPopularity(limitCount);
+        } else if (dataSource.equals("ground-truth")) {
+            needParseIds = evaluationService.getLioProjectIdsInGroundTruth();
+        } else {
+            LOG.error("Unknown data source parameter {}, supported: all, ground-truth", dataSource);
+            System.exit(SpringApplication.exit(context, () -> -1));
         }
 
         if (reverseOrder) {
@@ -105,7 +101,7 @@ public class LioJarParseJob implements CommandLineRunner {
         }
         executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
         LOG.info("Finished to parse all libraries");
-        System.exit(SpringApplication.exit(context));
+        System.exit(SpringApplication.exit(context, () -> 0));
     }
 
     private class SingleProjectParse implements Runnable {
@@ -140,9 +136,9 @@ public class LioJarParseJob implements CommandLineRunner {
             try {
                 libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1], extractVersionOnly);
             } catch (Exception e) {
-                LOG.error("parse jar fail, id = " + projectId, e);
+                LOG.error("Parse jar fail, id = {}, library = {}, {}", projectId, name, e);
             }
-            LOG.info("parse job finished jobId = {}, projectId = {}, library = {}", jobId, projectId, name);
+            LOG.info("Parse job finished jobId = {}, projectId = {}, library = {}", jobId, projectId, name);
         }
     }
 }
