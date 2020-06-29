@@ -1,8 +1,18 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.data.LibraryGroupArtifact;
+import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,19 +60,72 @@ public class DependencyChangePatternAnalysisService {
         }
     }
 
-    public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
-            List<List<Long>> depSeqCollection,
-            Set<Long> fromIdLimit,
-            Map<Long, Map<Long, Integer>> methodChangeSupportMap
-    ) {
-        return miningLibraryMigrationCandidate(depSeqCollection, fromIdLimit, methodChangeSupportMap, DefaultMinPatternSupport, DefaultMinMCSupportPercent,null, null);
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Value("${migration-helper.dependency-change-pattern-analysis.method-change-support-file}")
+    private String methodChangeSupportFile;
+
+    @Value("${migration-helper.dependency-change-pattern-analysis.dependency-seq-file}")
+    private String dependencySeqFile;
+
+    private Map<Long, Map<Long, Integer>> methodChangeSupportMap;
+
+    private List<List<Long>> repositoryDepSeq;
+
+    @PostConstruct
+    public void initializeMethodChangeSupportMap() throws Exception {
+        if (!new File(methodChangeSupportFile).isFile()) {
+            LOG.error("Cannot load method change support file, this service will not work properly");
+            return;
+        }
+        LOG.info("initializing method change support map...");
+        BufferedReader reader = new BufferedReader(new FileReader(methodChangeSupportFile));
+        String line = reader.readLine();
+        methodChangeSupportMap = new HashMap<>(100000);
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",");
+            Long fromId = Long.parseLong(attrs[0]);
+            Long toId = Long.parseLong(attrs[1]);
+            Integer counter = Integer.parseInt(attrs[2]);
+            methodChangeSupportMap.computeIfAbsent(fromId, k -> new HashMap<>()).put(toId, counter);
+        }
+        reader.close();
+    }
+
+    @PostConstruct
+    public void buildRepositoryDepSeq() throws Exception {
+        if (!new File(dependencySeqFile).isFile()) {
+            LOG.error("Cannot load dependency sequence file, this service will not work properly");
+            return;
+        }
+        LOG.info("initializing repository dependency sequence...");
+        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
+        String line = reader.readLine();
+        repositoryDepSeq = new LinkedList<>();
+        while((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if(attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            String[] libIds = libIdString.split(";");
+            List<Long> libIdList = new ArrayList<>(libIds.length);
+            for (String libId : libIds) {
+                libIdList.add(Long.parseLong(libId));
+            }
+            repositoryDepSeq.add(libIdList);
+        }
+        reader.close();
+    }
+
+    public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(Set<Long> fromIdLimit) {
+        return miningLibraryMigrationCandidate(fromIdLimit, DefaultMinPatternSupport, DefaultMinMCSupportPercent,null, null);
     }
 
     /**
      * 依赖变更序列挖掘算法，从依赖变更序列中，挖掘库迁移规则
-     * @param depSeqCollection 依赖变更序列的列表，每一个列表项是一个依赖变更序列，序列中正数表示添加该库，负数表示删除该库，0表示分隔两个项集（即两个0之间的添加删除都是在一个Commit内完成的）
      * @param fromIdLimit 挖掘出来的库迁移规则的原库限定范围，null表示不限定
-     * @param methodChangeSupportMap APISupport的映射关系，fromId -> toId -> counter
      * @param minPatternSupport 最小支持度值
      * @param mcSupportLowerBound APISupport指标值中的最小值，范围[0,1]
      * @param repoNameCollection 项目名称列表，长度和顺序与depSeqCollection参数一致，可以为null，填写后可以溯源库迁移规则
@@ -70,9 +133,7 @@ public class DependencyChangePatternAnalysisService {
      * @return 挖掘出来的库迁移规则，Key是原库Id，Value是该原库拥有的所有库迁移规则列表，以推荐顺序排序
      */
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
-            List<List<Long>> depSeqCollection,
             Set<Long> fromIdLimit,
-            Map<Long, Map<Long, Integer>> methodChangeSupportMap,
             int minPatternSupport,
             double mcSupportLowerBound,
             List<String> repoNameCollection,
@@ -82,7 +143,7 @@ public class DependencyChangePatternAnalysisService {
         Map<Long, Map<Long, LibraryMigrationCandidate>> candidateMap = new HashMap<>();
         Iterator<String> repoNameIt = repoNameCollection == null ? null : repoNameCollection.iterator();
         Iterator<List<String>> commitListIt = depSeqCommitsCollection == null ? null : depSeqCommitsCollection.iterator();
-        for (List<Long> depSeq : depSeqCollection) {
+        for (List<Long> depSeq : repositoryDepSeq) {
             String repoName = repoNameIt == null ? null : repoNameIt.next();
 //            System.out.println(repoName);
             List<String> commitList0 = commitListIt == null ? null : commitListIt.next();

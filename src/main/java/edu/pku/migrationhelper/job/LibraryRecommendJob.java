@@ -7,7 +7,6 @@ import edu.pku.migrationhelper.service.EvaluationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -43,12 +42,6 @@ public class LibraryRecommendJob implements CommandLineRunner {
     @Autowired
     private EvaluationService evaluationService;
 
-    @Value("${migration-helper.library-recommend-job.api-support-file}")
-    private String apiSupportFile;
-
-    @Value("${migration-helper.library-recommend-job.dependency-seq-file}")
-    private String dependencySeqFile;
-
     private String queryFile;
 
     private String outputFile;
@@ -64,18 +57,13 @@ public class LibraryRecommendJob implements CommandLineRunner {
         this.outputFile = args[1];
         LOG.info("Read libraries from {} and output results to {}", this.queryFile, this.outputFile);
 
-        LOG.info("Building necessary data...");
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap(apiSupportFile);
-        List<List<Long>> rdsList = buildRepositoryDepSeq(dependencySeqFile);
-
-        List<LibraryGroupArtifact> queryList = readLibraryFromQueryFile(queryFile);
+        List<LibraryGroupArtifact> queryList = readLibraryFromQueryFile();
         Set<Long> fromIdLimit = new HashSet<>();
         queryList.forEach(e -> fromIdLimit.add(e.getId()));
 
         LOG.info("Generating recommendation result...");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, fromIdLimit, methodChangeSupportMap);
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit);
 
         LOG.info("Writing results to csv...");
         outputCsv(queryList, result);
@@ -87,8 +75,8 @@ public class LibraryRecommendJob implements CommandLineRunner {
         System.exit(SpringApplication.exit(context, () -> 0));
     }
 
-    private List<LibraryGroupArtifact> readLibraryFromQueryFile(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+    private List<LibraryGroupArtifact> readLibraryFromQueryFile() throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(queryFile));
         String line;
         List<LibraryGroupArtifact> result = new LinkedList<>();
         while((line = reader.readLine()) != null) {
@@ -104,19 +92,37 @@ public class LibraryRecommendJob implements CommandLineRunner {
         return result;
     }
 
-    private static Map<Long, Map<Long, Integer>> buildMethodChangeSupportMap(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        Map<Long, Map<Long, Integer>> result = new HashMap<>(100000);
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",");
-            Long fromId = Long.parseLong(attrs[0]);
-            Long toId = Long.parseLong(attrs[1]);
-            Integer counter = Integer.parseInt(attrs[2]);
-            result.computeIfAbsent(fromId, k -> new HashMap<>()).put(toId, counter);
+    private void outputCsv(List<LibraryGroupArtifact> queryList, Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
+            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "confidence",
+                    "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
+            for (LibraryGroupArtifact fromLib : queryList) {
+                Long fromId = fromLib.getId();
+                List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
+                        candidateList = result.get(fromId);
+
+                candidateList = candidateList.stream()
+                        .filter(candidate -> {
+                            LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                            return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
+                        }).collect(Collectors.toList());
+
+                if(candidateList.isEmpty()) continue;
+                candidateList = candidateList.stream()
+                        .limit(20)
+                        .collect(Collectors.toList());
+
+                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                    printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
+                            toLib.getGroupArtifactId(), candidate.confidence, candidate.ruleCount,
+                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount, candidate.libraryConcurrenceSupport,
+                            candidate.commitDistance, candidate.methodChangeSupportByMax);
+                }
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        reader.close();
-        return result;
     }
 
     private static List<List<Long>> buildRepositoryDepSeq(String fileName) throws Exception {
@@ -184,38 +190,5 @@ public class LibraryRecommendJob implements CommandLineRunner {
         }
         reader.close();
         return result;
-    }
-
-    private void outputCsv(List<LibraryGroupArtifact> queryList, Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result) {
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
-            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "confidence",
-                    "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
-            for (LibraryGroupArtifact fromLib : queryList) {
-                Long fromId = fromLib.getId();
-                List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
-                        candidateList = result.get(fromId);
-
-                candidateList = candidateList.stream()
-                        .filter(candidate -> {
-                            LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
-                            return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                        }).collect(Collectors.toList());
-
-                if(candidateList.isEmpty()) continue;
-                candidateList = candidateList.stream()
-                        .limit(20)
-                        .collect(Collectors.toList());
-
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
-                    printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
-                            toLib.getGroupArtifactId(), candidate.confidence, candidate.ruleCount,
-                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount, candidate.libraryConcurrenceSupport,
-                            candidate.commitDistance, candidate.methodChangeSupportByMax);
-                }
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 }

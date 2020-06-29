@@ -207,7 +207,7 @@ public class TestJob implements CommandLineRunner {
         List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, groundTruthMap.keySet(), new HashMap<>(), 0, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent, null, null);
+                        groundTruthMap.keySet(), 0, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent, null, null);
         int repoTotal = rdsList.size();
         FileWriter output = new FileWriter("db/RQ0421/RQ1-pomOnly.csv");
         output.write("fromLib,toLib,isTruth,patternSupport,patternSupportP,occurCount,hot,hotRank\n");
@@ -264,8 +264,7 @@ public class TestJob implements CommandLineRunner {
         List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
         Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, groundTruthMap.keySet(), methodChangeSupportMap, DependencyChangePatternAnalysisService.DefaultMinPatternSupport, 0, null, null);
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(groundTruthMap.keySet(), DependencyChangePatternAnalysisService.DefaultMinPatternSupport, 0, null, null);
         FileWriter output = new FileWriter("db/RQ0421/RQ3.csv");
         output.write("fromId,toId,isTruth,APISupport,APIRank0,patternSupport\n");
         for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
@@ -639,8 +638,7 @@ public class TestJob implements CommandLineRunner {
         Set<Long> fromIdLimit = new HashSet<>();
         queryList.forEach(e -> fromIdLimit.add(e.getId()));
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, fromIdLimit, methodChangeSupportMap);
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit);
         FileWriter resultWriter = new FileWriter("db/libs-result.csv");
         result.forEach((fromId, candidateList) -> {
             LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
@@ -682,7 +680,7 @@ public class TestJob implements CommandLineRunner {
         List<String> repoList = buildDepSeqRepoList("db/RepositoryDepSeq-withCommit.csv");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        rdsList, null, methodChangeSupportMap,
+                        null,
                         DependencyChangePatternAnalysisService.DefaultMinPatternSupport, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent,
                         repoList, commitList);
         FileWriter correct = new FileWriter("db/correct-library-migration.csv");

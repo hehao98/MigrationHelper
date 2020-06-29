@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class EvaluationService {
+
     private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private static class GroundTruth {
@@ -55,7 +56,13 @@ public class EvaluationService {
 
     private long getGroupArtifactId(String name) {
         String[] ga = name.split(":");
-        return libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]).getId();
+        LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]);
+        if (lib != null) {
+            return lib.getId();
+        } else {
+            LOG.warn("{} does not exist in database", name);
+            return -1;
+        }
     }
 
     @PostConstruct
