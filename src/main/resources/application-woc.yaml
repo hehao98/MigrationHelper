@@ -59,7 +59,5 @@ migration-helper:
     api-support-file: export/APISupport.csv
     dependency-seq-file: export/RepositoryDepSeq.csv
     ground-truth-file: test_data/ground-truth.csv
-    # query-file: test_data/test-lib-input.txt
-    # output-file: test_data/test-recommend-output.csv
   evaluation:
     ground-truth-file: test_data/ground-truth.csv
