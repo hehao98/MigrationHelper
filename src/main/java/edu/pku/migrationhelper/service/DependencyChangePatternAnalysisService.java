@@ -1,11 +1,8 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.LibraryGroupArtifact;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +75,7 @@ public class DependencyChangePatternAnalysisService {
             LOG.error("Cannot load method change support file, this service will not work properly");
             return;
         }
-        LOG.info("initializing method change support map...");
+        LOG.info("Initializing method change support map...");
         BufferedReader reader = new BufferedReader(new FileReader(methodChangeSupportFile));
         String line = reader.readLine();
         methodChangeSupportMap = new HashMap<>(100000);
@@ -98,7 +95,7 @@ public class DependencyChangePatternAnalysisService {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
             return;
         }
-        LOG.info("initializing repository dependency sequence...");
+        LOG.info("Initializing repository dependency sequence...");
         BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
         String line = reader.readLine();
         repositoryDepSeq = new LinkedList<>();

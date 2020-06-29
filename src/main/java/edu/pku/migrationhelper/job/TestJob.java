@@ -90,7 +90,7 @@ public class TestJob implements CommandLineRunner {
         } catch (NoSuchMethodException e) {
             LOG.error("Method {} does not exist in TestJob!", methodName);
             LOG.info("Please refer to source code to see available methods");
-            System.exit(SpringApplication.exit(context));
+            System.exit(SpringApplication.exit(context, () -> -1));
             return;
         }
 
@@ -99,12 +99,12 @@ public class TestJob implements CommandLineRunner {
             method.invoke(this);
         } catch (IllegalArgumentException e) {
             LOG.error("Method {} has arguments, which is currently not supported, aborting", methodName);
-            System.exit(SpringApplication.exit(context));
+            System.exit(SpringApplication.exit(context, () -> -1));
             return;
         }
 
         LOG.info("Running method {} finish", methodName);
-        System.exit(SpringApplication.exit(context));
+        System.exit(SpringApplication.exit(context, () -> 0));
     }
 
     public void printLibraryDatabaseSummary() {
@@ -129,34 +129,6 @@ public class TestJob implements CommandLineRunner {
                 versions.size(), libCount, downloadCount, parsedCount, parseErrorCount);
     }
 
-    public void printLibraryAPISummary(String groupId, String artifactId) {
-
-    }
-
-    public void dumpNewGroundTruth() throws Exception {
-        CSVPrinter printer = new CSVPrinter(new FileWriter("test_data/ground-truth2.csv"), CSVFormat.DEFAULT);
-        BufferedReader reader = new BufferedReader(new FileReader("test_data/ground-truth.csv"));
-        String line = reader.readLine();
-        printer.printRecord("fromLibrary", "toLibrary", "fromGroupArtifacts", "toGroupArtifacts");
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(";");
-            List<Long> fromIds = JsonUtils.readStringAsObject(attrs[2], new TypeReference<List<Long>>() {});
-            List<Long> toIds = JsonUtils.readStringAsObject(attrs[3], new TypeReference<List<Long>>() {});
-            List<String> fromGroupArtifactIds = fromIds.stream()
-                    .map(libraryGroupArtifactMapper::findById)
-                    .map(LibraryGroupArtifact::getGroupArtifactId)
-                    .collect(Collectors.toList());
-            List<String> toGroupArtifactIds = toIds.stream()
-                    .map(libraryGroupArtifactMapper::findById)
-                    .map(LibraryGroupArtifact::getGroupArtifactId)
-                    .collect(Collectors.toList());
-            printer.printRecord(attrs[0], attrs[1], String.join(";", fromGroupArtifactIds), String.join(";", toGroupArtifactIds));
-        }
-        reader.close();
-        printer.flush();
-        printer.close();
-    }
-
     public synchronized void buildGroupArtifactCache() {
         if(groupArtifactCache != null) return;
         List<LibraryGroupArtifact> list = libraryGroupArtifactMapper.findAll();
@@ -167,40 +139,6 @@ public class TestJob implements CommandLineRunner {
         groupArtifactCache = Collections.unmodifiableMap(map);
     }
 
-    public void play() throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("db/rules-2014-artifactList.csv"));
-        FileWriter writer = new FileWriter("db/r.csv");
-        String line = reader.readLine();
-        writer.write(line);
-        writer.write("\n");
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            for (int i = 0; i < attrs.length; i++) {
-                if(i != 1 && i != 3) continue;
-                if(!"".equals(attrs[i])) {
-                    String[] ids = attrs[i].split(";");
-                    StringBuilder sb = new StringBuilder();
-                    for (String id : ids) {
-                        LibraryGroupArtifact ga = libraryGroupArtifactMapper.findById(Long.parseLong(id));
-                        sb.append(ga.getGroupId()).append(":").append(ga.getArtifactId()).append(";");
-                    }
-                    sb.deleteCharAt(sb.length() - 1);
-                    attrs[i+1] = sb.toString();
-                } else {
-                    attrs[i+1] = "";
-                }
-            }
-            for (int i = 0; i < attrs.length; i++) {
-                writer.write(attrs[i]);
-                if(i == attrs.length - 1) {
-                    writer.write("\n");
-                }else {
-                    writer.write(",");
-                }
-            }
-        }
-        writer.close();
-    }
 // TODO 仅保留包含truth的样例来作图，否则图像会被大量未知真假的点扭曲
     public void runRQ1() throws Exception {
         Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
@@ -628,47 +566,6 @@ public class TestJob implements CommandLineRunner {
             result.addAll(libraryGroupArtifactMapper.findByArtifactId(line));
         }
         return result;
-    }
-
-    public void miningLibrariesSave2File() throws Exception {
-        buildGroupArtifactCache();
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-withCommit.csv");
-        List<LibraryGroupArtifact> queryList = readLibraryFromArtifactIdFile("db/libs.txt");
-        Set<Long> fromIdLimit = new HashSet<>();
-        queryList.forEach(e -> fromIdLimit.add(e.getId()));
-        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit);
-        FileWriter resultWriter = new FileWriter("db/libs-result.csv");
-        result.forEach((fromId, candidateList) -> {
-            LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
-            candidateList = candidateList.stream()
-                    .filter(candidate -> {
-                        LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                        return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                    }).collect(Collectors.toList());
-            if(candidateList.isEmpty()) return;
-            candidateList = candidateList.stream()
-                    .limit(20)
-                    .collect(Collectors.toList());
-            try {
-                resultWriter.write(fromLib.getGroupId());
-                resultWriter.write(":");
-                resultWriter.write(fromLib.getArtifactId());
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                    resultWriter.write(",");
-                    resultWriter.write(toLib.getGroupId());
-                    resultWriter.write(":");
-                    resultWriter.write(toLib.getArtifactId());
-                }
-                resultWriter.write("\n");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        resultWriter.close();
-        LOG.info("Success");
     }
 
     public void migrationRulesSave2File() throws Exception {

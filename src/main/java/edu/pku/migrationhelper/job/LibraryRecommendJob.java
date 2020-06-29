@@ -69,7 +69,8 @@ public class LibraryRecommendJob implements CommandLineRunner {
         outputCsv(queryList, result);
 
         LOG.info("Doing evaluation...");
-        evaluationService.evaluate(result);
+        EvaluationService.EvaluationResult evaluationResult = evaluationService.evaluate(result, 10);
+        evaluationService.printEvaluationResult(evaluationResult, System.out);
 
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
