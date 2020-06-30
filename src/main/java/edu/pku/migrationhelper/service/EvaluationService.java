@@ -76,6 +76,7 @@ public class EvaluationService {
 
     @PostConstruct
     public void initializeGroundTruth() throws IOException {
+        LOG.info("Initializing ground truth...");
         groundTruths = new ArrayList<>();
         try (CSVParser parser = CSVFormat.DEFAULT.withHeader().parse(new FileReader(groundTruthFile))) {
             for (CSVRecord record : parser) {
@@ -107,6 +108,7 @@ public class EvaluationService {
 
     @PostConstruct
     public synchronized void initializeGroupArtifactCache() {
+        LOG.info("Initializing group artifact cache...");
         List<LibraryGroupArtifact> list = libraryGroupArtifactMapper.findAll();
         Map<Long, LibraryGroupArtifact> map = new HashMap<>(list.size() * 2);
         for (LibraryGroupArtifact groupArtifact : list) {

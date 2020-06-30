@@ -37,6 +37,8 @@ public class JarAnalysisService {
                 JarEntry entry = e.nextElement();
                 String entryName = entry.getName();
                 if(entryName.endsWith(".class")) {
+                    //LOG.info(entryName);
+                    if (entryName.contains("module-info")) continue;
                     ClassParser classParser = new ClassParser(jarFile.getInputStream(entry), entryName);
                     JavaClass clz = classParser.parse();
                     repository.storeClass(clz);
@@ -47,7 +49,7 @@ public class JarAnalysisService {
                 analyzeClass(clz, repository, result);
             }
         } catch (Exception e) {
-            LOG.error("analyzeJar fail filePath = {}", filePath);
+            LOG.error("analyzeJar fail filePath = {}, {}", filePath, e);
             throw e;
         } finally {
             if(repository != null) {

@@ -1,8 +1,5 @@
 package service;
 
-import edu.pku.migrationhelper.data.LibraryGroupArtifact;
-import edu.pku.migrationhelper.data.MethodSignature;
-import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import org.junit.jupiter.api.Test;
 
@@ -10,23 +7,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class LibraryIdentityServiceTest {
-
-    @Test
-    void testAnalyzeJar() throws Exception {
-        JarAnalysisService jas = new JarAnalysisService();
-        List<MethodSignature> result = new LinkedList<>();
-        String jarFilePath = getClass().getClassLoader().getResource("jars/gson-2.8.6.jar").getPath();
-        jas.analyzeJar(jarFilePath, result);
-        // System.out.println(result);
-        assertTrue(result.size() > 0);
-    }
 
     @Test // Well, this test is a little bit slow...
     void testDownloadLibraryFromMaven() throws Exception {
