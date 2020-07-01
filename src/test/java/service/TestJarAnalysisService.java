@@ -24,6 +24,7 @@ public class TestJarAnalysisService {
 
         List<String> packages = MethodSignature.getPackages(result);
         System.out.println(packages);
+        // System.out.println(result);
         assertTrue(packages.contains("com.google.gson"));
     }
 

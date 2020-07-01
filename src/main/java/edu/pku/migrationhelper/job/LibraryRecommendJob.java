@@ -68,6 +68,8 @@ public class LibraryRecommendJob implements CommandLineRunner {
         LOG.info("Doing evaluation...");
         EvaluationService.EvaluationResult evaluationResult = evaluationService.evaluate(result, 10);
         evaluationService.printEvaluationResult(evaluationResult, System.out);
+        LOG.info("Running RQ1...");
+        evaluationService.runRQ1(result);
 
         LOG.info("Writing results to csv...");
         outputCsv(queryList, result, evaluationResult);

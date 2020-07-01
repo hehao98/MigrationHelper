@@ -103,6 +103,9 @@ public class EvaluationService {
             for (Long fromId : gt.fromGroupArtifactIds) {
                 groundTruthMap.computeIfAbsent(fromId, k -> new HashSet<>()).addAll(gt.toGroupArtifactIds);
             }
+            for (Long toId : gt.toGroupArtifactIds) {
+                groundTruthMap.computeIfAbsent(toId, k -> new HashSet<>()).addAll(gt.fromGroupArtifactIds);
+            }
         }
     }
 
@@ -182,8 +185,9 @@ public class EvaluationService {
                             }
                             precision[k - 1] = correct / (double) k;
                             // This recall calculation is outrageous and probably problematic...
-                            // recall[k - 1] = correct / (double) thisTruth.size();
-                            recall[k - 1] = correct / (double) groundTruth.size();
+                            recall[k - 1] = correct / (double) thisTruth.size();
+                            // This will make the recall result very low..
+                            // recall[k - 1] = correct / (double) groundTruth.size();
                         }
                     }
                     ret.precisionMap.put(fromId, precision);
@@ -221,6 +225,90 @@ public class EvaluationService {
                     k, result.topKPrecision[k - 1], result.topKRecall[k - 1], result.topKFMeasure[k - 1]);
         }
     }
+
+    // TODO 仅保留包含truth的样例来作图，否则图像会被大量未知真假的点扭曲
+    public void runRQ1(
+            Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result
+    ) throws IOException {
+        FileWriter output = new FileWriter("pic/RQ1-pomOnly.csv");
+        output.write("fromLib,toLib,isTruth,patternSupport,patternSupportP,occurCount,hot,hotRank\n");
+        Set<String> missing = new HashSet<>();
+        for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
+            for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                if (groundTruthMap.get(candidate.fromId) == null) {
+                    missing.add(groupArtifactCache.get(candidate.fromId).toString());
+                    continue;
+                }
+                output.write(candidate.fromId + "," + candidate.toId + "," +
+                        groundTruthMap.get(candidate.fromId).contains(candidate.toId) + "," +
+                        candidate.ruleCount + "," +candidate.ruleSupportByMax + "," +
+                        candidate.libraryConcurrenceCount + "," + candidate.libraryConcurrenceSupport + "," +
+                        (candidate.ruleSupportByMax * candidate.libraryConcurrenceSupport) + "\n"
+                );
+            }
+        }
+        output.close();
+        LOG.info("The following libraries are skipped because they are not in ground truth: {}", missing);
+        LOG.info("Run RQ1 Success");
+    }
+
+    /*public void runRQ2() throws Exception {
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
+        FileWriter truthPercent = new FileWriter("db/RQ0421/RQ2-truth-percent.csv");
+        FileWriter truthPosition = new FileWriter("db/RQ0421/RQ2-truth-position.csv");
+        truthPercent.write("fromId,truthCount,totalCount,percent\n");
+        truthPosition.write("fromId,toId,isTruth,distance,total\n");
+        for (List<Long> depSeq : rdsList) {
+            depSeq = dependencyChangePatternAnalysisService.simplifyLibIdList(depSeq, null, null);
+            List<DependencyChangePatternAnalysisService.LibraryMigrationPattern> patternList =
+                    dependencyChangePatternAnalysisService.miningSingleDepSeq(depSeq, groundTruthMap.keySet(), null);
+            for (DependencyChangePatternAnalysisService.LibraryMigrationPattern pattern : patternList) {
+                int pos = 1;
+                Set<Long> truth = groundTruthMap.get(pattern.fromId);
+                int truthCount = 0;
+                int totalCount = pattern.toIdList.size();
+                for (Long toId : pattern.toIdList) {
+                    boolean isTruth = false;
+                    if(truth.contains(toId)) {
+                        isTruth = true;
+                        truthCount++;
+                    }
+                    truthPosition.write(pattern.fromId+","+toId+","+isTruth+","+pos+","+totalCount+"\n");
+                    ++pos;
+                }
+                double p = truthCount / (double) totalCount;
+                truthPercent.write(pattern.fromId+","+truthCount+","+totalCount+","+p+"\n");
+            }
+        }
+        truthPercent.close();
+        truthPosition.close();
+        LOG.info("Success");
+    }
+
+    public void runRQ3() throws Exception {
+        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
+        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
+        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
+        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(groundTruthMap.keySet(), DependencyChangePatternAnalysisService.DefaultMinPatternSupport, 0, null, null);
+        FileWriter output = new FileWriter("db/RQ0421/RQ3.csv");
+        output.write("fromId,toId,isTruth,APISupport,APIRank0,patternSupport\n");
+        for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
+            boolean containsTruth = false;
+            for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                containsTruth = groundTruthMap.get(candidate.fromId).contains(candidate.toId);
+                if(containsTruth) break;
+            }
+            if(!containsTruth) continue;
+            for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                boolean isTruth = groundTruthMap.get(candidate.fromId).contains(candidate.toId);
+                output.write(candidate.fromId+","+candidate.toId+","+isTruth+","+candidate.methodChangeCount +","+candidate.methodChangeSupportByMax +","+candidate.ruleCount +"\n");
+            }
+        }
+        output.close();
+        LOG.info("Success");
+    }*/
 
     public List<Long> getLioProjectIdsInGroundTruth() {
         Set<Long> result = new HashSet<>();
