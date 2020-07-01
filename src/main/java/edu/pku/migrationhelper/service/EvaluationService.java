@@ -27,13 +27,14 @@ import java.util.stream.Collectors;
 public class EvaluationService {
 
     public static class EvaluationResult {
-        int rulesEvaluated;
-        int maxK;
+        public int rulesEvaluated;
+        public int maxK;
         public double[] topKPrecision;    // [i] means top-(i+1) precision
         public double[] topKRecall;       // [i] means top-(i+1) recall
         public double[] topKFMeasure;     // [i] means top-(i+1) f-measure
-        Map<Long, double[]> precisionMap; // precision of individual libraries, indexed by GroupArtifactId
-        Map<Long, double[]> recallMap;    // recall of individual libraries, indexed by GroupArtifactId
+        public Map<Long, double[]> precisionMap; // precision of individual libraries, indexed by GroupArtifactId
+        public Map<Long, double[]> recallMap;    // recall of individual libraries, indexed by GroupArtifactId
+        public Map<Long, Map<Long, Boolean>> correctnessMap; // fromId -> toId -> whether it is in ground truth
     }
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -75,6 +76,7 @@ public class EvaluationService {
 
     @PostConstruct
     public void initializeGroundTruth() throws IOException {
+        LOG.info("Initializing ground truth...");
         groundTruths = new ArrayList<>();
         try (CSVParser parser = CSVFormat.DEFAULT.withHeader().parse(new FileReader(groundTruthFile))) {
             for (CSVRecord record : parser) {
@@ -106,6 +108,7 @@ public class EvaluationService {
 
     @PostConstruct
     public synchronized void initializeGroupArtifactCache() {
+        LOG.info("Initializing group artifact cache...");
         List<LibraryGroupArtifact> list = libraryGroupArtifactMapper.findAll();
         Map<Long, LibraryGroupArtifact> map = new HashMap<>(list.size() * 2);
         for (LibraryGroupArtifact groupArtifact : list) {
@@ -127,6 +130,7 @@ public class EvaluationService {
         EvaluationResult ret = new EvaluationResult();
         ret.precisionMap = new HashMap<>();
         ret.recallMap = new HashMap<>();
+        ret.correctnessMap = new HashMap<>();
         ret.rulesEvaluated = 0;
         ret.maxK = maxK;
 
@@ -141,7 +145,14 @@ public class EvaluationService {
                                 LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
                                 return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
                             }).collect(Collectors.toList());
+
                     if (candidateList.isEmpty()) return;
+
+                    for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                        ret.correctnessMap.computeIfAbsent(candidate.fromId, k -> new HashMap<>());
+                        ret.correctnessMap.get(candidate.fromId).put(candidate.toId, false);
+                    }
+
                     Set<Long> groundTruth = groundTruthMap.get(fromId);
                     if (groundTruth == null) return;
                     ret.rulesEvaluated += candidateList.size();
@@ -149,6 +160,7 @@ public class EvaluationService {
                     for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                         if (groundTruth.contains(candidate.toId)) {
                             thisTruth.add(candidate.toId);
+                            ret.correctnessMap.get(candidate.fromId).put(candidate.toId, true);
                         }
                     }
                     if (thisTruth.isEmpty()) return;

@@ -2,8 +2,20 @@ package edu.pku.migrationhelper.data;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MethodSignature {
+
+    public static List<String> getPackages(List<MethodSignature> methodSignatures) {
+        return methodSignatures.stream().
+                map(MethodSignature::getPackageName).distinct().collect(Collectors.toList());
+    }
+
+    public static List<String> getClasses(List<MethodSignature> methodSignatures) {
+        return methodSignatures.stream()
+                .map(ms -> ms.getPackageName() + "." + ms.getClassName())
+                .distinct().collect(Collectors.toList());
+    }
 
     private long id;
 

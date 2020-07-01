@@ -65,12 +65,12 @@ public class LibraryRecommendJob implements CommandLineRunner {
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
                 dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit);
 
-        LOG.info("Writing results to csv...");
-        outputCsv(queryList, result);
-
         LOG.info("Doing evaluation...");
         EvaluationService.EvaluationResult evaluationResult = evaluationService.evaluate(result, 10);
         evaluationService.printEvaluationResult(evaluationResult, System.out);
+
+        LOG.info("Writing results to csv...");
+        outputCsv(queryList, result, evaluationResult);
 
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
@@ -93,14 +93,18 @@ public class LibraryRecommendJob implements CommandLineRunner {
         return result;
     }
 
-    private void outputCsv(List<LibraryGroupArtifact> queryList, Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result) {
+    private void outputCsv(
+            List<LibraryGroupArtifact> queryList,
+            Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> recommendationResult,
+            EvaluationService.EvaluationResult evaluationResult
+    ) {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
-            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "confidence",
+            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "isCorrect", "confidence",
                     "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
             for (LibraryGroupArtifact fromLib : queryList) {
                 Long fromId = fromLib.getId();
                 List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
-                        candidateList = result.get(fromId);
+                        candidateList = recommendationResult.get(fromId);
 
                 candidateList = candidateList.stream()
                         .filter(candidate -> {
@@ -115,9 +119,12 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
                 for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                     LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
-                    printer.printRecord(fromId, candidate.toId, fromLib.getGroupArtifactId(),
-                            toLib.getGroupArtifactId(), candidate.confidence, candidate.ruleCount,
-                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount, candidate.libraryConcurrenceSupport,
+                    printer.printRecord(fromId, candidate.toId,
+                            fromLib.getGroupArtifactId(), toLib.getGroupArtifactId(),
+                            evaluationResult.correctnessMap.get(fromId).get(candidate.toId),
+                            candidate.confidence, candidate.ruleCount,
+                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount,
+                            candidate.libraryConcurrenceSupport,
                             candidate.commitDistance, candidate.methodChangeSupportByMax);
                 }
             }
