@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,8 +70,12 @@ public class DependencyChangePatternAnalysisService {
 
     private List<List<Long>> repositoryDepSeq;
 
+    private List<List<String>> depSeqCommitList;
+
+    private List<String> depSeqRepoList;
+
     @PostConstruct
-    public void initializeMethodChangeSupportMap() throws Exception {
+    public void initializeMethodChangeSupportMap() throws IOException {
         if (!new File(methodChangeSupportFile).isFile()) {
             LOG.error("Cannot load method change support file, this service will not work properly");
             return;
@@ -90,7 +95,7 @@ public class DependencyChangePatternAnalysisService {
     }
 
     @PostConstruct
-    public void buildRepositoryDepSeq() throws Exception {
+    public void initializeRepositoryDepSeq() throws IOException {
         if (!new File(dependencySeqFile).isFile()) {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
             return;
@@ -99,7 +104,7 @@ public class DependencyChangePatternAnalysisService {
         BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
         String line = reader.readLine();
         repositoryDepSeq = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
+        while ((line = reader.readLine()) != null) {
             String[] attrs = line.split(",", -1);
             if(attrs.length < 3) {
                 System.out.println(line);
@@ -116,8 +121,59 @@ public class DependencyChangePatternAnalysisService {
         reader.close();
     }
 
-    public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(Set<Long> fromIdLimit) {
-        return miningLibraryMigrationCandidate(fromIdLimit, DefaultMinPatternSupport, DefaultMinMCSupportPercent,null, null);
+    @PostConstruct
+    public void initializeDepSeqCommitList() throws IOException {
+        if (!new File(dependencySeqFile).isFile()) {
+            LOG.error("Cannot load dependency sequence file, this service will not work properly");
+            return;
+        }
+        LOG.info("Initializing repository dependency sequence commit list...");
+        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
+        String line = reader.readLine();
+        depSeqCommitList = new LinkedList<>();
+        while ((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if (attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            String commitListString = attrs[7];
+            int len = commitListString.length();
+            int commitCount = len / 40;
+            List<String> commitList = new ArrayList<>(commitCount);
+            for (int i = 0; i < commitCount; i++) {
+                commitList.add(commitListString.substring(i * 40, i * 40 + 40));
+            }
+            depSeqCommitList.add(commitList);
+        }
+        reader.close();
+    }
+
+    @PostConstruct
+    public void initializeDepSeqRepoList() throws IOException {
+        if (!new File(dependencySeqFile).isFile()) {
+            LOG.error("Cannot load dependency sequence file, this service will not work properly");
+            return;
+        }
+        LOG.info("Initializing repository dependency sequence repository list...");
+        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
+        String line = reader.readLine();
+        depSeqRepoList = new LinkedList<>();
+        while ((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if(attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            depSeqRepoList.add(attrs[1]);
+        }
+        reader.close();
+    }
+
+    public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(Set<Long> fromIdLimit, boolean outputRepoCommit) {
+        return miningLibraryMigrationCandidate(fromIdLimit, DefaultMinPatternSupport, DefaultMinMCSupportPercent,true, true);
     }
 
     /**
@@ -125,21 +181,21 @@ public class DependencyChangePatternAnalysisService {
      * @param fromIdLimit 挖掘出来的库迁移规则的原库限定范围，null表示不限定
      * @param minPatternSupport 最小支持度值
      * @param mcSupportLowerBound APISupport指标值中的最小值，范围[0,1]
-     * @param repoNameCollection 项目名称列表，长度和顺序与depSeqCollection参数一致，可以为null，填写后可以溯源库迁移规则
-     * @param depSeqCommitsCollection Commit来源列表，长度和顺序与depSeqCollection参数一致，且内部列表的长度和顺序与depSeqCollection的内部列表一致，可以为null，填写后可以溯源库迁移规则
+     * @param returnRepoName if true, fill in positionList and repoCommitList in returned list
+     * @param returnCommits if true, fill in positionList and repoCommitList in returned list
      * @return 挖掘出来的库迁移规则，Key是原库Id，Value是该原库拥有的所有库迁移规则列表，以推荐顺序排序
      */
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
             Set<Long> fromIdLimit,
             int minPatternSupport,
             double mcSupportLowerBound,
-            List<String> repoNameCollection,
-            List<List<String>> depSeqCommitsCollection
+            boolean returnRepoName, // List<String> repoNameCollection,
+            boolean returnCommits // List<List<String>> depSeqCommitsCollection
     ) {
         Map<Long, Map<Long, Integer>> occurCounter = new HashMap<>();
         Map<Long, Map<Long, LibraryMigrationCandidate>> candidateMap = new HashMap<>();
-        Iterator<String> repoNameIt = repoNameCollection == null ? null : repoNameCollection.iterator();
-        Iterator<List<String>> commitListIt = depSeqCommitsCollection == null ? null : depSeqCommitsCollection.iterator();
+        Iterator<String> repoNameIt = returnRepoName ? depSeqRepoList.iterator() : null;
+        Iterator<List<String>> commitListIt = returnCommits ? depSeqCommitList.iterator() : null;
         for (List<Long> depSeq : repositoryDepSeq) {
             String repoName = repoNameIt == null ? null : repoNameIt.next();
 //            System.out.println(repoName);

@@ -1,5 +1,8 @@
 package edu.pku.migrationhelper.job;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import edu.pku.migrationhelper.data.LibraryGroupArtifact;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.service.DependencyChangePatternAnalysisService;
@@ -42,20 +45,29 @@ public class LibraryRecommendJob implements CommandLineRunner {
     @Autowired
     private EvaluationService evaluationService;
 
-    private String queryFile;
+    @Parameter(names = {"-q", "--query-file"}, required = true)
+    public String queryFile;
 
-    private String outputFile;
+    @Parameter(names = {"-o", "--output-file",}, required = true)
+    public String outputFile;
+
+    @Parameter(names = {"-e", "--evaluate"})
+    public boolean evaluate = false;
+
+    @Parameter(names = {"-r", "--output-repo-commit"})
+    public boolean outputRepoCommit = false;
 
     @Override
     public void run(String... args) throws Exception {
-        if (args.length < 2) {
-            LOG.info("Usage: LibraryRecommendJob <Query File> <Output File>");
+        JCommander parser = JCommander.newBuilder().addObject(this).build();
+        try {
+            parser.parse(args);
+        } catch (ParameterException e) {
+            parser.usage();
             System.exit(SpringApplication.exit(context, () -> -1));
         }
-
-        this.queryFile = args[0];
-        this.outputFile = args[1];
-        LOG.info("Read libraries from {} and output results to {}", this.queryFile, this.outputFile);
+        LOG.info("Read libraries from {} and output results to {}, evaluate = {}, outputRepoCommit = {}",
+                queryFile, outputFile, evaluate, outputRepoCommit);
 
         List<LibraryGroupArtifact> queryList = readLibraryFromQueryFile();
         Set<Long> fromIdLimit = new HashSet<>();
@@ -63,20 +75,24 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
         LOG.info("Generating recommendation result...");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit);
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit, outputRepoCommit);
 
-        LOG.info("Doing evaluation...");
-        EvaluationService.EvaluationResult evaluationResult = evaluationService.evaluate(result, 10);
-        evaluationService.printEvaluationResult(evaluationResult, System.out);
-        LOG.info("Running RQ1...");
-        evaluationService.runRQ1(result);
-        LOG.info("Running RQ2...");
-        evaluationService.runRQ2();
-        LOG.info("Running RQ3...");
-        evaluationService.runRQ3(result);
+        EvaluationService.EvaluationResult evaluationResult = null;
+        if (evaluate) {
+            LOG.info("Doing evaluation...");
+            evaluationResult = evaluationService.evaluate(result, 10);
+            evaluationService.printEvaluationResult(evaluationResult, System.out);
+            LOG.info("Running RQ1...");
+            evaluationService.runRQ1(result);
+            LOG.info("Running RQ2...");
+            evaluationService.runRQ2();
+            LOG.info("Running RQ3...");
+            evaluationService.runRQ3(result);
+        }
 
         LOG.info("Writing results to csv...");
         outputCsv(queryList, result, evaluationResult);
+        if (outputRepoCommit) outputRelatedRepoAndCommit(result);
 
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
@@ -86,7 +102,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
         BufferedReader reader = new BufferedReader(new FileReader(queryFile));
         String line;
         List<LibraryGroupArtifact> result = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
+        while ((line = reader.readLine()) != null) {
             String[] ga = line.split(":");
             LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]);
             if(groupArtifact == null) {
@@ -125,9 +141,11 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
                 for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                     LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                    String isCorrect = evaluationResult == null ?
+                            "unknown" : evaluationResult.correctnessMap.get(fromId).get(candidate.toId).toString();
                     printer.printRecord(fromId, candidate.toId,
                             fromLib.getGroupArtifactId(), toLib.getGroupArtifactId(),
-                            evaluationResult.correctnessMap.get(fromId).get(candidate.toId),
+                            isCorrect,
                             candidate.confidence, candidate.ruleCount,
                             candidate.ruleSupportByMax, candidate.libraryConcurrenceCount,
                             candidate.libraryConcurrenceSupport,
@@ -139,70 +157,60 @@ public class LibraryRecommendJob implements CommandLineRunner {
         }
     }
 
-    private static List<List<Long>> buildRepositoryDepSeq(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        List<List<Long>> result = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
+    private void outputRelatedRepoAndCommit(
+            Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result
+    ) throws IOException {
+        FileWriter correct = new FileWriter("export/CorrectLibraryMigration.csv");
+        FileWriter unknown = new FileWriter("export/UnknownLibraryMigration.csv");
+        result.forEach((fromId, candidateList) -> {
+            LibraryGroupArtifact fromLib = libraryGroupArtifactMapper.findById(fromId);
+            candidateList = candidateList.stream()
+                    .filter(candidate -> {
+                        LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                        return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
+                    }).collect(Collectors.toList());
+            if (candidateList.isEmpty()) return;
+            boolean isTruth;
+            if (evaluationService.getGroundTruthMap().containsKey(fromId)) {
+                isTruth = true;
+                Set<Long> thisTruth = evaluationService.getGroundTruthMap().get(fromId);
+                candidateList = candidateList.stream()
+                        .filter(candidate -> thisTruth.contains(candidate.toId))
+                        .limit(20)
+                        .collect(Collectors.toList());
+            } else {
+                isTruth = false;
+                candidateList = candidateList.stream()
+                        .limit(20)
+                        .collect(Collectors.toList());
             }
-            String libIdString = attrs[2]; // pomOnly
-//            String libIdString = attrs[3]; // codeWithDup
-//            String libIdString = attrs[4]; // codeWithoutDup
-//            String libIdString = attrs[5]; // pomWithCodeDel
-//            String libIdString = attrs[6]; // pomWithCodeAdd
-            if ("".equals(libIdString)) continue;
-            String[] libIds = libIdString.split(";");
-            List<Long> libIdList = new ArrayList<>(libIds.length);
-            for (String libId : libIds) {
-                libIdList.add(Long.parseLong(libId));
+            if (candidateList.isEmpty()) return;
+            FileWriter writer = isTruth ? correct : unknown;
+            try {
+                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    writer.write(fromLib.getGroupId());
+                    writer.write(":");
+                    writer.write(fromLib.getArtifactId());
+                    LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                    writer.write(",");
+                    writer.write(toLib.getGroupId());
+                    writer.write(":");
+                    writer.write(toLib.getArtifactId());
+                    for (String[] repoCommit : candidate.repoCommitList) {
+                        writer.write(",");
+                        writer.write(repoCommit[0]);
+                        writer.write(";");
+                        writer.write(repoCommit[1]);
+                        writer.write(";");
+                        writer.write(repoCommit[2]);
+                    }
+                    writer.write("\n");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            result.add(libIdList);
-        }
-        reader.close();
-        return result;
-    }
-
-    public static List<List<String>> buildDepSeqCommitList(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        List<List<String>> result = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            String commitListString = attrs[7];
-            int len = commitListString.length();
-            int commitCount = len / 40;
-            List<String> commitList = new ArrayList<>(commitCount);
-            for (int i = 0; i < commitCount; i++) {
-                commitList.add(commitListString.substring(i * 40, i * 40 + 40));
-            }
-            result.add(commitList);
-        }
-        reader.close();
-        return result;
-    }
-
-    public static List<String> buildDepSeqRepoList(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        List<String> result = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            result.add(attrs[1]);
-        }
-        reader.close();
-        return result;
+        });
+        correct.close();
+        unknown.close();
     }
 }

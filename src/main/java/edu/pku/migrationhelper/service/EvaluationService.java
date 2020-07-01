@@ -308,6 +308,10 @@ public class EvaluationService {
         LOG.info("Success");
     }
 
+    public Map<Long, Set<Long>> getGroundTruthMap() {
+        return groundTruthMap;
+    }
+
     public List<Long> getLioProjectIdsInGroundTruth() {
         Set<Long> result = new HashSet<>();
         for (GroundTruth gt : groundTruths) {

@@ -17,6 +17,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ import java.util.*;
 @ConfigurationProperties(prefix = "migration-helper.library-identity")
 public class LibraryIdentityService {
 
-    Logger LOG = LoggerFactory.getLogger(getClass());
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
     private final HttpClient httpClient = HttpClients.custom()
             .setMaxConnPerRoute(1000)
@@ -59,27 +60,11 @@ public class LibraryIdentityService {
     @Autowired
     private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
 
+    @Value("${migration-helper.library-identity.maven-url-base}")
     private String mavenUrlBase;
 
+    @Value("${migration-helper.library-identity.download-path}")
     private String downloadPath;
-
-    public String getMavenUrlBase() {
-        return mavenUrlBase;
-    }
-
-    public LibraryIdentityService setMavenUrlBase(String mavenUrlBase) {
-        this.mavenUrlBase = mavenUrlBase;
-        return this;
-    }
-
-    public String getDownloadPath() {
-        return downloadPath;
-    }
-
-    public LibraryIdentityService setDownloadPath(String downloadPath) {
-        this.downloadPath = downloadPath;
-        return this;
-    }
 
     private final Timer httpTimer = new Timer("library-identity-http-timer");
 

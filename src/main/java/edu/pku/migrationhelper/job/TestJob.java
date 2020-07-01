@@ -129,32 +129,6 @@ public class TestJob implements CommandLineRunner {
                 versions.size(), libCount, downloadCount, parsedCount, parseErrorCount);
     }
 
-    public synchronized void buildGroupArtifactCache() {
-        if(groupArtifactCache != null) return;
-        List<LibraryGroupArtifact> list = libraryGroupArtifactMapper.findAll();
-        Map<Long, LibraryGroupArtifact> map = new HashMap<>(list.size() * 2);
-        for (LibraryGroupArtifact groupArtifact : list) {
-            map.put(groupArtifact.getId(), groupArtifact);
-        }
-        groupArtifactCache = Collections.unmodifiableMap(map);
-    }
-
-
-
-    public Map<Long, Map<Long, Integer>> buildMethodChangeSupportMap(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        Map<Long, Map<Long, Integer>> result = new HashMap<>(100000);
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",");
-            Long fromId = Long.parseLong(attrs[0]);
-            Long toId = Long.parseLong(attrs[1]);
-            Integer counter = Integer.parseInt(attrs[2]);
-            result.computeIfAbsent(fromId, k -> new HashMap<>()).put(toId, counter);
-        }
-        return result;
-    }
-
     public void calcGAChangeInMethodChange() throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader("db/MethodChangeDetail-all.csv"));
         String line = reader.readLine();
@@ -356,22 +330,6 @@ public class TestJob implements CommandLineRunner {
         return res;
     }
 
-    private Map<Long, Set<Long>> buildGroundTruthMap(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        Map<Long, Set<Long>> result = new HashMap<>();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(";");
-            List<Long> fromIds = JsonUtils.readStringAsObject(attrs[2], new TypeReference<List<Long>>() {});
-            List<Long> toIds = JsonUtils.readStringAsObject(attrs[3], new TypeReference<List<Long>>() {});
-            for (Long fromId : fromIds) {
-                result.computeIfAbsent(fromId, k -> new HashSet<>()).addAll(toIds);
-            }
-        }
-        reader.close();
-        return result;
-    }
-
     public void insertLibraryOverlap() throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader("db/LibraryOverlap.csv"));
         String line = reader.readLine();
@@ -486,73 +444,6 @@ public class TestJob implements CommandLineRunner {
             result.addAll(libraryGroupArtifactMapper.findByArtifactId(line));
         }
         return result;
-    }
-
-    public void migrationRulesSave2File() throws Exception {
-        buildGroupArtifactCache();
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-withCommit.csv");
-        List<List<String>> commitList = buildDepSeqCommitList("db/RepositoryDepSeq-withCommit.csv");
-        List<String> repoList = buildDepSeqRepoList("db/RepositoryDepSeq-withCommit.csv");
-        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(
-                        null,
-                        DependencyChangePatternAnalysisService.DefaultMinPatternSupport, DependencyChangePatternAnalysisService.DefaultMinMCSupportPercent,
-                        repoList, commitList);
-        FileWriter correct = new FileWriter("db/correct-library-migration.csv");
-        FileWriter unknown = new FileWriter("db/unknown-library-migration.csv");
-        result.forEach((fromId, candidateList) -> {
-            LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
-            candidateList = candidateList.stream()
-                    .filter(candidate -> {
-                        LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                        return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                    }).collect(Collectors.toList());
-            if(candidateList.isEmpty()) return;
-            boolean isTruth;
-            if(groundTruthMap.containsKey(fromId)) {
-                isTruth = true;
-                Set<Long> thisTruth = groundTruthMap.get(fromId);
-                candidateList = candidateList.stream()
-                        .filter(candidate -> thisTruth.contains(candidate.toId))
-                        .limit(20)
-                        .collect(Collectors.toList());
-            } else {
-                isTruth = false;
-                candidateList = candidateList.stream()
-                        .limit(20)
-                        .collect(Collectors.toList());
-            }
-            if(candidateList.isEmpty()) return;
-            FileWriter writer = isTruth ? correct : unknown;
-            try {
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    writer.write(fromLib.getGroupId());
-                    writer.write(":");
-                    writer.write(fromLib.getArtifactId());
-                    LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
-                    writer.write(",");
-                    writer.write(toLib.getGroupId());
-                    writer.write(":");
-                    writer.write(toLib.getArtifactId());
-                    for (String[] repoCommit : candidate.repoCommitList) {
-                        writer.write(",");
-                        writer.write(repoCommit[0]);
-                        writer.write(";");
-                        writer.write(repoCommit[1]);
-                        writer.write(";");
-                        writer.write(repoCommit[2]);
-                    }
-                    writer.write("\n");
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        correct.close();
-        unknown.close();
-        LOG.info("Success");
     }
 
     public void testRepositoryDepSeq() throws Exception {
