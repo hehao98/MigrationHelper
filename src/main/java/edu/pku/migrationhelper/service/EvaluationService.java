@@ -52,6 +52,9 @@ public class EvaluationService {
     private String groundTruthFile;
 
     @Autowired
+    private DependencyChangePatternAnalysisService dependencyChangePatternAnalysisService;
+
+    @Autowired
     private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
 
     @Autowired
@@ -226,7 +229,6 @@ public class EvaluationService {
         }
     }
 
-    // TODO 仅保留包含truth的样例来作图，否则图像会被大量未知真假的点扭曲
     public void runRQ1(
             Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {
@@ -248,18 +250,15 @@ public class EvaluationService {
             }
         }
         output.close();
-        LOG.info("The following libraries are skipped because they are not in ground truth: {}", missing);
-        LOG.info("Run RQ1 Success");
+        LOG.info("RunRQ1(), the following libraries are skipped because they are not in ground truth: {}", missing);
     }
 
-    /*public void runRQ2() throws Exception {
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
-        FileWriter truthPercent = new FileWriter("db/RQ0421/RQ2-truth-percent.csv");
-        FileWriter truthPosition = new FileWriter("db/RQ0421/RQ2-truth-position.csv");
+    public void runRQ2() throws IOException {
+        FileWriter truthPercent = new FileWriter("pic/RQ2-truth-percent.csv");
+        FileWriter truthPosition = new FileWriter("pic/RQ2-truth-position.csv");
         truthPercent.write("fromId,truthCount,totalCount,percent\n");
         truthPosition.write("fromId,toId,isTruth,distance,total\n");
-        for (List<Long> depSeq : rdsList) {
+        for (List<Long> depSeq : dependencyChangePatternAnalysisService.getRepositoryDepSeq()) {
             depSeq = dependencyChangePatternAnalysisService.simplifyLibIdList(depSeq, null, null);
             List<DependencyChangePatternAnalysisService.LibraryMigrationPattern> patternList =
                     dependencyChangePatternAnalysisService.miningSingleDepSeq(depSeq, groundTruthMap.keySet(), null);
@@ -283,22 +282,21 @@ public class EvaluationService {
         }
         truthPercent.close();
         truthPosition.close();
-        LOG.info("Success");
     }
 
-    public void runRQ3() throws Exception {
-        Map<Long, Map<Long, Integer>> methodChangeSupportMap = buildMethodChangeSupportMap("db/GAChangeInMethodChange-all.csv");
-        List<List<Long>> rdsList = buildRepositoryDepSeq("db/RepositoryDepSeq-all.csv");
-        Map<Long, Set<Long>> groundTruthMap = buildGroundTruthMap("db/ground-truth-2014-manual.csv");
-        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(groundTruthMap.keySet(), DependencyChangePatternAnalysisService.DefaultMinPatternSupport, 0, null, null);
-        FileWriter output = new FileWriter("db/RQ0421/RQ3.csv");
+    public void runRQ3(
+            Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result
+    ) throws IOException {
+        FileWriter output = new FileWriter("pic/RQ3.csv");
         output.write("fromId,toId,isTruth,APISupport,APIRank0,patternSupport\n");
         for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
             boolean containsTruth = false;
             for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                containsTruth = groundTruthMap.get(candidate.fromId).contains(candidate.toId);
-                if(containsTruth) break;
+                Set<Long> s = groundTruthMap.get(candidate.fromId);
+                if (s != null && s.contains(candidate.toId)) {
+                    containsTruth = true;
+                    break;
+                }
             }
             if(!containsTruth) continue;
             for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
@@ -308,7 +306,7 @@ public class EvaluationService {
         }
         output.close();
         LOG.info("Success");
-    }*/
+    }
 
     public List<Long> getLioProjectIdsInGroundTruth() {
         Set<Long> result = new HashSet<>();

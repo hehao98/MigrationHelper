@@ -269,6 +269,8 @@ public class DependencyChangePatternAnalysisService {
         }
     }
 
+    public List<List<Long>> getRepositoryDepSeq() { return repositoryDepSeq; }
+
     public List<LibraryMigrationPattern> miningSingleDepSeq(List<Long> depSeq, Set<Long> fromIdLimit, List<String> commitList) {
         Map<Long, LibraryMigrationPattern> patternMap = new HashMap<>();
         Set<Long> removeIds = new HashSet<>();
