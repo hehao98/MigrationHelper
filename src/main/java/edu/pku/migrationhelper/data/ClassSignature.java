@@ -1,6 +1,10 @@
 package edu.pku.migrationhelper.data;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.data.annotation.Id;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 public class ClassSignature {
 
@@ -10,7 +14,7 @@ public class ClassSignature {
     public static final long ABSTRACT = 1 << 3;
 
     @Id
-    private long id;
+    private String id;
 
     private long modifiers;
 
@@ -29,13 +33,9 @@ public class ClassSignature {
         return className;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public ClassSignature setId(long id) {
-        this.id = id;
-        return this;
+    private void generateId() {
+        this.id = DigestUtils.sha1Hex(Long.toHexString(modifiers) + className + superClassName
+                + Arrays.toString(interfaceNames) + Arrays.toString(methodIds) + Arrays.toString(fieldIds));
     }
 
     public boolean isPublic() {
@@ -44,12 +44,11 @@ public class ClassSignature {
 
     public ClassSignature setPublic(boolean isPublic) {
         if (isPublic) {
-            modifiers = modifiers | PUBLIC;
-            modifiers = modifiers & ~PACKAGE;
+            modifiers = (modifiers | PUBLIC) & ~PACKAGE;
         } else {
-            modifiers = modifiers & ~PUBLIC;
-            modifiers = modifiers | PACKAGE;
+            modifiers = (modifiers & ~PUBLIC) | PACKAGE;
         }
+        generateId();
         return this;
     }
 
@@ -59,12 +58,11 @@ public class ClassSignature {
 
     public ClassSignature setPackage(boolean isPackage) {
         if (isPackage) {
-            modifiers = modifiers | PACKAGE;
-            modifiers = modifiers & ~PUBLIC;
+            modifiers = (modifiers | PACKAGE) & ~PUBLIC;
         } else {
-            modifiers = modifiers & ~PACKAGE;
-            modifiers = modifiers | PUBLIC;
+            modifiers = (modifiers & ~PACKAGE) & ~PUBLIC;
         }
+        generateId();
         return this;
     }
 
@@ -77,6 +75,7 @@ public class ClassSignature {
             modifiers = modifiers | FINAL;
         else
             modifiers = modifiers & ~FINAL;
+        generateId();
         return this;
     }
 
@@ -89,6 +88,7 @@ public class ClassSignature {
             modifiers = modifiers | ABSTRACT;
         else
             modifiers = modifiers & ~ABSTRACT;
+        generateId();
         return this;
     }
 
@@ -102,6 +102,7 @@ public class ClassSignature {
 
     public ClassSignature setClassName(String className) {
         this.className = className;
+        generateId();
         return this;
     }
 
@@ -111,6 +112,7 @@ public class ClassSignature {
 
     public ClassSignature setSuperClassName(String superClassName) {
         this.superClassName = superClassName;
+        generateId();
         return this;
     }
 
@@ -120,6 +122,7 @@ public class ClassSignature {
 
     public ClassSignature setInterfaceNames(String[] interfaceNames) {
         this.interfaceNames = interfaceNames;
+        generateId();
         return this;
     }
 
@@ -129,6 +132,7 @@ public class ClassSignature {
 
     public ClassSignature setMethodIds(long[] methodIds) {
         this.methodIds = methodIds;
+        generateId();
         return this;
     }
 
@@ -138,6 +142,7 @@ public class ClassSignature {
 
     public ClassSignature setFieldIds(long[] fieldIds) {
         this.fieldIds = fieldIds;
+        generateId();
         return this;
     }
 }

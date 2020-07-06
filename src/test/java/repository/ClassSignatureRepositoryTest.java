@@ -4,6 +4,7 @@ import edu.pku.migrationhelper.config.MongoDbConfiguration;
 import edu.pku.migrationhelper.data.ClassSignature;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.JarAnalysisService;
+import edu.pku.migrationhelper.service.MongoDbUtilService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,8 +21,11 @@ import java.util.Objects;
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
-@SpringBootTest(classes = { MongoDbConfiguration.class, JarAnalysisService.class })
+@SpringBootTest(classes = { MongoDbConfiguration.class, MongoDbUtilService.class, JarAnalysisService.class })
 public class ClassSignatureRepositoryTest {
+
+    @Autowired
+    MongoDbUtilService utilService;
 
     @Autowired
     ClassSignatureRepository repo;
@@ -32,6 +36,7 @@ public class ClassSignatureRepositoryTest {
     @Before
     public void init() {
         repo.deleteAll();
+        utilService.initMongoDB();
     }
 
     @Test
@@ -41,8 +46,7 @@ public class ClassSignatureRepositoryTest {
         List<ClassSignature> result = jas.analyzeJar(jarFilePath, true);
         int i = 0;
         for (ClassSignature cs : result) {
-            System.out.println(cs);
-            repo.save(cs.setId(i++));
+            repo.save(cs);
         }
     }
 }
