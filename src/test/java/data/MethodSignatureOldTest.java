@@ -1,16 +1,16 @@
 package data;
 
-import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.data.MethodSignatureOld;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MethodSignatureTest {
+public class MethodSignatureOldTest {
 
     @Test
     public void testTooLongSignature() {
-        MethodSignature ms = new MethodSignature();
+        MethodSignatureOld ms = new MethodSignatureOld();
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < 1000; ++i) {
             str.append("aaaa,");
@@ -28,7 +28,7 @@ public class MethodSignatureTest {
 
     @Test
     public void testNonAsciiConversion() {
-        MethodSignature ms = new MethodSignature();
+        MethodSignatureOld ms = new MethodSignatureOld();
         ms.setClassName("中文XXX");
         assertEquals(ms.getClassName(), "??XXX");
         ms.setPackageName("中XXX");

@@ -1,9 +1,8 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.data.MethodSignatureOld;
 import org.apache.ibatis.annotations.*;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public interface MethodSignatureMapper {
 //            "on duplicate key update id=id" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
-    int insert(@Param("tableNum") int tableNum, @Param("list") List<MethodSignature> entities);
+    int insert(@Param("tableNum") int tableNum, @Param("list") List<MethodSignatureOld> entities);
 
     @Insert("<script>" +
             "insert into " + tableName + "${tableNum} " +
@@ -52,7 +51,7 @@ public interface MethodSignatureMapper {
 //            "on duplicate key update id=id" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "e.id", keyColumn = "id")
-    int insertOne(@Param("tableNum") int tableNum, @Param("e") MethodSignature entity);
+    int insertOne(@Param("tableNum") int tableNum, @Param("e") MethodSignatureOld entity);
 
     @Select("<script>" +
             "select * from " + tableName + "${tableNum} where " +
@@ -61,7 +60,7 @@ public interface MethodSignatureMapper {
             "method_name = #{methodName} and " +
             "param_list = #{paramList} " +
             "</script>")
-    MethodSignature findOne(
+    MethodSignatureOld findOne(
             @Param("tableNum") int tableNum,
             @Param("packageName") String packageName,
             @Param("className") String className,
@@ -74,7 +73,7 @@ public interface MethodSignatureMapper {
             "class_name = #{className} and " +
             "method_name = #{methodName} " +
             "</script>")
-    List<MethodSignature> findList(
+    List<MethodSignatureOld> findList(
             @Param("tableNum") int tableNum,
             @Param("packageName") String packageName,
             @Param("className") String className,
@@ -110,7 +109,7 @@ public interface MethodSignatureMapper {
             "select * from " + tableName + "${tableNum} where " +
             "id = #{signatureId} " +
             "</script>")
-    MethodSignature findById(
+    MethodSignatureOld findById(
             @Param("tableNum") int tableNum,
             @Param("signatureId") long signatureId);
 
@@ -125,7 +124,7 @@ public interface MethodSignatureMapper {
             "<otherwise> id in (<foreach collection='signatureIds' item='e' separator=','>#{e}</foreach>) </otherwise>" +
             "</choose>" +
             "</script>")
-    List<MethodSignature> findByIds(
+    List<MethodSignatureOld> findByIds(
             @Param("tableNum") int tableNum,
             @Param("signatureIds") Collection<Long> signatureIds);
 }

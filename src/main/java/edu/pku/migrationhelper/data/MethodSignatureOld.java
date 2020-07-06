@@ -4,15 +4,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MethodSignature {
+@Deprecated
+public class MethodSignatureOld {
 
-    public static List<String> getPackages(List<MethodSignature> methodSignatures) {
-        return methodSignatures.stream().
-                map(MethodSignature::getPackageName).distinct().collect(Collectors.toList());
+    public static List<String> getPackages(List<MethodSignatureOld> methodSignatureOlds) {
+        return methodSignatureOlds.stream().
+                map(MethodSignatureOld::getPackageName).distinct().collect(Collectors.toList());
     }
 
-    public static List<String> getClasses(List<MethodSignature> methodSignatures) {
-        return methodSignatures.stream()
+    public static List<String> getClasses(List<MethodSignatureOld> methodSignatureOlds) {
+        return methodSignatureOlds.stream()
                 .map(ms -> ms.getPackageName() + "." + ms.getClassName())
                 .distinct().collect(Collectors.toList());
     }
@@ -40,7 +41,7 @@ public class MethodSignature {
         return id;
     }
 
-    public MethodSignature setId(long id) {
+    public MethodSignatureOld setId(long id) {
         this.id = id;
         return this;
     }
@@ -49,7 +50,7 @@ public class MethodSignature {
         return packageName;
     }
 
-    public MethodSignature setPackageName(String packageName) {
+    public MethodSignatureOld setPackageName(String packageName) {
         final int PACKAGE_NAME_MAX_LENGTH = 255;
         if (packageName.length() > PACKAGE_NAME_MAX_LENGTH) {
             packageName = packageName.substring(0, PACKAGE_NAME_MAX_LENGTH);
@@ -62,7 +63,7 @@ public class MethodSignature {
         return className;
     }
 
-    public MethodSignature setClassName(String className) {
+    public MethodSignatureOld setClassName(String className) {
         final int CLASS_NAME_MAX_LENGTH = 255;
         if (className.length() > CLASS_NAME_MAX_LENGTH) {
             className = className.substring(0, CLASS_NAME_MAX_LENGTH);
@@ -75,7 +76,7 @@ public class MethodSignature {
         return methodName;
     }
 
-    public MethodSignature setMethodName(String methodName) {
+    public MethodSignatureOld setMethodName(String methodName) {
         final int METHOD_NAME_MAX_LENGTH = 255;
         if (methodName.length() > METHOD_NAME_MAX_LENGTH) {
             methodName = methodName.substring(0, METHOD_NAME_MAX_LENGTH);
@@ -88,7 +89,7 @@ public class MethodSignature {
         return paramList;
     }
 
-    public MethodSignature setParamList(String paramList) {
+    public MethodSignatureOld setParamList(String paramList) {
         // Under very rare circumstances the length of param_list might be too long to be fit in varchar(2047)
         // Then we have to manually truncate the param_list
         final int PARAM_LIST_MAX_LENGTH = 2047;
@@ -113,7 +114,7 @@ public class MethodSignature {
         return startLine;
     }
 
-    public MethodSignature setStartLine(int startLine) {
+    public MethodSignatureOld setStartLine(int startLine) {
         this.startLine = startLine;
         return this;
     }
@@ -122,7 +123,7 @@ public class MethodSignature {
         return endLine;
     }
 
-    public MethodSignature setEndLine(int endLine) {
+    public MethodSignatureOld setEndLine(int endLine) {
         this.endLine = endLine;
         return this;
     }

@@ -1,9 +1,7 @@
 package edu.pku.migrationhelper.service;
 
 import com.github.difflib.DiffUtils;
-import com.github.difflib.algorithm.jgit.HistogramDiff;
 import com.github.difflib.patch.AbstractDelta;
-import com.github.difflib.patch.Chunk;
 import com.github.difflib.patch.DeltaType;
 import com.github.difflib.patch.Patch;
 import edu.pku.migrationhelper.data.*;
@@ -1027,23 +1025,23 @@ public abstract class RepositoryAnalysisService {
     }
 
     public void analyzeJavaContent(String content, List<Long[]> signatureIdLines, Set<Long> versionIds, Set<Long> groupArtifactIds) {
-        List<MethodSignature> signatureList = javaCodeAnalysisService.analyzeJavaCode(content);
+        List<MethodSignatureOld> signatureList = javaCodeAnalysisService.analyzeJavaCode(content);
         Set<Long> sids = new HashSet<>();
-        for (MethodSignature methodSignature : signatureList) {
-            MethodSignature ms = libraryIdentityService.getMethodSignature(methodSignature, null);
-            long startLine = methodSignature.getStartLine();
-            long endLine = methodSignature.getEndLine();
+        for (MethodSignatureOld methodSignatureOld : signatureList) {
+            MethodSignatureOld ms = libraryIdentityService.getMethodSignature(methodSignatureOld, null);
+            long startLine = methodSignatureOld.getStartLine();
+            long endLine = methodSignatureOld.getEndLine();
             if(ms != null) {
                 sids.add(ms.getId());
                 signatureIdLines.add(new Long[]{ms.getId(), startLine, endLine});
             } else {
-                List<MethodSignature> candidates = libraryIdentityService.getMethodSignatureList(
-                        methodSignature.getPackageName(), methodSignature.getClassName(),
-                        methodSignature.getMethodName());
-                List<MethodSignature> matched = new LinkedList<>();
-                String paramList = methodSignature.getParamList();
+                List<MethodSignatureOld> candidates = libraryIdentityService.getMethodSignatureList(
+                        methodSignatureOld.getPackageName(), methodSignatureOld.getClassName(),
+                        methodSignatureOld.getMethodName());
+                List<MethodSignatureOld> matched = new LinkedList<>();
+                String paramList = methodSignatureOld.getParamList();
                 String[] params = paramList == null ? new String[0] : paramList.split(",");
-                for (MethodSignature candidate : candidates) {
+                for (MethodSignatureOld candidate : candidates) {
                     String candidateParamList = candidate.getParamList();
                     String[] candidateParams = candidateParamList == null ? new String[0] : candidateParamList.split(",");
                     if(params.length != candidateParams.length) continue;
@@ -1052,7 +1050,7 @@ public abstract class RepositoryAnalysisService {
                 if(matched.size() == 0) {
                     matched = candidates;
                 }
-                matched.stream().sorted(Comparator.comparingLong(MethodSignature::getId)).limit(1).forEach(s -> {
+                matched.stream().sorted(Comparator.comparingLong(MethodSignatureOld::getId)).limit(1).forEach(s -> {
                     sids.add(s.getId());
                     signatureIdLines.add(new Long[]{s.getId(), startLine, endLine});
                 });

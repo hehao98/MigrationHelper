@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.MethodSignature;
-import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
+import edu.pku.migrationhelper.data.ClassSignature;
+import edu.pku.migrationhelper.data.MethodSignatureOld;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.Type;
 import org.apache.bcel.util.ClassPath;
@@ -9,13 +9,14 @@ import org.apache.bcel.util.MemorySensitiveClassPathRepository;
 import org.apache.bcel.util.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.lang.Deprecated;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -24,7 +25,49 @@ public class JarAnalysisService {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
 
-    public List<MethodSignature> analyzeJar(String filePath, List<MethodSignature> result) throws Exception {
+    /**
+     * Parse jar file, return list of class signatures
+     * @param filePath Jar file path
+     * @param publicOnly whether to only retain public classes, public/protected fields and public/protected methods
+     * @return list of class signatures
+     * @throws IOException when the file does not exist
+     */
+    public List<ClassSignature> analyzeJar(String filePath, boolean publicOnly) throws IOException {
+        List<JavaClass> classList = new LinkedList<>();
+
+        JarFile jarFile = new JarFile(filePath);
+        Enumeration<JarEntry> e = jarFile.entries();
+        while (e.hasMoreElements()) {
+            JarEntry entry = e.nextElement();
+            String entryName = entry.getName();
+            if (entryName.endsWith(".class") && !entryName.contains("module-info")) {
+                ClassParser classParser = new ClassParser(jarFile.getInputStream(entry), entryName);
+                try {
+                    classList.add(classParser.parse());
+                } catch (ClassFormatException ex) {
+                    LOG.error("Error when parsing {}/{}, {}", filePath, entryName, ex);
+                }
+            }
+        }
+
+        List<ClassSignature> result = new ArrayList<>();
+        for (JavaClass c : classList) {
+            if (publicOnly && !c.isPublic())
+                continue;
+            ClassSignature cs = new ClassSignature()
+                    .setClassName(c.getClassName())
+                    .setPublic(c.isPublic())
+                    .setFinal(c.isFinal())
+                    .setAbstract(c.isAbstract())
+                    .setSuperClassName(c.getSuperclassName())
+                    .setInterfaceNames(c.getInterfaceNames());
+            result.add(cs);
+        }
+        return result;
+    }
+
+    @Deprecated
+    public List<MethodSignatureOld> analyzeJar(String filePath, List<MethodSignatureOld> result) throws Exception {
         Repository repository = null;
         JarFile jarFile = null;
         try {
@@ -62,12 +105,13 @@ public class JarAnalysisService {
         return result;
     }
 
-    public void analyzeClass(JavaClass clz, Repository repository, List<MethodSignature> result) {
+    @Deprecated
+    public void analyzeClass(JavaClass clz, Repository repository, List<MethodSignatureOld> result) {
         String packageName = clz.getPackageName();
         String className = clz.getClassName();
         if(packageName == null) packageName = "";
         className = className.substring(className.lastIndexOf('.') + 1);
-        MethodSignature ms = new MethodSignature()
+        MethodSignatureOld ms = new MethodSignatureOld()
                 .setPackageName(packageName)
                 .setClassName(className)
                 .setMethodName("")
@@ -93,7 +137,8 @@ public class JarAnalysisService {
         }
     }
 
-    public void analyzeClassMethods(JavaClass clz, String packageName, String className, List<MethodSignature> result) {
+    @Deprecated
+    public void analyzeClassMethods(JavaClass clz, String packageName, String className, List<MethodSignatureOld> result) {
         StringBuilder paramList = new StringBuilder();
         for (Method method : clz.getMethods()) {
             String methodName = method.getName();
@@ -108,7 +153,7 @@ public class JarAnalysisService {
                 paramList.deleteCharAt(paramList.length() - 1);
                 paramListString = paramList.toString();
             }
-            MethodSignature ms = new MethodSignature()
+            MethodSignatureOld ms = new MethodSignatureOld()
                     .setPackageName(packageName)
                     .setClassName(className)
                     .setMethodName(methodName)

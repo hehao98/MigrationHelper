@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.data.MethodSignatureOld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,8 +30,8 @@ public class JavaCodeAnalysisService {
 
     // TODO
     // 标识符识别的方法，难以鉴别带有继承关系的参数，比如用子类作为参数去调用一个以父类为参数的API，会识别成调用了一个以子类为参数的API，最终导致无法查到到
-    public List<MethodSignature> analyzeJavaCode(String javaCode) {
-        List<MethodSignature> result = new LinkedList<>();
+    public List<MethodSignatureOld> analyzeJavaCode(String javaCode) {
+        List<MethodSignatureOld> result = new LinkedList<>();
         if(javaCode == null || "".equals(javaCode)) return result;
         StringBuilder stringBuilder = new StringBuilder();
         File tmpFile = null;
@@ -62,31 +62,31 @@ public class JavaCodeAnalysisService {
                             SourcePosition position = element.getPosition();
                             if (!position.isValidPosition()) return;
 
-                            MethodSignature methodSignature = new MethodSignature();
+                            MethodSignatureOld methodSignatureOld = new MethodSignatureOld();
 
-                            methodSignature.setStartLine(position.getLine());
-                            methodSignature.setEndLine(position.getEndLine());
+                            methodSignatureOld.setStartLine(position.getLine());
+                            methodSignatureOld.setEndLine(position.getEndLine());
 
                             for (CtElement directChild : invocation.getDirectChildren()) {
                                 if (directChild instanceof CtVariableAccess) {
                                     CtVariableAccess expression = (CtVariableAccess) directChild;
-                                    methodSignature.setPackageName(getTypePackageName(expression.getType()));
-                                    methodSignature.setClassName(getTypeName(expression.getType()));
+                                    methodSignatureOld.setPackageName(getTypePackageName(expression.getType()));
+                                    methodSignatureOld.setClassName(getTypeName(expression.getType()));
                                     break;
                                 } else if (directChild instanceof CtTypeAccess) {
                                     CtTypeAccess expression = (CtTypeAccess) directChild;
-                                    methodSignature.setPackageName(getTypePackageName(expression.getAccessedType()));
-                                    methodSignature.setClassName(getTypeName(expression.getAccessedType()));
+                                    methodSignatureOld.setPackageName(getTypePackageName(expression.getAccessedType()));
+                                    methodSignatureOld.setClassName(getTypeName(expression.getAccessedType()));
                                     break;
                                 }
                             }
 
                             CtExecutableReference executableReference = invocation.getExecutable();
-                            if (methodSignature.getPackageName() == null) {
-                                methodSignature.setPackageName(getTypePackageName(executableReference.getDeclaringType()));
-                                methodSignature.setClassName(getTypeName(executableReference.getDeclaringType()));
+                            if (methodSignatureOld.getPackageName() == null) {
+                                methodSignatureOld.setPackageName(getTypePackageName(executableReference.getDeclaringType()));
+                                methodSignatureOld.setClassName(getTypeName(executableReference.getDeclaringType()));
                             }
-                            methodSignature.setMethodName(executableReference.getSimpleName());
+                            methodSignatureOld.setMethodName(executableReference.getSimpleName());
                             stringBuilder.delete(0, stringBuilder.length());
                             for (Object parameter : executableReference.getParameters()) {
                                 CtTypeReference<?> p = (CtTypeReference<?>) parameter;
@@ -100,9 +100,9 @@ public class JavaCodeAnalysisService {
                             if (stringBuilder.length() > 0) {
                                 stringBuilder.deleteCharAt(stringBuilder.length() - 1);
                             }
-                            methodSignature.setParamList(stringBuilder.toString());
+                            methodSignatureOld.setParamList(stringBuilder.toString());
 
-                            result.add(methodSignature);
+                            result.add(methodSignatureOld);
                         }
                     });
                 }

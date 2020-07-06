@@ -4,7 +4,7 @@ import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.SemverException;
 import edu.pku.migrationhelper.data.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.LibraryVersion;
-import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.data.MethodSignatureOld;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionToSignatureMapper;
@@ -73,8 +73,8 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
     }
 
     private static class APIChanges {
-        List<MethodSignature> addedSignatures;
-        List<MethodSignature> removedSignatures;
+        List<MethodSignatureOld> addedSignatures;
+        List<MethodSignatureOld> removedSignatures;
     }
 
     @Override
@@ -160,12 +160,12 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         List<Long> addedSignatureIds = toVersionSignatures.stream()
                 .filter(l -> !fromVersionSignatures.contains(l))
                 .collect(Collectors.toList());
-        List<MethodSignature> addedSignatures = mapperUtilService.getMethodSignaturesByIds(addedSignatureIds)
-                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
+        List<MethodSignatureOld> addedSignatures = mapperUtilService.getMethodSignaturesByIds(addedSignatureIds)
+                .stream().sorted(Comparator.comparing(MethodSignatureOld::toString)).collect(Collectors.toList());
         List<Long> removedSignatureIds =  fromVersionSignatures.stream()
                 .filter(l -> !toVersionSignatures.contains(l)).collect(Collectors.toList());
-        List<MethodSignature> removedSignatures = mapperUtilService.getMethodSignaturesByIds(removedSignatureIds)
-                .stream().sorted(Comparator.comparing(MethodSignature::toString)).collect(Collectors.toList());
+        List<MethodSignatureOld> removedSignatures = mapperUtilService.getMethodSignaturesByIds(removedSignatureIds)
+                .stream().sorted(Comparator.comparing(MethodSignatureOld::toString)).collect(Collectors.toList());
         LOG.info("{} from {} to {}, {} added APIs and {} removed APIs", lib, fromVersion, toVersion,
                 addedSignatures.size(), removedSignatures.size());
 
@@ -230,9 +230,9 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
             List<Long> signatureIds = libraryVersionToSignatureMapper.findById(version.getId()).getSignatureIdList();
             LOG.info("{}-{} has {} different APIs", lib, version, signatureIds.size());
 
-            List<MethodSignature> signatures = mapperUtilService.getMethodSignaturesByIds(signatureIds);
-            signatures.sort(Comparator.comparing(MethodSignature::toString));
-            for (MethodSignature ms : signatures) {
+            List<MethodSignatureOld> signatures = mapperUtilService.getMethodSignaturesByIds(signatureIds);
+            signatures.sort(Comparator.comparing(MethodSignatureOld::toString));
+            for (MethodSignatureOld ms : signatures) {
                 printer.printRecord(ms.getId(), ms.getPackageName(),
                         ms.getClassName(), ms.getMethodName(), ms.getParamList());
             }
@@ -253,11 +253,11 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toString()), CSVFormat.DEFAULT)) {
             printer.printRecord("signatureId", "changeType", "packageName",
                     "className", "methodName", "paramList");
-            for (MethodSignature ms: apiChanges.addedSignatures) {
+            for (MethodSignatureOld ms: apiChanges.addedSignatures) {
                 printer.printRecord(ms.getId(), "add", ms.getPackageName(),
                         ms.getClassName(), ms.getMethodName(), ms.getParamList());
             }
-            for (MethodSignature ms: apiChanges.removedSignatures) {
+            for (MethodSignatureOld ms: apiChanges.removedSignatures) {
                 printer.printRecord(ms.getId(), "remove", ms.getPackageName(),
                         ms.getClassName(), ms.getMethodName(), ms.getParamList());
             }

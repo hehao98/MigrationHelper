@@ -1,4 +1,4 @@
-import edu.pku.migrationhelper.data.MethodSignature;
+import edu.pku.migrationhelper.data.MethodSignatureOld;
 import edu.pku.migrationhelper.service.JavaCodeAnalysisService;
 import org.junit.jupiter.api.Test;
 
@@ -26,9 +26,9 @@ public class JavaCodeAnalysisServiceTest {
     public void testJavaCodeAnalysis() throws Exception {
         String content = readFile("JavaCodeAnalysisServiceTest.java");
         JavaCodeAnalysisService jcas = new JavaCodeAnalysisService();
-        List<MethodSignature> msList = jcas.analyzeJavaCode(content);
+        List<MethodSignatureOld> msList = jcas.analyzeJavaCode(content);
         assertTrue(msList.size() >= 2);
-        for (MethodSignature ms : msList) {
+        for (MethodSignatureOld ms : msList) {
             System.out.printf("%s, ss = %d, se = %d\n", ms.toString(), ms.getStartLine(), ms.getEndLine());
         }
     }

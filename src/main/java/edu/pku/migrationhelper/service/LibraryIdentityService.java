@@ -61,7 +61,7 @@ public class LibraryIdentityService {
     private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
 
     @Value("${migration-helper.library-identity.maven-url-base}")
-    private String mavenUrlBase;
+    private final String mavenUrlBase = "https://repo1.maven.org/maven2/";
 
     @Value("${migration-helper.library-identity.download-path}")
     private String downloadPath;
@@ -118,7 +118,7 @@ public class LibraryIdentityService {
         }
 
         // download and parse each version of library
-        Map<String, MethodSignature> signatureCache = new HashMap<>();
+        Map<String, MethodSignatureOld> signatureCache = new HashMap<>();
         Map<Long, Set<Long>> signature2Version = new HashMap<>();
         List<LibraryVersion> versionDataList = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
 
@@ -176,7 +176,7 @@ public class LibraryIdentityService {
 //                if(jarSize > 50) {
 //                    analyzeFirstOnly = true;
 //                }
-                List<MethodSignature> signatureList = parseLibraryJar(groupId, artifactId, version, signatureCache);
+                List<MethodSignatureOld> signatureList = parseLibraryJar(groupId, artifactId, version, signatureCache);
                 Set<Long> signatureIds = new HashSet<>();
                 signatureList.forEach(e -> signatureIds.add(e.getId()));
                 signatureIds.forEach(sid -> signature2Version
@@ -246,11 +246,11 @@ public class LibraryIdentityService {
         }
     }
 
-    public List<MethodSignature> parseLibraryJar(String groupId, String artifactId, String version, Map<String, MethodSignature> signatureCache) throws Exception {
+    public List<MethodSignatureOld> parseLibraryJar(String groupId, String artifactId, String version, Map<String, MethodSignatureOld> signatureCache) throws Exception {
         String jarPath = generateJarDownloadPath(groupId, artifactId, version);
-        List<MethodSignature> signatures = new LinkedList<>();
+        List<MethodSignatureOld> signatures = new LinkedList<>();
         jarAnalysisService.analyzeJar(jarPath, signatures);
-        for (MethodSignature signature : signatures) {
+        for (MethodSignatureOld signature : signatures) {
             saveMethodSignature(signature, signatureCache);
         }
         return signatures;
@@ -314,16 +314,16 @@ public class LibraryIdentityService {
         return new List[]{new ArrayList<>(versionIds), new ArrayList<>(gaIds)};
     }
 
-    public List<MethodSignature> getMethodSignatureList(String packageName, String className, String methodName) {
+    public List<MethodSignatureOld> getMethodSignatureList(String packageName, String className, String methodName) {
         int sliceKey = MapperUtilService.getMethodSignatureSliceKey(packageName, className);
         return methodSignatureMapper.findList(sliceKey, packageName, className, methodName);
     }
 
-    public MethodSignature getMethodSignature(MethodSignature ms, Map<String, MethodSignature> signatureCache) {
+    public MethodSignatureOld getMethodSignature(MethodSignatureOld ms, Map<String, MethodSignatureOld> signatureCache) {
         String cacheKey = null;
         if(signatureCache != null) {
             cacheKey = MapperUtilService.getMethodSignatureCacheKey(ms);
-            MethodSignature cacheValue = signatureCache.get(cacheKey);
+            MethodSignatureOld cacheValue = signatureCache.get(cacheKey);
             if (cacheValue != null) {
                 ms.setId(cacheValue.getId());
                 return ms;
@@ -337,7 +337,7 @@ public class LibraryIdentityService {
             ms.setId(id);
 
             if (signatureCache != null) {
-                MethodSignature cacheValue = new MethodSignature()
+                MethodSignatureOld cacheValue = new MethodSignatureOld()
                         .setId(ms.getId())
                         .setPackageName(ms.getPackageName())
                         .setClassName(ms.getClassName())
@@ -353,11 +353,11 @@ public class LibraryIdentityService {
         }
     }
 
-    public void saveMethodSignature(MethodSignature ms, Map<String, MethodSignature> signatureCache) {
+    public void saveMethodSignature(MethodSignatureOld ms, Map<String, MethodSignatureOld> signatureCache) {
         String cacheKey = null;
         if(signatureCache != null) {
             cacheKey = MapperUtilService.getMethodSignatureCacheKey(ms);
-            MethodSignature cacheValue = signatureCache.get(cacheKey);
+            MethodSignatureOld cacheValue = signatureCache.get(cacheKey);
             if (cacheValue != null) {
                 ms.setId(cacheValue.getId());
                 return;
@@ -383,7 +383,7 @@ public class LibraryIdentityService {
             ms.setId(id);
 
             if (signatureCache != null) {
-                MethodSignature cacheValue = new MethodSignature()
+                MethodSignatureOld cacheValue = new MethodSignatureOld()
                         .setId(ms.getId())
                         .setPackageName(ms.getPackageName())
                         .setClassName(ms.getClassName())

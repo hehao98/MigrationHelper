@@ -15,7 +15,7 @@ public class LibraryIdentityServiceTest {
 
     @Test // Well, this test is a little bit slow...
     void testDownloadLibraryFromMaven() throws Exception {
-        LibraryIdentityService lis = new LibraryIdentityService().setMavenUrlBase("https://repo1.maven.org/maven2/");
+        LibraryIdentityService lis = new LibraryIdentityService();
         OutputStream output = new FileOutputStream("target/test.jar");
         lis.downloadLibraryFromMaven("junit", "junit", "4.13-rc-2", output);
         assertTrue(new File("target/test.jar").exists());
@@ -23,7 +23,7 @@ public class LibraryIdentityServiceTest {
 
     @Test
     void testDownloadNonExistentLibraryFromMaven() throws Exception {
-        LibraryIdentityService lis = new LibraryIdentityService().setMavenUrlBase("https://repo1.maven.org/maven2/");
+        LibraryIdentityService lis = new LibraryIdentityService();
         OutputStream output = new FileOutputStream("target/test-non-existent.jar");
         IOException ex = assertThrows(IOException.class, () -> {
             lis.downloadLibraryFromMaven("org.tensorflow", "parentpom", "1.1.0", output);
@@ -34,7 +34,7 @@ public class LibraryIdentityServiceTest {
 
     @Test
     void testExtractVersionInformationFromMaven() throws Exception {
-        LibraryIdentityService lis = new LibraryIdentityService().setMavenUrlBase("https://repo1.maven.org/maven2/");
+        LibraryIdentityService lis = new LibraryIdentityService();
         List<String> result = lis.extractAllVersionsFromMaven("junit", "junit");
         System.out.println(result);
         assertTrue(result.contains("4.13-rc-2"));
@@ -42,7 +42,7 @@ public class LibraryIdentityServiceTest {
 
     @Test
     void testExtractAvailableFilesFromMaven() throws Exception {
-        LibraryIdentityService lis = new LibraryIdentityService().setMavenUrlBase("https://repo1.maven.org/maven2/");
+        LibraryIdentityService lis = new LibraryIdentityService();
         List<String> result = lis.extractAvailableFilesFromMaven("org.tensorflow", "parentpom", "1.15.0");
         System.out.println(result);
         assertTrue(result.contains("parentpom-1.15.0.pom"));

@@ -1,14 +1,11 @@
 package edu.pku.migrationhelper.job;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.MathUtils;
 import javafx.util.Pair;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -372,70 +369,6 @@ public class TestJob implements CommandLineRunner {
         }
     }
 
-    public List<List<Long>> buildRepositoryDepSeq(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        List<List<Long>> result = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-//            String libIdString = attrs[3]; // codeWithDup
-//            String libIdString = attrs[4]; // codeWithoutDup
-//            String libIdString = attrs[5]; // pomWithCodeDel
-//            String libIdString = attrs[6]; // pomWithCodeAdd
-            if ("".equals(libIdString)) continue;
-            String[] libIds = libIdString.split(";");
-            List<Long> libIdList = new ArrayList<>(libIds.length);
-            for (String libId : libIds) {
-                libIdList.add(Long.parseLong(libId));
-            }
-            result.add(libIdList);
-        }
-        return result;
-    }
-
-    public List<List<String>> buildDepSeqCommitList(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        List<List<String>> result = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            String commitListString = attrs[7];
-            int len = commitListString.length();
-            int commitCount = len / 40;
-            List<String> commitList = new ArrayList<>(commitCount);
-            for (int i = 0; i < commitCount; i++) {
-                commitList.add(commitListString.substring(i * 40, i * 40 + 40));
-            }
-            result.add(commitList);
-        }
-        return result;
-    }
-
-    public List<String> buildDepSeqRepoList(String fileName) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line = reader.readLine();
-        List<String> result = new LinkedList<>();
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            result.add(attrs[1]);
-        }
-        return result;
-    }
-
     public List<LibraryGroupArtifact> readLibraryFromArtifactIdFile(String fileName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
@@ -551,26 +484,26 @@ public class TestJob implements CommandLineRunner {
 
     public void showMethodSignature(long signatureId) {
         int slice = MapperUtilService.getMethodSignatureSliceKey(signatureId);
-        MethodSignature methodSignature = methodSignatureMapper.findById(slice, signatureId);
-        if(methodSignature == null) {
+        MethodSignatureOld methodSignatureOld = methodSignatureMapper.findById(slice, signatureId);
+        if(methodSignatureOld == null) {
             System.out.println("Signature: Id = " + signatureId + " null");
         } else {
             System.out.println("Signature: Id = " + signatureId + ", " +
-                    methodSignature.getPackageName() + "." + methodSignature.getClassName() + "::" +
-                    methodSignature.getMethodName() + "(" + methodSignature.getParamList() + ")");
+                    methodSignatureOld.getPackageName() + "." + methodSignatureOld.getClassName() + "::" +
+                    methodSignatureOld.getMethodName() + "(" + methodSignatureOld.getParamList() + ")");
         }
     }
 
     public void testDatabase() throws Exception {
-        MethodSignature ms = new MethodSignature()
+        MethodSignatureOld ms = new MethodSignatureOld()
                 .setPackageName("org.eclipse.jgit.api")
                 .setClassName("GarbageCollectCommand")
                 .setMethodName("wait")
                 .setParamList("");
-        MethodSignature mss = libraryIdentityService.getMethodSignature(ms, null);
+        MethodSignatureOld mss = libraryIdentityService.getMethodSignature(ms, null);
         System.out.println(mss.getId());
-        List<MethodSignature> msList = libraryIdentityService.getMethodSignatureList(ms.getPackageName(), ms.getClassName(), ms.getMethodName());
-        for (MethodSignature msss : msList) {
+        List<MethodSignatureOld> msList = libraryIdentityService.getMethodSignatureList(ms.getPackageName(), ms.getClassName(), ms.getMethodName());
+        for (MethodSignatureOld msss : msList) {
             System.out.println(msss.getId());
         }
 
