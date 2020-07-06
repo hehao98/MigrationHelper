@@ -1,6 +1,5 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.ClassSignature;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +8,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,7 +24,7 @@ public class MongoDbInitializeJob implements CommandLineRunner {
 
     @Override
     public void run(String[] args) {
-        mongoDbUtilService.initMongoDB();
+        mongoDbUtilService.initMongoDb();
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
     }

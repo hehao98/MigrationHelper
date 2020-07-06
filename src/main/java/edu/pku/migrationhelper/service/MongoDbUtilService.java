@@ -17,8 +17,12 @@ public class MongoDbUtilService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public void initMongoDB() {
+    public void initMongoDb() {
         setIndexForClassSignatureCollection();
+    }
+
+    public String getDbName() {
+        return mongoTemplate.getDb().getName();
     }
 
     public void setIndexForClassSignatureCollection() {

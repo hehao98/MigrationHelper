@@ -18,6 +18,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.List;
 import java.util.Objects;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
@@ -28,25 +31,32 @@ public class ClassSignatureRepositoryTest {
     MongoDbUtilService utilService;
 
     @Autowired
-    ClassSignatureRepository repo;
+    ClassSignatureRepository csRepo;
 
     @Autowired
     JarAnalysisService jas;
 
     @Before
     public void init() {
-        repo.deleteAll();
-        utilService.initMongoDB();
+        assertTrue(utilService.getDbName().contains("test"));
+        csRepo.deleteAll();
+        utilService.initMongoDb();
     }
 
     @Test
-    public void testAddData() throws Exception {
+    public void testClassSignatureDb() throws Exception {
         String jarFilePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("jars/gson-2.8.6.jar")).getPath();
         List<ClassSignature> result = jas.analyzeJar(jarFilePath, true);
-        int i = 0;
+        System.out.println(result);
+
         for (ClassSignature cs : result) {
-            repo.save(cs);
+            csRepo.save(cs);
         }
+        assertEquals(csRepo.count(), result.size());
+
+        List<ClassSignature> queryResult = csRepo.findByClassName("com.google.gson.Gson");
+        System.out.println(queryResult);
+        assertTrue(queryResult.size() > 0);
     }
 }
