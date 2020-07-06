@@ -12,7 +12,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestJarAnalysisService {
+public class JarAnalysisServiceTest {
 
     @Test
     public void testAnalyzeJar() throws Exception {

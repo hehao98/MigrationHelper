@@ -3,11 +3,16 @@ spring:
   datasource:
     # MySQL
     dbcp2:
-      url: jdbc:mysql://localhost:3306/migration_helper
+      url: jdbc:mysql://localhost:3306/migration_helper?serverTimezone=UTC
       username: migration_helper
       password: mhsql
       driver-class-name: com.mysql.cj.jdbc.Driver
       max-total: 100
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: migration_helper
 
 logging:
   config: classpath:log4j2.local.yaml

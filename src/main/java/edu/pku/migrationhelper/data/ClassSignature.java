@@ -1,12 +1,15 @@
 package edu.pku.migrationhelper.data;
 
+import org.springframework.data.annotation.Id;
+
 public class ClassSignature {
 
-    public final long PUBLIC = 1;
-    public final long PACKAGE = 1 << 1;
-    public final long FINAL = 1 << 2;
-    public final long ABSTRACT = 1 << 3;
+    public static final long PUBLIC = 1;
+    public static final long PACKAGE = 1 << 1;
+    public static final long FINAL = 1 << 2;
+    public static final long ABSTRACT = 1 << 3;
 
+    @Id
     private long id;
 
     private long modifiers;

@@ -2,6 +2,7 @@ package edu.pku.migrationhelper.job;
 
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.mapper.*;
+import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.MathUtils;
@@ -75,7 +76,8 @@ public class TestJob implements CommandLineRunner {
     @Autowired
     private LibraryOverlapMapper libraryOverlapMapper;
 
-    private Map<Long, LibraryGroupArtifact> groupArtifactCache = null;
+    @Autowired
+    private ClassSignatureRepository classSignatureRepository;
 
     @Override
     public void run(String ...args) throws Exception {
@@ -100,8 +102,13 @@ public class TestJob implements CommandLineRunner {
             return;
         }
 
-        LOG.info("Running method {} finish", methodName);
+        LOG.info("Method {}() finished", methodName);
         System.exit(SpringApplication.exit(context, () -> 0));
+    }
+
+    public void testMongoDB() {
+        classSignatureRepository.save(new ClassSignature());
+        LOG.info("{}", classSignatureRepository.findAll().subList(0, 1));
     }
 
     public void printLibraryDatabaseSummary() {
