@@ -30,7 +30,7 @@ public class ClassSignature {
 
     @Override
     public String toString() {
-        return className;
+        return className + "#" + id.substring(0, 6);
     }
 
     private void generateId() {
