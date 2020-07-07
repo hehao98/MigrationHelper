@@ -17,9 +17,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -58,5 +58,17 @@ public class ClassSignatureRepositoryTest {
         List<ClassSignature> queryResult = csRepo.findByClassName("com.google.gson.Gson");
         System.out.println(queryResult);
         assertTrue(queryResult.size() > 0);
+
+        ClassSignature cs = result.get(0);
+        String id = cs.getId();
+        cs.setClassName("test.ClassName");
+        String id2 = cs.getId();
+        assertNotEquals(id, id2);
+        csRepo.save(cs);
+        queryResult = csRepo.findByClassName("test.ClassName");
+        assertTrue(queryResult.size() > 0);
+        Optional<ClassSignature> opt = csRepo.findById(id2);
+        assertTrue(opt.isPresent());
+        assertEquals(opt.get().getId(), id2);
     }
 }
