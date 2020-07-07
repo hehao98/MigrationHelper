@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.data.api;
 
 import org.springframework.data.annotation.Id;
-import scala.collection.immutable.List;
+import java.util.List;
 
 public class LibraryVersionToClass {
 

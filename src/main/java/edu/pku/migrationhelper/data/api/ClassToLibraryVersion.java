@@ -8,7 +8,9 @@ public class ClassToLibraryVersion {
     @Id
     private String classId; // id field of class (40 byte SHA1)
 
-    private List<Long> versionIds; // The id in MongoDB libraryVersionToClassCollection
+    // The id in MongoDB libraryVersionToClassCollection
+    // Ideally, it should also can be used to query MySQL library_version table
+    private List<Long> versionIds;
 
     public String getClassId() {
         return classId;

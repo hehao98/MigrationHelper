@@ -6,6 +6,9 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * For other methods please refer to its parent class
+ */
 public interface ClassSignatureRepository extends MongoRepository<ClassSignature, String> {
 
     Optional<ClassSignature> findById(String id);

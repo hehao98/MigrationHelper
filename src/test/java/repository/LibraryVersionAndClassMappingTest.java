@@ -2,7 +2,11 @@ package repository;
 
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
 import edu.pku.migrationhelper.data.api.ClassSignature;
+import edu.pku.migrationhelper.data.api.ClassToLibraryVersion;
+import edu.pku.migrationhelper.data.api.LibraryVersionToClass;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
+import edu.pku.migrationhelper.repository.ClassToLibraryVersionRepository;
+import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
 import org.junit.Before;
@@ -15,17 +19,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @SpringBootTest(classes = { MongoDbConfiguration.class, MongoDbUtilService.class, JarAnalysisService.class })
-public class ClassSignatureRepositoryTest {
+public class LibraryVersionAndClassMappingTest {
 
     @Autowired
     MongoDbUtilService utilService;
@@ -34,49 +40,45 @@ public class ClassSignatureRepositoryTest {
     ClassSignatureRepository csRepo;
 
     @Autowired
+    LibraryVersionToClassRepository lv2cRepo;
+
+    @Autowired
+    ClassToLibraryVersionRepository c2lvRepo;
+
+    @Autowired
     JarAnalysisService jas;
 
     @Before
     public void init() {
         assertTrue(utilService.getDbName().contains("test"));
         csRepo.deleteAll();
+        lv2cRepo.deleteAll();
+        c2lvRepo.deleteAll();
         utilService.initMongoDb();
     }
 
     @Test
-    public void testClassSignatureDb() throws Exception {
+    public void testLibraryVersionAndClassMapping() throws Exception {
         String jarFilePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("jars/gson-2.8.6.jar")).getPath();
         List<ClassSignature> testSignatures = jas.analyzeJar(jarFilePath, true);
-        System.out.println(testSignatures);
-
-        for (ClassSignature cs : testSignatures) {
-            csRepo.save(cs);
-        }
-        assertEquals(csRepo.count(), testSignatures.size());
-
-        List<ClassSignature> queryResult = csRepo.findByClassName("com.google.gson.Gson");
-        System.out.println(queryResult);
-        assertTrue(queryResult.size() > 0);
-
-        ClassSignature cs = testSignatures.get(0);
-        String id = cs.getId();
-        cs.setClassName("test.ClassName");
-        String id2 = cs.getId();
-        assertNotEquals(id, id2);
-        csRepo.save(cs);
-        queryResult = csRepo.findByClassName("test.ClassName");
-        assertTrue(queryResult.size() > 0);
-        Optional<ClassSignature> opt = csRepo.findById(id2);
-        assertTrue(opt.isPresent());
-        assertEquals(opt.get().getId(), id2);
-
-        queryResult = csRepo.findByClassNameStartingWith("com.google.gson");
-        System.out.println("Classes that begin with com.google.gson: ");
-        System.out.println(queryResult);
-        assertTrue(queryResult.size() > 0);
-        for (ClassSignature x : queryResult) {
-            assertTrue(x.getClassName().startsWith("com.google.gson"));
+        List<String> testClassIds = testSignatures.stream().map(ClassSignature::getId).collect(Collectors.toList());
+        csRepo.saveAll(testSignatures);
+        LibraryVersionToClass lv2c = new LibraryVersionToClass().setClassIds(testClassIds).setId(0);
+        lv2cRepo.save(lv2c);
+        List<ClassToLibraryVersion> c2lvList = testSignatures.stream()
+                .map(cs -> {
+                    List<Long> l = new ArrayList<>();
+                    l.add(0L);
+                    return new ClassToLibraryVersion().setClassId(cs.getId()).setVersionIds(l);
+                })
+                .collect(Collectors.toList());
+        c2lvRepo.saveAll(c2lvList);
+        assertTrue(lv2cRepo.findById(0L).isPresent());
+        for (String id : testClassIds) {
+            assertTrue(c2lvRepo.findById(id).isPresent());
+            assertEquals(c2lvRepo.findById(id).get().getVersionIds().get(0), new Long(0L));
         }
     }
+
 }
