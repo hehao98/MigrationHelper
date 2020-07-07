@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.LibraryOverlap;
+import edu.pku.migrationhelper.data.lib.LibraryOverlap;
 import org.apache.ibatis.annotations.*;
 
 import java.util.Collection;

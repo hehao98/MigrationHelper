@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.LioProjectWithRepository;
+import edu.pku.migrationhelper.data.lib.LioProjectWithRepository;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

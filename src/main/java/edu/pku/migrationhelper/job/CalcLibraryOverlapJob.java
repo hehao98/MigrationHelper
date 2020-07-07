@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.LibraryOverlap;
-import edu.pku.migrationhelper.data.LibrarySignatureToVersion;
+import edu.pku.migrationhelper.data.lib.LibraryOverlap;
+import edu.pku.migrationhelper.data.lib.LibrarySignatureToVersion;
 import edu.pku.migrationhelper.mapper.LibraryOverlapMapper;
 import edu.pku.migrationhelper.mapper.LibrarySignatureToVersionMapper;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.*;

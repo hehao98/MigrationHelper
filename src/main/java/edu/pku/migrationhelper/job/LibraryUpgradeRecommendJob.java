@@ -2,8 +2,8 @@ package edu.pku.migrationhelper.job;
 
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.SemverException;
-import edu.pku.migrationhelper.data.LibraryGroupArtifact;
-import edu.pku.migrationhelper.data.LibraryVersion;
+import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LibraryVersion;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;

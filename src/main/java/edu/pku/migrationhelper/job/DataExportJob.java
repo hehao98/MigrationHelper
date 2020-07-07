@@ -2,6 +2,7 @@ package edu.pku.migrationhelper.job;
 
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
+import edu.pku.migrationhelper.data.lib.*;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;

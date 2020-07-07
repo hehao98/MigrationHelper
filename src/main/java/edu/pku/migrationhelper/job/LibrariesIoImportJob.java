@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.LioProjectWithRepository;
+import edu.pku.migrationhelper.data.lib.LioProjectWithRepository;
 import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -12,9 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.FileReader;

@@ -35,6 +35,7 @@ public class JarAnalysisService {
     public List<ClassSignature> analyzeJar(String filePath, boolean publicOnly) throws IOException {
         List<JavaClass> classList = new LinkedList<>();
 
+        // Load JAR file
         JarFile jarFile = new JarFile(filePath);
         Enumeration<JarEntry> e = jarFile.entries();
         while (e.hasMoreElements()) {
@@ -50,17 +51,18 @@ public class JarAnalysisService {
             }
         }
 
+        // Load classes
         List<ClassSignature> result = new ArrayList<>();
         for (JavaClass c : classList) {
             if (publicOnly && !c.isPublic())
                 continue;
-            ClassSignature cs = new ClassSignature(c);
+            ClassSignature cs = new ClassSignature(c, publicOnly);
             result.add(cs);
         }
+
+        // TODO: Solve inheritance relationship
         return result;
     }
-
-
 
     @Deprecated
     public List<MethodSignatureOld> analyzeJar(String filePath, List<MethodSignatureOld> result) throws Exception {

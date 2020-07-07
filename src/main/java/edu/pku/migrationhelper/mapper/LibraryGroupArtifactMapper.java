@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

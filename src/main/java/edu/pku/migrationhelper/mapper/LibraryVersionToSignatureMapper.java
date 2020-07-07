@@ -1,7 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.LibrarySignatureToVersion;
-import edu.pku.migrationhelper.data.LibraryVersionToSignature;
+import edu.pku.migrationhelper.data.lib.LibraryVersionToSignature;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

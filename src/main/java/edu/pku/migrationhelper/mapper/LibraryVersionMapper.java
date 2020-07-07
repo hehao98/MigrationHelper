@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.LibraryVersion;
+import edu.pku.migrationhelper.data.lib.LibraryVersion;
 import org.apache.ibatis.annotations.*;
 
 import java.util.Collection;

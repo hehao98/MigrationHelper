@@ -3,7 +3,7 @@ package edu.pku.migrationhelper.job;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import edu.pku.migrationhelper.data.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.service.DependencyChangePatternAnalysisService;
 import edu.pku.migrationhelper.service.EvaluationService;

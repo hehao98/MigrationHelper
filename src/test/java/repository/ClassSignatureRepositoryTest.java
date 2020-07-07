@@ -70,5 +70,13 @@ public class ClassSignatureRepositoryTest {
         Optional<ClassSignature> opt = csRepo.findById(id2);
         assertTrue(opt.isPresent());
         assertEquals(opt.get().getId(), id2);
+
+        queryResult = csRepo.findByClassNameStartingWith("com.google.gson");
+        System.out.println("Classes that begin with com.google.gson: ");
+        System.out.println(queryResult);
+        assertTrue(queryResult.size() > 0);
+        for (ClassSignature x : queryResult) {
+            assertTrue(x.getClassName().startsWith("com.google.gson"));
+        }
     }
 }
