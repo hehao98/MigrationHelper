@@ -1,4 +1,4 @@
-package edu.pku.migrationhelper.data;
+package edu.pku.migrationhelper.data.api;
 
 import java.util.Arrays;
 import java.util.List;

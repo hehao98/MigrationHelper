@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.MethodSignatureOld;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import org.apache.ibatis.annotations.*;
 
 import java.util.Collection;

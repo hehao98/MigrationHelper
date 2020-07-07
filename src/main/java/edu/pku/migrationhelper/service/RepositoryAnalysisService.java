@@ -5,6 +5,7 @@ import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.DeltaType;
 import com.github.difflib.patch.Patch;
 import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.mapper.*;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;

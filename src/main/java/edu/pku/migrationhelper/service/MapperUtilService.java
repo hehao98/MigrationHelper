@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.service;
 
 import com.twitter.hashing.KeyHasher;
-import edu.pku.migrationhelper.data.MethodSignatureOld;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.mapper.MethodSignatureMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

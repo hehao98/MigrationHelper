@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.repository;
 
-import edu.pku.migrationhelper.data.ClassSignature;
+import edu.pku.migrationhelper.data.api.ClassSignature;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;

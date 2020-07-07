@@ -1,10 +1,12 @@
-package edu.pku.migrationhelper.data;
+package edu.pku.migrationhelper.data.api;
 
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.data.annotation.Id;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class for describing APIs of a Java Class.
@@ -12,6 +14,7 @@ import java.util.Arrays;
  */
 public class ClassSignature {
 
+    // All class, method, and field properties are aggregated here
     public static final long PUBLIC = 1;
     public static final long PROTECTED = 1 << 1;
     public static final long PACKAGE = 1 << 2;
@@ -23,8 +26,10 @@ public class ClassSignature {
     public static final long SYNCHRONIZED = 1 << 8;
     public static final long VOLATILE = 1 << 9;
     public static final long INTERFACE = 1 << 10;
-    public static final long NESTED = 1 << 11;
-    public static final long ANONYMOUS = 1 << 12;
+    public static final long ENUM = 1 << 11;
+    public static final long NESTED = 1 << 12;
+    public static final long ANONYMOUS = 1 << 13;
+    public static final long NATIVE = 1 << 14;
 
     public static long getFlagsForClassSignature(JavaClass c) {
         long flag = 0;
@@ -47,29 +52,36 @@ public class ClassSignature {
 
     private String superClassName;
 
-    private String[] interfaceNames;
+    private List<String> interfaceNames;
 
-    private long[] methodIds;
+    private List<MethodSignature> methods;
 
-    private long[] fieldIds;
+    private List<FieldSignature> fields;
 
     public ClassSignature() {
         this.generateId();
     }
 
-    public ClassSignature(String className, long flags, String superClassName, String[] interfaceNames) {
-        this.className = className;
-        this.flags = flags;
-        this.superClassName = superClassName;
-        this.interfaceNames = interfaceNames;
-        this.generateId();
+    public ClassSignature(JavaClass javaClass) {
+        this(javaClass, false);
     }
 
-    public ClassSignature(JavaClass javaClass) {
+    public ClassSignature(JavaClass javaClass, boolean publicOnly) {
         this.className = javaClass.getClassName();
         this.flags = getFlagsForClassSignature(javaClass);
         this.superClassName = javaClass.getSuperclassName();
-        this.interfaceNames = javaClass.getInterfaceNames();
+        this.interfaceNames = Arrays.asList(javaClass.getInterfaceNames());
+        if (publicOnly) {
+            this.methods = Arrays.stream(javaClass.getMethods())
+                    .filter(m -> m.isPublic() || m.isProtected())
+                    .map(MethodSignature::new).collect(Collectors.toList());
+            this.fields = Arrays.stream(javaClass.getFields())
+                    .filter(f -> f.isPublic() || f.isProtected()).
+                    map(FieldSignature::new).collect(Collectors.toList());
+        } else {
+            this.methods = Arrays.stream(javaClass.getMethods()).map(MethodSignature::new).collect(Collectors.toList());
+            this.fields = Arrays.stream(javaClass.getFields()).map(FieldSignature::new).collect(Collectors.toList());
+        }
         this.generateId();
     }
 
@@ -85,7 +97,7 @@ public class ClassSignature {
     private void generateId() {
         this.id = DigestUtils.sha1Hex(
                 String.format("%x,%s,%s,%s,%s,%s", flags, className, superClassName,
-                    Arrays.toString(interfaceNames), Arrays.toString(methodIds), Arrays.toString(fieldIds)));
+                    interfaceNames, methods, fields));
     }
 
     public boolean isPublic() {
@@ -155,6 +167,19 @@ public class ClassSignature {
         return this;
     }
 
+    public boolean isEnum() {
+        return (flags & ENUM) != 0;
+    }
+
+    public ClassSignature setEnum(boolean isEnum) {
+        if (isEnum)
+            flags = flags | ENUM;
+        else
+            flags = flags & ~ENUM;
+        generateId();
+        return this;
+    }
+
     public boolean isNested() {
         return (flags & NESTED) != 0;
     }
@@ -199,39 +224,15 @@ public class ClassSignature {
         return superClassName;
     }
 
-    public ClassSignature setSuperClassName(String superClassName) {
-        this.superClassName = superClassName;
-        generateId();
-        return this;
-    }
-
-    public String[] getInterfaceNames() {
+    public List<String> getInterfaceNames() {
         return interfaceNames;
     }
 
-    public ClassSignature setInterfaceNames(String[] interfaceNames) {
-        this.interfaceNames = interfaceNames;
-        generateId();
-        return this;
+    public List<MethodSignature> getMethods() {
+        return methods;
     }
 
-    public long[] getMethodIds() {
-        return methodIds;
-    }
-
-    public ClassSignature setMethodIds(long[] methodIds) {
-        this.methodIds = methodIds;
-        generateId();
-        return this;
-    }
-
-    public long[] getFieldIds() {
-        return fieldIds;
-    }
-
-    public ClassSignature setFieldIds(long[] fieldIds) {
-        this.fieldIds = fieldIds;
-        generateId();
-        return this;
+    public List<FieldSignature> getFields() {
+        return fields;
     }
 }

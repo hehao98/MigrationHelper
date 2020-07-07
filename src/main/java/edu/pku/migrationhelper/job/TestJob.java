@@ -1,6 +1,8 @@
 package edu.pku.migrationhelper.job;
 
 import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.data.api.ClassSignature;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.*;

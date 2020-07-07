@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.ClassSignature;
-import edu.pku.migrationhelper.data.MethodSignatureOld;
+import edu.pku.migrationhelper.data.api.ClassSignature;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.Type;
 import org.apache.bcel.util.ClassPath;
@@ -19,8 +19,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import static edu.pku.migrationhelper.data.ClassSignature.getFlagsForClassSignature;
 
 @Service
 public class JarAnalysisService {

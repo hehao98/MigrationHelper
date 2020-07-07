@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.ClassSignature;
+import edu.pku.migrationhelper.data.api.ClassSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,7 @@
 package repository;
 
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
-import edu.pku.migrationhelper.data.ClassSignature;
+import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.MongoDbUtilService;

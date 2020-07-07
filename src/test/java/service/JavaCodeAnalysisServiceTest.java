@@ -1,6 +1,6 @@
 package service;
 
-import edu.pku.migrationhelper.data.MethodSignatureOld;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.service.JavaCodeAnalysisService;
 import org.junit.jupiter.api.Test;
 

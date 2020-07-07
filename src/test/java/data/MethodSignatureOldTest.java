@@ -1,6 +1,6 @@
 package data;
 
-import edu.pku.migrationhelper.data.MethodSignatureOld;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

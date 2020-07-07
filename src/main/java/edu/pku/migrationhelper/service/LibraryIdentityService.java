@@ -1,6 +1,7 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.mapper.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
