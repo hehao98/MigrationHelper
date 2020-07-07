@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static edu.pku.migrationhelper.data.ClassSignature.getFlagsForClassSignature;
+
 @Service
 public class JarAnalysisService {
 
@@ -54,17 +56,13 @@ public class JarAnalysisService {
         for (JavaClass c : classList) {
             if (publicOnly && !c.isPublic())
                 continue;
-            ClassSignature cs = new ClassSignature()
-                    .setClassName(c.getClassName())
-                    .setPublic(c.isPublic())
-                    .setFinal(c.isFinal())
-                    .setAbstract(c.isAbstract())
-                    .setSuperClassName(c.getSuperclassName())
-                    .setInterfaceNames(c.getInterfaceNames());
+            ClassSignature cs = new ClassSignature(c);
             result.add(cs);
         }
         return result;
     }
+
+
 
     @Deprecated
     public List<MethodSignatureOld> analyzeJar(String filePath, List<MethodSignatureOld> result) throws Exception {
