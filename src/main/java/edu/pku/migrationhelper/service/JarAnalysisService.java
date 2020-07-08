@@ -23,13 +23,20 @@ public class JarAnalysisService {
     Logger LOG = LoggerFactory.getLogger(getClass());
 
     /**
-     * Parse jar file, return list of class signatures
+     * Parse jar file, return list of class signatures in which their names are guaranteed to be unique
+     *
      * @param filePath Jar file path
      * @param publicOnly whether to only retain public classes, public/protected fields and public/protected methods
-     * @return list of class signatures
+     * @param classNamesInJar if not null, store all the classNames that can be found in JAR file
+     * @return list of class signatures, including all the parent classes if applicable
+     *         their interface and parent ids are filled in with best effort
      * @throws IOException when the file does not exist
      */
-    public List<ClassSignature> analyzeJar(String filePath, boolean publicOnly) throws IOException {
+    public List<ClassSignature> analyzeJar(
+            String filePath,
+            boolean publicOnly,
+            Collection<String> classNamesInJar
+    ) throws IOException {
         List<JavaClass> classList = new LinkedList<>();
 
         // Load JAR file
@@ -60,6 +67,7 @@ public class JarAnalysisService {
             classSignatures.add(cs);
             className2Index.put(cs.getClassName(), classSignatures.size() - 1);
         }
+        if (classNamesInJar != null) classNamesInJar.addAll(className2Index.keySet());
 
         // Try to add any super class if it is resolvable, using breadth first search
         Queue<String> queue = new LinkedList<>();
@@ -104,6 +112,8 @@ public class JarAnalysisService {
         // Build graph for topological sort
         Map<String, List<String>> className2Children = new HashMap<>(100000);
         Map<String, List<String>> className2Parent = new HashMap<>(100000);
+        className2Children.computeIfAbsent("java.lang.Object", name -> new LinkedList<>());
+        className2Parent.computeIfAbsent("java.lang.Object", name -> new LinkedList<>());
         for (ClassSignature cs : classSignatures) {
             List<String> classes = new ArrayList<>(cs.getInterfaceNames());
             classes.add(cs.getSuperClassName());
@@ -115,6 +125,9 @@ public class JarAnalysisService {
         }
         for (ClassSignature cs : classSignatures) {
             if (cs.getClassName().equals("java.lang.Object")) {
+                // Because of a bug in BCEL that,
+                //   java.lang.Object will always have a super class java.lang.Object
+                //   which should be not be considered.
                 continue;
             }
             className2Children.get(cs.getSuperClassName()).add(cs.getClassName());
@@ -166,7 +179,7 @@ public class JarAnalysisService {
                     if (className2Index.containsKey(interfaceName)) {
                         id = classSignatures.get(className2Index.get(interfaceName)).getId();
                     }
-                    classSignatures.get(idx).getInterfaceIds().add(id);
+                    classSignatures.get(idx).setInterfaceId(interfaceName, id);
                 }
             }
         }

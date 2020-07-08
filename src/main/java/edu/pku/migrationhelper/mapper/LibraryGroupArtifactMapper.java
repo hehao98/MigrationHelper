@@ -27,6 +27,11 @@ public interface LibraryGroupArtifactMapper {
             "</script>")
     void createTable();
 
+    @Update("<script>" +
+            "DROP TABLE `"+tableName+"` \n" +
+            "</script>")
+    void dropTable();
+
     @Insert("<script>" +
             "insert into " + tableName + " " +
             "(id, group_id, artifact_id) values " +

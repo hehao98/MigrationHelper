@@ -134,7 +134,10 @@ public class LioJarParseJob implements CommandLineRunner {
             }
             LOG.info("parse job start jobId = {}, projectId = {}, name = {}", jobId, projectId, name);
             try {
-                libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1], extractVersionOnly);
+                libraryIdentityService.extractVersions(nameSplits[0], nameSplits[1]);
+                if (!extractVersionOnly) {
+                    libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1]);
+                }
             } catch (Exception e) {
                 LOG.error("Parse jar fail, id = {}, library = {}, {}", projectId, name, e);
             }

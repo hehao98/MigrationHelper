@@ -47,7 +47,7 @@ public class ClassSignatureRepositoryTest {
     public void testClassSignatureDb() throws Exception {
         String jarFilePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("jars/gson-2.8.6.jar")).getPath();
-        List<ClassSignature> testSignatures = jas.analyzeJar(jarFilePath, true);
+        List<ClassSignature> testSignatures = jas.analyzeJar(jarFilePath, true, null);
         System.out.println(testSignatures);
 
         for (ClassSignature cs : testSignatures) {

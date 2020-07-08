@@ -28,6 +28,11 @@ public interface LibraryVersionMapper {
             "</script>")
     void createTable();
 
+    @Update("<script>" +
+            "DROP TABLE `"+tableName+"` \n" +
+            "</script>")
+    void dropTable();
+
     @Insert("<script>" +
             "insert  ignore into " + tableName + " " +
             "(group_artifact_id, version, downloaded, parsed, parse_error) values " +
@@ -45,6 +50,13 @@ public interface LibraryVersionMapper {
             "where id = #{e.id} " +
             "</script>")
     int update(@Param("e") LibraryVersion entity);
+
+    @Select("<script>" +
+            "select * from " + tableName + " where " +
+            "id = #{id} " +
+            "</script>")
+    LibraryVersion findById(
+            @Param("id") long id);
 
     @Select("<script>" +
             "select * from " + tableName + " where " +

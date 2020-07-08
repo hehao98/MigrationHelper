@@ -19,7 +19,7 @@ public class JarAnalysisServiceTest {
         String jarFilePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("jars/gson-2.8.6.jar")).getPath();
 
-        List<ClassSignature> result = jas.analyzeJar(jarFilePath, true);
+        List<ClassSignature> result = jas.analyzeJar(jarFilePath, true, null);
         Optional<ClassSignature> opt = result.stream()
                 .filter(x -> x.getClassName().equals("com.google.gson.Gson")).findFirst();
         assertTrue(opt.isPresent());
@@ -27,6 +27,7 @@ public class JarAnalysisServiceTest {
         assertTrue(opt.get().isFinal());
         assertEquals("java.lang.Object", opt.get().getSuperClassName());
 
+        // Test whether all the class SHAs are consistent
         Set<String> keys = result.stream().map(ClassSignature::getId).collect(Collectors.toSet());
         for (ClassSignature cs : result) {
             List<String> ids = new ArrayList<>(cs.getInterfaceIds());
@@ -38,6 +39,17 @@ public class JarAnalysisServiceTest {
             }
         }
         System.out.println(result);
+    }
+
+    @Test
+    public void testClassNamesInJar() throws IOException {
+        JarAnalysisService jas = new JarAnalysisService();
+        String jarFilePath = Objects.requireNonNull(
+                getClass().getClassLoader().getResource("jars/gson-2.8.6.jar")).getPath();
+        List<String> classNamesInJar = new ArrayList<>();
+        List<ClassSignature> result = jas.analyzeJar(jarFilePath, true, classNamesInJar);
+        assertTrue(classNamesInJar.contains("com.google.gson.Gson"));
+        assertFalse(classNamesInJar.contains("java.lang.Object"));
     }
 
     @Test

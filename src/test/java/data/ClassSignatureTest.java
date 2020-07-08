@@ -16,35 +16,42 @@ public class ClassSignatureTest {
     @Test
     void testSetModifier() {
         ClassSignature cs = new ClassSignature();
-        cs.setPackage(true);
+        cs = cs.setPackage(true);
         assertTrue(cs.isPackage() && !cs.isPublic());
-        cs.setPublic(true);
+        cs = cs.setPublic(true);
         assertTrue(cs.isPublic() && !cs.isPackage());
-        cs.setFinal(true);
+        cs = cs.setFinal(true);
         assertTrue(cs.isFinal());
-        cs.setFinal(false);
+        cs = cs.setFinal(false);
         assertFalse(cs.isFinal());
-        cs.setAbstract(true);
+        cs = cs.setAbstract(true);
         assertTrue(cs.isAbstract());
-        cs.setAbstract(false);
+        cs = cs.setAbstract(false);
         assertFalse(cs.isAbstract());
-        cs.setInterface(true);
+        cs = cs.setInterface(true);
         assertTrue(cs.isInterface());
-        cs.setInterface(false);
+        cs = cs.setInterface(false);
         assertFalse(cs.isInterface());
-        cs.setEnum(true);
+        cs = cs.setEnum(true);
         assertTrue(cs.isEnum());
-        cs.setEnum(false);
+        cs = cs.setEnum(false);
         assertFalse(cs.isEnum());
-        cs.setNested(true);
+        cs = cs.setNested(true);
         assertTrue(cs.isNested());
-        cs.setNested(false);
+        cs = cs.setNested(false);
         assertFalse(cs.isNested());
-        cs.setAnonymous(true);
+        cs = cs.setAnonymous(true);
         assertTrue(cs.isAnonymous());
-        cs.setAnonymous(false);
+        cs = cs.setAnonymous(false);
         assertFalse(cs.isAnonymous());
         System.out.println(cs.getId());
+    }
+
+    @Test
+    void testInterfaceManipulation() {
+        ClassSignature cs = new ClassSignature();
+        cs.setInterfaceId("abc", "def");
+        assertEquals("def", cs.getInterfaceId("abc"));
     }
 
     @Test

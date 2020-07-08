@@ -61,10 +61,15 @@ public class LibraryVersionAndClassMappingTest {
     public void testLibraryVersionAndClassMapping() throws Exception {
         String jarFilePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("jars/gson-2.8.6.jar")).getPath();
-        List<ClassSignature> testSignatures = jas.analyzeJar(jarFilePath, true);
+        List<ClassSignature> testSignatures = jas.analyzeJar(jarFilePath, true, null);
         List<String> testClassIds = testSignatures.stream().map(ClassSignature::getId).collect(Collectors.toList());
         csRepo.saveAll(testSignatures);
-        LibraryVersionToClass lv2c = new LibraryVersionToClass().setClassIds(testClassIds).setId(0);
+        LibraryVersionToClass lv2c = new LibraryVersionToClass()
+                .setClassIds(testClassIds)
+                .setId(0)
+                .setGroupId("com.google.code")
+                .setArtifactId("gson")
+                .setVersion("2.8.6");
         lv2cRepo.save(lv2c);
         List<ClassToLibraryVersion> c2lvList = testSignatures.stream()
                 .map(cs -> {
@@ -77,8 +82,10 @@ public class LibraryVersionAndClassMappingTest {
         assertTrue(lv2cRepo.findById(0L).isPresent());
         for (String id : testClassIds) {
             assertTrue(c2lvRepo.findById(id).isPresent());
-            assertEquals(c2lvRepo.findById(id).get().getVersionIds().get(0), new Long(0L));
+            assertTrue(c2lvRepo.findById(id).get().getVersionIds().contains(0L));
         }
+        assertTrue(lv2cRepo.findByGroupIdAndArtifactIdAndVersion(
+                "com.google.code", "gson", "2.8.6").isPresent());
     }
 
 }

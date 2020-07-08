@@ -1,6 +1,20 @@
 spring:
+  profile: test
+  datasource:
+    # MySQL
+    dbcp2:
+      url: jdbc:mysql://localhost:3306/test_migration_helper?serverTimezone=UTC
+      username: migration_helper
+      password: mhsql
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      max-total: 100
   data:
     mongodb:
       host: localhost
       port: 27017
       database: test_migration_helper
+
+migration-helper:
+  library-identity:
+    maven-url-base: https://repo1.maven.org/maven2/
+    download-path: target/jar-download

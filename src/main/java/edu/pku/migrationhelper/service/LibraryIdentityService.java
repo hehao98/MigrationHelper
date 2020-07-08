@@ -1,11 +1,17 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.data.api.ClassSignature;
+import edu.pku.migrationhelper.data.api.ClassToLibraryVersion;
+import edu.pku.migrationhelper.data.api.LibraryVersionToClass;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lib.LibrarySignatureToVersion;
 import edu.pku.migrationhelper.data.lib.LibraryVersion;
 import edu.pku.migrationhelper.data.lib.LibraryVersionToSignature;
 import edu.pku.migrationhelper.mapper.*;
+import edu.pku.migrationhelper.repository.ClassSignatureRepository;
+import edu.pku.migrationhelper.repository.ClassToLibraryVersionRepository;
+import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -56,13 +62,13 @@ public class LibraryIdentityService {
     private LibraryVersionMapper libraryVersionMapper;
 
     @Autowired
-    private MethodSignatureMapper methodSignatureMapper;
+    private ClassSignatureRepository classSignatureRepository;
 
     @Autowired
-    private LibrarySignatureToVersionMapper librarySignatureToVersionMapper;
+    private LibraryVersionToClassRepository libraryVersionToClassRepository;
 
     @Autowired
-    private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
+    private ClassToLibraryVersionRepository classToLibraryVersionRepository;
 
     @Value("${migration-helper.library-identity.maven-url-base}")
     private final String mavenUrlBase = "https://repo1.maven.org/maven2/";
@@ -70,8 +76,270 @@ public class LibraryIdentityService {
     @Value("${migration-helper.library-identity.download-path}")
     private String downloadPath;
 
-    private final Timer httpTimer = new Timer("library-identity-http-timer");
+    public void extractVersions(String groupId, String artifactId) {
+        // Create or find library information
+        LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
+        if (groupArtifact == null) {
+            groupArtifact = new LibraryGroupArtifact()
+                    .setGroupId(groupId)
+                    .setArtifactId(artifactId)
+                    .setVersionExtracted(false)
+                    .setParsed(false)
+                    .setParseError(false);
+            libraryGroupArtifactMapper.insert(Collections.singletonList(groupArtifact));
+            groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
+        }
 
+        // Extract all library versions if version data not exist
+        long groupArtifactId = groupArtifact.getId();
+        LOG.info("start extract library versions id = {}", groupArtifactId);
+        try {
+            List<String> versions = extractAllVersionsFromMaven(groupId, artifactId);
+            List<LibraryVersion> versionData = new ArrayList<>(versions.size());
+            versions.forEach(version -> versionData.add(new LibraryVersion()
+                    .setGroupArtifactId(groupArtifactId)
+                    .setVersion(version)
+                    .setDownloaded(false)
+                    .setParsed(false)
+                    .setParseError(false)));
+            libraryVersionMapper.insert(versionData);
+            groupArtifact.setVersionExtracted(true);
+            libraryGroupArtifactMapper.update(groupArtifact);
+            LOG.info("extract library versions success id = {}", groupArtifactId);
+        } catch (Exception e) {
+            LOG.error("extract library versions fail id = {}, {}", groupArtifactId, e);
+        }
+    }
+
+    public void parseGroupArtifact(String groupId, String artifactId) {
+        LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
+        if (groupArtifact == null || !groupArtifact.isVersionExtracted()) {
+            extractVersions(groupId, artifactId);
+            groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
+        }
+        if(groupArtifact.isVersionExtracted() && groupArtifact.isParsed() && !groupArtifact.isParseError())  {
+            LOG.info("skip {} because it is parsed and does not contain error", groupArtifact);
+            return;
+        }
+
+        long groupArtifactId = groupArtifact.getId();
+        LOG.info("parse group artifact start id = {}, groupId = {}, artifactId = {}",
+                groupArtifactId, groupId, artifactId);
+
+        boolean containError = false;
+        List<LibraryVersion> versionDataList = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
+        Map<String, List<Long>> classToVersions = new HashMap<>();
+        Map<Long, List<String>>  versionToClasses = new HashMap<>();
+        for (LibraryVersion versionData : versionDataList) {
+            String version = versionData.getVersion();
+            File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
+            List<ClassSignature> classes;
+            Set<String> classNamesInJar = new HashSet<>();
+
+            try {
+                if (!jarFile.exists()) {
+                    List<String> availableFiles = extractAvailableFilesFromMaven(groupId, artifactId, version);
+                    if (!availableFiles.contains(String.format("%s-%s.jar", artifactId, version))) {
+                        LOG.info("{}:{}-{} do not have corresponding JAR file, skipping...", groupId, artifactId, version);
+                        versionData.setParsed(false).setParseError(false).setDownloaded(false);
+                        libraryVersionMapper.update(versionData);
+                        continue;
+                    }
+                    LOG.info("library need download {}-{}", groupArtifact.getGroupArtifactId(), versionData.getVersion());
+                    if (!(jarFile.getParentFile().exists() || jarFile.getParentFile().mkdirs()))
+                        throw new IOException("Fail in making directory for jarFile " + jarFile);
+                    if (!jarFile.createNewFile())
+                        throw new IOException("Fail in creating new jarFile " + jarFile);
+                    downloadLibraryFromMaven(groupId, artifactId, version, new FileOutputStream(jarFile));
+                    versionData.setDownloaded(true);
+                    libraryVersionMapper.update(versionData);
+                }
+                double jarSize = jarFile.length() / (1024.0 * 1024.0);
+                LOG.info("start parse library {}-{}, size = {} MB",
+                        groupArtifact.getGroupArtifactId(), versionData.getVersion(), jarSize);
+                classes = jarAnalysisService.analyzeJar(jarFile.getPath(), true, classNamesInJar);
+            } catch (IOException ex) {
+                LOG.error("IOException when downloading/parsing JAR {}, {}", jarFile, ex);
+                containError = true;
+                versionData.setDownloaded(false).setParsed(false).setParseError(true);
+                libraryVersionMapper.update(versionData);
+                continue;
+            }
+
+            versionToClasses.computeIfAbsent(versionData.getId(), l -> new LinkedList<>());
+            for (ClassSignature cs : classes) {
+                if (!classSignatureRepository.findById(cs.getId()).isPresent())
+                    classSignatureRepository.save(cs);
+                if (classNamesInJar.contains(cs.getClassName())) {
+                    classToVersions.computeIfAbsent(cs.getId(), s -> new LinkedList<>());
+                    classToVersions.get(cs.getId()).add(versionData.getId());
+                    versionToClasses.get(versionData.getId()).add(cs.getId());
+                }
+            }
+
+            versionData.setParsed(true).setParseError(false);
+            libraryVersionMapper.update(versionData);
+        }
+
+        for (String classId : classToVersions.keySet()) {
+            ClassToLibraryVersion c2lv = new ClassToLibraryVersion();
+            Optional<ClassToLibraryVersion> c2lvo = classToLibraryVersionRepository.findById(classId);
+            if (c2lvo.isPresent()) {
+                c2lv = c2lvo.get();
+                c2lv.addVersionIds(classToVersions.get(classId));
+            } else {
+                c2lv.setClassId(classId).setVersionIds(classToVersions.get(classId));
+            }
+            classToLibraryVersionRepository.save(c2lv);
+        }
+        for (long versionId : versionToClasses.keySet()) {
+            LibraryVersionToClass lv2c = new LibraryVersionToClass();
+            Optional<LibraryVersionToClass> lv2co = libraryVersionToClassRepository.findById(versionId);
+            if (lv2co.isPresent()) {
+                lv2c = lv2co.get();
+                lv2c.addClassIds(versionToClasses.get(versionId));
+            } else {
+                lv2c.setId(versionId).setClassIds(versionToClasses.get(versionId));
+            }
+            String version = libraryVersionMapper.findById(versionId).getVersion();
+            lv2c.setGroupId(groupId).setArtifactId(artifactId).setVersion(version);
+            libraryVersionToClassRepository.save(lv2c);
+        }
+
+        groupArtifact.setParsed(true).setParseError(containError);
+        libraryGroupArtifactMapper.update(groupArtifact);
+        LOG.info("Download and parse {}:{} success!", groupId, artifactId);
+    }
+
+    public void downloadLibraryFromMaven(String groupId, String artifactId, String version, OutputStream output) throws IOException {
+        String url = mavenUrlBase
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "/" + version + "/"
+                + artifactId + "-" + version + ".jar";
+
+        HttpGet request = new HttpGet(url);
+        LOG.info("Downloading JAR from {}", url);
+        try {
+            HttpResponse response = executeHttpRequest(request);
+            response.getEntity().writeTo(output);
+            output.flush();
+        } catch (Exception e) {
+            LOG.error("Download library fail, url = {}", url);
+            throw e;
+        } finally {
+            request.releaseConnection();
+            output.close();
+        }
+    }
+
+    public List<String> extractAllVersionsFromMaven(String groupId, String artifactId) throws IOException, DocumentException {
+        String url = mavenUrlBase
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "/maven-metadata.xml";
+        HttpGet request = new HttpGet(url);
+        try {
+            HttpResponse response = executeHttpRequest(request);
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(response.getEntity().getContent());
+            List<Node> versionNodes = document.selectNodes("/metadata/versioning/versions/version");
+            List<String> result = new ArrayList<>(versionNodes.size());
+            versionNodes.forEach(e -> result.add(e.getStringValue().trim()));
+            return result;
+        } catch (Exception e) {
+            LOG.error("Download version information fail, url = {}", url);
+            throw e;
+        } finally {
+            request.releaseConnection();
+        }
+    }
+
+    public boolean extractGroupArtifactFromMavenMeta(String metaUrl) throws IOException, DocumentException {
+        HttpGet request = new HttpGet(metaUrl);
+        try {
+            HttpResponse response = executeHttpRequest(request);
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(response.getEntity().getContent());
+            Node groupNode = document.selectSingleNode("/metadata/groupId");
+            Node artifactNode = document.selectSingleNode("/metadata/artifactId");
+            if (groupNode == null || artifactNode == null) {
+                return false;
+            }
+            String groupId = groupNode.getStringValue().trim();
+            String artifactId = artifactNode.getStringValue().trim();
+            LibraryGroupArtifact libraryGroupArtifact = libraryGroupArtifactMapper
+                    .findByGroupIdAndArtifactId(groupId, artifactId);
+            if (libraryGroupArtifact == null) {
+                libraryGroupArtifact = new LibraryGroupArtifact()
+                        .setGroupId(groupId)
+                        .setArtifactId(artifactId)
+                        .setVersionExtracted(false);
+                libraryGroupArtifactMapper.insert(Collections.singletonList(libraryGroupArtifact));
+            }
+            return true;
+        } finally {
+            request.releaseConnection();
+        }
+    }
+
+    public List<String> extractAvailableFilesFromMaven(String groupId, String artifactId, String version) throws IOException {
+        String url = mavenUrlBase
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "/" + version + "/";
+        List<String> result = new ArrayList<>();
+        HttpGet request = new HttpGet(url);
+        try {
+            org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
+            Elements files = doc.select("a");
+            for (org.jsoup.nodes.Element file : files) {
+                result.add(file.text());
+            }
+        } catch (HttpStatusException e) {
+            if (e.getStatusCode() == 404) {
+                // In very rare cases the version string does not match the folder on Maven Central,
+                //   such as 8.0.7 of mysql-connector-java, which will cause status code 404
+                // In this case, we just consider the folder as empty and return empty list
+                LOG.warn("Url {} does not exist which may be a bug in Maven Central", url);
+                return result;
+            } else {
+                LOG.error("Http status code {} while extracting available files from maven, url = {}", e.getStatusCode(), url);
+                throw e;
+            }
+        } catch (Exception e) {
+            LOG.error("Error while extracting available files from maven, url = {}", url);
+            throw e;
+        } finally {
+            request.releaseConnection();
+        }
+        return result;
+    }
+
+    private HttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
+        HttpResponse response = httpClient.execute(request);
+        if(response.getStatusLine().getStatusCode() != 200) {
+            throw new IOException("http status code " + response.getStatusLine().getStatusCode());
+        }
+        return response;
+    }
+
+    private String generateJarDownloadPath(String groupId, String artifactId, String version) {
+        return downloadPath + "/"
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "-" + version + ".jar";
+    }
+
+    @Deprecated
+    @Autowired
+    private MethodSignatureMapper methodSignatureMapper;
+
+    @Deprecated
+    @Autowired
+    private LibrarySignatureToVersionMapper librarySignatureToVersionMapper;
+
+    @Deprecated
+    @Autowired
+    private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
+
+    @Deprecated
     public void parseGroupArtifact(String groupId, String artifactId, boolean extractVersionOnly) {
         // create or find library information
         LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper
@@ -250,6 +518,7 @@ public class LibraryIdentityService {
         }
     }
 
+    @Deprecated
     public List<MethodSignatureOld> parseLibraryJar(String groupId, String artifactId, String version, Map<String, MethodSignatureOld> signatureCache) throws Exception {
         String jarPath = generateJarDownloadPath(groupId, artifactId, version);
         List<MethodSignatureOld> signatures = new LinkedList<>();
@@ -260,6 +529,7 @@ public class LibraryIdentityService {
         return signatures;
     }
 
+    @Deprecated
     public Map<Long, List<Long>> getSignatureToGroupArtifact(Collection<Long> signatureIds) {
         Map<Integer, Set<Long>> sliceMap = new HashMap<>();
         for (Long signatureId : signatureIds) {
@@ -281,24 +551,29 @@ public class LibraryIdentityService {
         return result;
     }
 
+    @Deprecated
     public LibrarySignatureToVersion getSignatureToVersion(long signatureId) {
         int slice = MapperUtilService.getMethodSignatureSliceKey(signatureId);
         return librarySignatureToVersionMapper.findById(slice, signatureId);
     }
 
+    @Deprecated
     public void saveSignatureToVersion(LibrarySignatureToVersion s2v) {
         int slice = MapperUtilService.getMethodSignatureSliceKey(s2v.getSignatureId());
         librarySignatureToVersionMapper.insertOne(slice, s2v);
     }
 
+    @Deprecated
     public LibraryVersionToSignature getVersionToSignature(long versionId) {
         return libraryVersionToSignatureMapper.findById(versionId);
     }
 
+    @Deprecated
     public void saveVersionToSignature(LibraryVersionToSignature v2s) {
         libraryVersionToSignatureMapper.insertOne(v2s);
     }
 
+    @Deprecated
     public List<Long>[] getVersionIdsAndGroupArtifactIdsBySignatureIds(Collection<Long> signatureIds) {
         List<LibrarySignatureToVersion> s2vList = new ArrayList<>(signatureIds.size());
         for (long signatureId : signatureIds) {
@@ -318,11 +593,13 @@ public class LibraryIdentityService {
         return new List[]{new ArrayList<>(versionIds), new ArrayList<>(gaIds)};
     }
 
+    @Deprecated
     public List<MethodSignatureOld> getMethodSignatureList(String packageName, String className, String methodName) {
         int sliceKey = MapperUtilService.getMethodSignatureSliceKey(packageName, className);
         return methodSignatureMapper.findList(sliceKey, packageName, className, methodName);
     }
 
+    @Deprecated
     public MethodSignatureOld getMethodSignature(MethodSignatureOld ms, Map<String, MethodSignatureOld> signatureCache) {
         String cacheKey = null;
         if(signatureCache != null) {
@@ -357,6 +634,7 @@ public class LibraryIdentityService {
         }
     }
 
+    @Deprecated
     public void saveMethodSignature(MethodSignatureOld ms, Map<String, MethodSignatureOld> signatureCache) {
         String cacheKey = null;
         if(signatureCache != null) {
@@ -398,121 +676,5 @@ public class LibraryIdentityService {
         } catch (UncategorizedSQLException ex) {
             LOG.error("Error inserting method {} into database, {}", ms.toString(), ex);
         }
-    }
-
-    public void downloadLibraryFromMaven(String groupId, String artifactId, String version, OutputStream output) throws IOException {
-        String url = mavenUrlBase
-                + groupId.replace(".", "/") + "/"
-                + artifactId + "/" + version + "/"
-                + artifactId + "-" + version + ".jar";
-
-        HttpGet request = new HttpGet(url);
-        LOG.info("Downloading JAR from {}", url);
-        try {
-            HttpResponse response = executeHttpRequest(request);
-            response.getEntity().writeTo(output);
-            output.flush();
-        } catch (Exception e) {
-            LOG.error("Download library fail, url = {}", url);
-            throw e;
-        } finally {
-            request.releaseConnection();
-            output.close();
-        }
-    }
-
-    public List<String> extractAllVersionsFromMaven(String groupId, String artifactId) throws IOException, DocumentException {
-        String url = mavenUrlBase
-                + groupId.replace(".", "/") + "/"
-                + artifactId + "/maven-metadata.xml";
-        HttpGet request = new HttpGet(url);
-        try {
-            HttpResponse response = executeHttpRequest(request);
-            SAXReader reader = new SAXReader();
-            Document document = reader.read(response.getEntity().getContent());
-            List<Node> versionNodes = document.selectNodes("/metadata/versioning/versions/version");
-            List<String> result = new ArrayList<>(versionNodes.size());
-            versionNodes.forEach(e -> result.add(e.getStringValue().trim()));
-            return result;
-        } catch (Exception e) {
-            LOG.error("Download version information fail, url = {}", url);
-            throw e;
-        } finally {
-            request.releaseConnection();
-        }
-    }
-
-    public boolean extractGroupArtifactFromMavenMeta(String metaUrl) throws IOException, DocumentException {
-        HttpGet request = new HttpGet(metaUrl);
-        try {
-            HttpResponse response = executeHttpRequest(request);
-            SAXReader reader = new SAXReader();
-            Document document = reader.read(response.getEntity().getContent());
-            Node groupNode = document.selectSingleNode("/metadata/groupId");
-            Node artifactNode = document.selectSingleNode("/metadata/artifactId");
-            if (groupNode == null || artifactNode == null) {
-                return false;
-            }
-            String groupId = groupNode.getStringValue().trim();
-            String artifactId = artifactNode.getStringValue().trim();
-            LibraryGroupArtifact libraryGroupArtifact = libraryGroupArtifactMapper
-                    .findByGroupIdAndArtifactId(groupId, artifactId);
-            if (libraryGroupArtifact == null) {
-                libraryGroupArtifact = new LibraryGroupArtifact()
-                        .setGroupId(groupId)
-                        .setArtifactId(artifactId)
-                        .setVersionExtracted(false);
-                libraryGroupArtifactMapper.insert(Collections.singletonList(libraryGroupArtifact));
-            }
-            return true;
-        } finally {
-            request.releaseConnection();
-        }
-    }
-
-    public List<String> extractAvailableFilesFromMaven(String groupId, String artifactId, String version) throws IOException {
-        String url = mavenUrlBase
-                + groupId.replace(".", "/") + "/"
-                + artifactId + "/" + version + "/";
-        List<String> result = new ArrayList<>();
-        HttpGet request = new HttpGet(url);
-        try {
-            org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
-            Elements files = doc.select("a");
-            for (org.jsoup.nodes.Element file : files) {
-                result.add(file.text());
-            }
-        } catch (HttpStatusException e) {
-            if (e.getStatusCode() == 404) {
-                // In very rare cases the version string does not match the folder on Maven Central,
-                //   such as 8.0.7 of mysql-connector-java, which will cause status code 404
-                // In this case, we just consider the folder as empty and return empty list
-                LOG.warn("Url {} does not exist which may be a bug in Maven Central", url);
-                return result;
-            } else {
-                LOG.error("Http status code {} while extracting available files from maven, url = {}", e.getStatusCode(), url);
-                throw e;
-            }
-        } catch (Exception e) {
-            LOG.error("Error while extracting available files from maven, url = {}", url);
-            throw e;
-        } finally {
-            request.releaseConnection();
-        }
-        return result;
-    }
-
-    private HttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
-        HttpResponse response = httpClient.execute(request);
-        if(response.getStatusLine().getStatusCode() != 200) {
-            throw new IOException("http status code " + response.getStatusLine().getStatusCode());
-        }
-        return response;
-    }
-
-    private String generateJarDownloadPath(String groupId, String artifactId, String version) {
-        return downloadPath + "/"
-                + groupId.replace(".", "/") + "/"
-                + artifactId + "-" + version + ".jar";
     }
 }

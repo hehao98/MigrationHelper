@@ -4,10 +4,7 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.data.annotation.Id;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -78,7 +75,10 @@ public class ClassSignature {
         this.className = javaClass.getClassName();
         this.flags = getFlagsForClassSignature(javaClass);
         this.superClassName = javaClass.getSuperclassName();
-        this.interfaceNames = Arrays.asList(javaClass.getInterfaceNames());
+        this.interfaceNames.addAll(Arrays.asList(javaClass.getInterfaceNames()));
+        for (String ignored : javaClass.getInterfaceNames()) {
+            this.interfaceIds.add(ID_NULL);
+        }
         if (publicOnly) {
             this.methods = Arrays.stream(javaClass.getMethods())
                     .filter(m -> m.isPublic() || m.isProtected())
@@ -255,25 +255,47 @@ public class ClassSignature {
         return this;
     }
 
-    public List<String> getInterfaceNames() {
-        return interfaceNames;
+    public Collection<String> getInterfaceNames() {
+        return Collections.unmodifiableCollection(interfaceNames);
     }
 
-    public List<String> getInterfaceIds() {
-        return interfaceIds;
+    public Collection<String> getInterfaceIds() {
+        return Collections.unmodifiableCollection(interfaceIds);
     }
 
-    public ClassSignature setInterfaceIds(List<String> interfaceIds) {
-        this.interfaceIds = interfaceIds;
+    public String getInterfaceId(String interfaceName) {
+        return interfaceIds.get(interfaceNames.indexOf(interfaceName));
+    }
+
+    public ClassSignature setInterfaceId(String interfaceName, String interfaceId) {
+        int idx = interfaceNames.indexOf(interfaceName);
+        if (idx == -1) {
+            interfaceNames.add(interfaceName);
+            interfaceIds.add(interfaceId);
+        } else {
+            interfaceIds.set(idx, interfaceId);
+        }
         generateId();
         return this;
     }
 
+    public List<String> getSuperClassAndInterfaceNames() {
+        List<String> names = new ArrayList<>(interfaceNames);
+        names.add(superClassName);
+        return names;
+    }
+
+    public List<String> getSuperClassAndInterfaceIds() {
+        List<String> names = new ArrayList<>(interfaceIds);
+        names.add(superClassId);
+        return names;
+    }
+
     public List<MethodSignature> getMethods() {
-        return methods;
+        return Collections.unmodifiableList(methods);
     }
 
     public List<FieldSignature> getFields() {
-        return fields;
+        return Collections.unmodifiableList(fields);
     }
 }
