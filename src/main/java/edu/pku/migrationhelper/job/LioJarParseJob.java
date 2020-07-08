@@ -55,7 +55,7 @@ public class LioJarParseJob implements CommandLineRunner {
     private int limitCount;
 
     @Value("${migration-helper.lio-jar-parse.extract-version-only}")
-    @Parameter(names = "--extract-version-only")
+    @Parameter(names = "--extract-version-only", description = "if true, extract versions, update if necessary")
     private boolean extractVersionOnly;
 
     @Value("${migration-helper.lio-jar-parse.reverse-order}")
@@ -119,11 +119,11 @@ public class LioJarParseJob implements CommandLineRunner {
         public void run() {
             LioProjectWithRepository p = lioProjectWithRepositoryMapper.findById(projectId);
             if (p == null) {
-               LOG.error("project not found, id = {}", projectId);
+               LOG.error("Project not found, id = {}", projectId);
                return;
             }
             if(!"Maven".equals(p.getPlatform())) {
-                LOG.error("project not Maven, id = {}", projectId);
+                LOG.error("Project not Maven, id = {}", projectId);
                 return;
             }
             String name = p.getName();
@@ -132,10 +132,11 @@ public class LioJarParseJob implements CommandLineRunner {
                 LOG.error("nameSplits.length != 2, id = {}, name = {}", projectId, name);
                 return;
             }
-            LOG.info("parse job start jobId = {}, projectId = {}, name = {}", jobId, projectId, name);
+            LOG.info("Parse job start jobId = {}, projectId = {}, name = {}", jobId, projectId, name);
             try {
-                libraryIdentityService.extractVersions(nameSplits[0], nameSplits[1]);
-                if (!extractVersionOnly) {
+                if (extractVersionOnly) {
+                    libraryIdentityService.extractVersions(nameSplits[0], nameSplits[1]);
+                } else {
                     libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1]);
                 }
             } catch (Exception e) {
