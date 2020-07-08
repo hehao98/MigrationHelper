@@ -5,20 +5,20 @@ import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class JarAnalysisServiceTest {
 
     @Test
-    public void testAnalyzeJar() throws Exception {
+    public void testAnalyzeJar() throws IOException {
         JarAnalysisService jas = new JarAnalysisService();
         String jarFilePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("jars/gson-2.8.6.jar")).getPath();
+
         List<ClassSignature> result = jas.analyzeJar(jarFilePath, true);
         Optional<ClassSignature> opt = result.stream()
                 .filter(x -> x.getClassName().equals("com.google.gson.Gson")).findFirst();
@@ -26,6 +26,17 @@ public class JarAnalysisServiceTest {
         assertTrue(opt.get().isPublic());
         assertTrue(opt.get().isFinal());
         assertEquals("java.lang.Object", opt.get().getSuperClassName());
+
+        Set<String> keys = result.stream().map(ClassSignature::getId).collect(Collectors.toSet());
+        for (ClassSignature cs : result) {
+            List<String> ids = new ArrayList<>(cs.getInterfaceIds());
+            ids.add(cs.getSuperClassId());
+            for (String id : ids) {
+                if (!id.equals(ClassSignature.ID_NULL)) {
+                    assertTrue(keys.contains(id));
+                }
+            }
+        }
         System.out.println(result);
     }
 

@@ -6,6 +6,8 @@ import org.apache.bcel.classfile.JavaClass;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,6 +63,19 @@ public class ClassSignatureTest {
         assertTrue(cs.getInterfaceNames().contains("java.lang.CharSequence"));
         System.out.println(cs.getMethods());
         System.out.println(cs.getFields());
+    }
+
+    @Test
+    void testClassSignatureEqual() {
+        Set<ClassSignature> set = new HashSet<>();
+        assertEquals(new ClassSignature(), new ClassSignature());
+        assertEquals(new ClassSignature().setClassName("java.lang.Object"),
+                new ClassSignature().setClassName("java.lang.Object"));
+        set.add(new ClassSignature());
+        System.out.println(set);
+        set.add(new ClassSignature());
+        System.out.println(set);
+        assertEquals(1, set.size());
     }
 
     @Test

@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.lang.Deprecated;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -52,16 +49,129 @@ public class JarAnalysisService {
         }
 
         // Load classes
-        List<ClassSignature> result = new ArrayList<>();
+        Repository repository = new MemorySensitiveClassPathRepository(new ClassPath(filePath));
+        List<ClassSignature> classSignatures = new ArrayList<>();
+        Map<String, Integer> className2Index = new HashMap<>(100000);
         for (JavaClass c : classList) {
+            repository.storeClass(c); // public class might inherit package class
             if (publicOnly && !c.isPublic())
                 continue;
             ClassSignature cs = new ClassSignature(c, publicOnly);
-            result.add(cs);
+            classSignatures.add(cs);
+            className2Index.put(cs.getClassName(), classSignatures.size() - 1);
         }
 
-        // TODO: Solve inheritance relationship
-        return result;
+        // Try to add any super class if it is resolvable, using breadth first search
+        Queue<String> queue = new LinkedList<>();
+        for (ClassSignature cs : classSignatures) {
+            List<String> superClasses = new ArrayList<>(cs.getInterfaceNames());
+            superClasses.add(cs.getSuperClassName());
+            for (String superName : superClasses) {
+                if (!className2Index.containsKey(superName)) {
+                    queue.add(superName);
+                }
+            }
+        }
+        while (!queue.isEmpty()) {
+            String curr = queue.poll();
+            if (className2Index.containsKey(curr))
+                continue;
+            JavaClass c = repository.findClass(curr);
+            if (c == null) {
+                try {
+                    // Try to load the class in current JRE, for finding java.util.*, etc
+                    // It might accidentally load same name classes with a wrong version though
+                    c = repository.loadClass(curr);
+                } catch (ClassNotFoundException ex) {
+                    LOG.error("{} not found in this JAR file and runtime environment", curr);
+                    continue;
+                }
+            }
+            ClassSignature cs = new ClassSignature(c);
+            classSignatures.add(cs);
+            className2Index.put(curr, classSignatures.size() - 1);
+
+            List<String> superClasses = new ArrayList<>(cs.getInterfaceNames());
+            superClasses.add(cs.getSuperClassName());
+            for (String superName : superClasses) {
+                if (!className2Index.containsKey(superName)) {
+                    queue.add(superName);
+                }
+            }
+        }
+        assert classSignatures.size() == className2Index.size();
+
+        // Build graph for topological sort
+        Map<String, List<String>> className2Children = new HashMap<>(100000);
+        Map<String, List<String>> className2Parent = new HashMap<>(100000);
+        for (ClassSignature cs : classSignatures) {
+            List<String> classes = new ArrayList<>(cs.getInterfaceNames());
+            classes.add(cs.getSuperClassName());
+            classes.add(cs.getClassName());
+            for (String className : classes) {
+                className2Children.computeIfAbsent(className, name -> new LinkedList<>());
+                className2Parent.computeIfAbsent(className, name -> new LinkedList<>());
+            }
+        }
+        for (ClassSignature cs : classSignatures) {
+            if (cs.getClassName().equals("java.lang.Object")) {
+                continue;
+            }
+            className2Children.get(cs.getSuperClassName()).add(cs.getClassName());
+            for (String interfaceName : cs.getInterfaceNames()) {
+                className2Children.get(interfaceName).add(cs.getClassName());
+            }
+            className2Parent.get(cs.getClassName()).add(cs.getSuperClassName());
+            className2Parent.get(cs.getClassName()).addAll(cs.getInterfaceNames());
+        }
+        assert className2Children.containsKey("java.lang.Object");
+        assert className2Parent.containsKey("java.lang.Object");
+
+        // TODO: Solve inheritance relationship across JARs
+        // Solve inheritance, we only consider classes within this JAR and Java standard libraries
+        // Since the SHA will be changed if we modify any of its properties,
+        //   we must fill in inheritance information in topological order
+        // Here we assume that in one JAR, there cannot be classes of the same name
+        List<String> classNamesInTopologicalOrder = new ArrayList<>();
+        Queue<String> current = new LinkedList<>();
+        for (ClassSignature cs : classSignatures) {
+            if (className2Parent.get(cs.getClassName()).size() == 0) {
+                current.add(cs.getClassName());
+            }
+        }
+        while (!current.isEmpty()) {
+            String className = current.poll();
+            classNamesInTopologicalOrder.add(className);
+            for (String childName : className2Children.get(className)) {
+                className2Parent.get(childName).remove(className);
+                if (className2Parent.get(childName).size() == 0) {
+                    current.add(childName);
+                }
+            }
+        }
+        for (String className : classNamesInTopologicalOrder) {
+            if (className.equals("java.lang.Object"))
+                continue;
+            if (className2Index.containsKey(className)) {
+                int idx = className2Index.get(className);
+                ClassSignature cs = classSignatures.get(idx);
+                String superClassId = ClassSignature.ID_NULL;
+                if (className2Index.containsKey(cs.getSuperClassName())) {
+                    superClassId = classSignatures.get(className2Index.get(cs.getSuperClassName())).getId();
+                }
+                classSignatures.get(idx).setSuperClassId(superClassId);
+                List<String> interfaceNames = new ArrayList<>(cs.getInterfaceNames());
+                for (String interfaceName : interfaceNames) {
+                    String id = ClassSignature.ID_NULL;
+                    if (className2Index.containsKey(interfaceName)) {
+                        id = classSignatures.get(className2Index.get(interfaceName)).getId();
+                    }
+                    classSignatures.get(idx).getInterfaceIds().add(id);
+                }
+            }
+        }
+
+        return classSignatures;
     }
 
     @Deprecated

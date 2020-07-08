@@ -5,7 +5,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.data.annotation.Id;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -13,6 +15,8 @@ import java.util.stream.Collectors;
  * This is intended to be for reading. Intensive use of setters may be slow.
  */
 public class ClassSignature {
+
+    public static final String ID_NULL = "0000000000000000000000000000000000000000";
 
     // All class, method, and field properties are aggregated here
     public static final long PUBLIC = 1;
@@ -52,11 +56,15 @@ public class ClassSignature {
 
     private String superClassName;
 
-    private List<String> interfaceNames;
+    private String superClassId = ID_NULL;
 
-    private List<MethodSignature> methods;
+    private List<String> interfaceNames = new LinkedList<>();
 
-    private List<FieldSignature> fields;
+    private List<String> interfaceIds = new LinkedList<>();
+
+    private List<MethodSignature> methods = new LinkedList<>();
+
+    private List<FieldSignature> fields = new LinkedList<>();
 
     public ClassSignature() {
         this.generateId();
@@ -90,14 +98,27 @@ public class ClassSignature {
         return className + "#" + id.substring(0, 6);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClassSignature that = (ClassSignature) o;
+        return id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
     public String getId() {
         return id;
     }
 
     private void generateId() {
         this.id = DigestUtils.sha1Hex(
-                String.format("%x,%s,%s,%s,%s,%s", flags, className, superClassName,
-                    interfaceNames, methods, fields));
+                String.format("%x,%s,%s,%s,%s,%s,%s,%s", flags, className, superClassName, superClassId,
+                    interfaceNames, interfaceIds, methods, fields));
     }
 
     public boolean isPublic() {
@@ -224,8 +245,28 @@ public class ClassSignature {
         return superClassName;
     }
 
+    public String getSuperClassId() {
+        return superClassId;
+    }
+
+    public ClassSignature setSuperClassId(String superClassId) {
+        this.superClassId = superClassId;
+        generateId();
+        return this;
+    }
+
     public List<String> getInterfaceNames() {
         return interfaceNames;
+    }
+
+    public List<String> getInterfaceIds() {
+        return interfaceIds;
+    }
+
+    public ClassSignature setInterfaceIds(List<String> interfaceIds) {
+        this.interfaceIds = interfaceIds;
+        generateId();
+        return this;
     }
 
     public List<MethodSignature> getMethods() {
