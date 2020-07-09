@@ -1,10 +1,13 @@
 package edu.pku.migrationhelper.data.lib;
 
+import org.springframework.data.annotation.Id;
+
 /**
  * Created by xuyul on 2020/1/3.
  */
 public class LibraryGroupArtifact {
 
+    @Id
     private long id;
 
     private String groupId;

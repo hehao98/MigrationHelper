@@ -62,6 +62,14 @@ For local usage, you need to have a running MySQL server with the configurations
   ```shell script
   bash -x ./run-woc.sh CreateTableJob
   ```
+  
+- MongoDbInitializeJob
+
+  Create indexes for library data in MongoDB
+  
+  ```shell script
+  bash -x ./run-local.sh MongoDbInitializeJob
+  ```
 
 - LibrariesIoImportJob
 

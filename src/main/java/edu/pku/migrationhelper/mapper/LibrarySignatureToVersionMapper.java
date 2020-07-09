@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * Created by xuyul on 2020/2/28.
  */
+@Deprecated
 public interface LibrarySignatureToVersionMapper {
 
     String tableName = "library_signature_to_version_";

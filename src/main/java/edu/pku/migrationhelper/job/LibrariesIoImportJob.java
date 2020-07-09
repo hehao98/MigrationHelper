@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.lib.LioProjectWithRepository;
-import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
+import edu.pku.migrationhelper.data.lib.LioProject;
+import edu.pku.migrationhelper.repository.LioProjectRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -35,7 +35,7 @@ public class LibrariesIoImportJob implements CommandLineRunner {
     private String projectWithRepositoryPath;
 
     @Autowired
-    private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
+    private LioProjectRepository lioProjectRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -43,10 +43,10 @@ public class LibrariesIoImportJob implements CommandLineRunner {
         FileReader fileReader = new FileReader(projectWithRepositoryPath);
         CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader);
         int insertLimit = 100;
-        List<LioProjectWithRepository> results = new ArrayList<>(insertLimit);
+        List<LioProject> results = new ArrayList<>(insertLimit);
         for (CSVRecord record : parser) {
             if ("Maven".equals(record.get("Platform"))) {
-                LioProjectWithRepository p = new LioProjectWithRepository();
+                LioProject p = new LioProject();
                 p.setId(getRecordLong(record, "ID"));
                 p.setPlatform(record.get("Platform"));
                 p.setLanguage(record.get("Language"));
@@ -63,12 +63,12 @@ public class LibrariesIoImportJob implements CommandLineRunner {
                 results.add(p);
             }
             if (results.size() >= insertLimit) {
-                lioProjectWithRepositoryMapper.insert(results);
+                lioProjectRepository.saveAll(results);
                 results.clear();
             }
         }
         if(results.size() > 0) {
-            lioProjectWithRepositoryMapper.insert(results);
+            lioProjectRepository.saveAll(results);
         }
         LOG.info("import success");
         System.exit(SpringApplication.exit(context));

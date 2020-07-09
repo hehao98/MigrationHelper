@@ -53,6 +53,7 @@ migration-helper:
     data-source: all
     limit-count: 10000
     extract-version-only: false
+    extract-dependencies: false
     reverse-order: false
     random-order: false
   dependency-change-pattern-analysis:

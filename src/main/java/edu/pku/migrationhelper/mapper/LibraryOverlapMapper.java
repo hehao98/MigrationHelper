@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Mapper
+@Deprecated
 public interface LibraryOverlapMapper {
 
     String tableName = "library_overlap";

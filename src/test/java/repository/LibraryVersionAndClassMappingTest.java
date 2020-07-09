@@ -3,7 +3,7 @@ package repository;
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.api.ClassToLibraryVersion;
-import edu.pku.migrationhelper.data.api.LibraryVersionToClass;
+import edu.pku.migrationhelper.data.lib.LibraryVersionToClass;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.repository.ClassToLibraryVersionRepository;
 import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
@@ -66,7 +66,7 @@ public class LibraryVersionAndClassMappingTest {
         csRepo.saveAll(testSignatures);
         LibraryVersionToClass lv2c = new LibraryVersionToClass()
                 .setClassIds(testClassIds)
-                .setId(0)
+                .setId(0L)
                 .setGroupId("com.google.code")
                 .setArtifactId("gson")
                 .setVersion("2.8.6");
@@ -86,6 +86,7 @@ public class LibraryVersionAndClassMappingTest {
         }
         assertTrue(lv2cRepo.findByGroupIdAndArtifactIdAndVersion(
                 "com.google.code", "gson", "2.8.6").isPresent());
+        assertEquals(1, lv2cRepo.findByGroupIdAndArtifactId("com.google.code", "gson").size());
     }
 
 }

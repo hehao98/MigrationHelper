@@ -91,8 +91,12 @@ public class JarAnalysisService {
                     // It might accidentally load same name classes with a wrong version though
                     c = repository.loadClass(curr);
                 } catch (ClassNotFoundException ex) {
-                    LOG.error("{} not found in this JAR file and runtime environment", curr);
-                    continue;
+                    try {
+                        c = org.apache.bcel.Repository.lookupClass(curr);
+                    } catch (ClassNotFoundException ex2) {
+                        // LOG.warn("{} not found in this JAR file and runtime environment", curr);
+                        continue;
+                    }
                 }
             }
             ClassSignature cs = new ClassSignature(c);

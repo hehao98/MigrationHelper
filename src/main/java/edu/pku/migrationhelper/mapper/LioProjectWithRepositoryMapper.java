@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.lib.LioProjectWithRepository;
+import edu.pku.migrationhelper.data.lib.LioProject;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -9,6 +9,7 @@ import java.util.List;
  * Created by xuyul on 2020/2/16.
  */
 @Mapper
+@Deprecated
 public interface LioProjectWithRepositoryMapper {
 
     String tableName = "lio_project_with_repository";
@@ -45,17 +46,17 @@ public interface LioProjectWithRepositoryMapper {
             "#{e.repositorySourceRank}, #{e.dependentProjectsCount}, #{e.dependentRepositoriesCount}) " +
             "</foreach> " +
             "</script>")
-    int insert(List<LioProjectWithRepository> entities);
+    int insert(List<LioProject> entities);
 
     @Select("<script>" +
             "select * from " + tableName + " where id = #{id}" +
             "</script>")
-    LioProjectWithRepository findById(@Param("id") long id);
+    LioProject findById(@Param("id") long id);
 
     @Select("<script>" +
             "select * from " + tableName + " where name = #{name}" +
             "</script>")
-    LioProjectWithRepository findByName(@Param("name") String name);
+    LioProject findByName(@Param("name") String name);
 
     @Select("<script>" +
             "select id from " + tableName + " " +
@@ -109,5 +110,5 @@ public interface LioProjectWithRepositoryMapper {
     @Select("<script>" +
             "select * from " + tableName + " order by id limit #{offset}, #{limit} " +
             "</script>")
-    List<LioProjectWithRepository> findList(@Param("offset") long offset, @Param("limit") int limit);
+    List<LioProject> findList(@Param("offset") long offset, @Param("limit") int limit);
 }

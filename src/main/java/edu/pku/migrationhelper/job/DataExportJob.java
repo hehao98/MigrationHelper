@@ -448,9 +448,9 @@ public class DataExportJob implements CommandLineRunner {
         boolean end = false;
         while(!end) {
             LOG.info("start export id = {}", id + 1);
-            List<LioProjectWithRepository> projectList = lioProjectWithRepositoryMapper.findList(id, limit);
+            List<LioProject> projectList = lioProjectWithRepositoryMapper.findList(id, limit);
             end = projectList.size() < limit;
-            for (LioProjectWithRepository project : projectList) {
+            for (LioProject project : projectList) {
                 ++id;
                 outputLine(writer, project.getId(), project.getSourceRank(), project.getRepositoryStarCount(),
                         project.getRepositoryForkCount(), project.getRepositoryWatchersCount(), project.getRepositorySourceRank(),

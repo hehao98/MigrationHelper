@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Mapper
+@Deprecated
 public interface MethodSignatureMapper {
 
     int MAX_ID_BIT = 35;

@@ -1,17 +1,9 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.api.ClassSignature;
-import edu.pku.migrationhelper.data.api.ClassToLibraryVersion;
-import edu.pku.migrationhelper.data.api.LibraryVersionToClass;
-import edu.pku.migrationhelper.data.api.MethodSignatureOld;
-import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
-import edu.pku.migrationhelper.data.lib.LibrarySignatureToVersion;
-import edu.pku.migrationhelper.data.lib.LibraryVersion;
-import edu.pku.migrationhelper.data.lib.LibraryVersionToSignature;
+import edu.pku.migrationhelper.data.api.*;
+import edu.pku.migrationhelper.data.lib.*;
 import edu.pku.migrationhelper.mapper.*;
-import edu.pku.migrationhelper.repository.ClassSignatureRepository;
-import edu.pku.migrationhelper.repository.ClassToLibraryVersionRepository;
-import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
+import edu.pku.migrationhelper.repository.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -32,10 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -53,13 +42,19 @@ public class LibraryIdentityService {
             .build();
 
     @Autowired
+    private MongoDbUtilService mongoUtilService;
+
+    @Autowired
     private JarAnalysisService jarAnalysisService;
 
     @Autowired
-    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+    private PomAnalysisService pomAnalysisService;
 
     @Autowired
-    private LibraryVersionMapper libraryVersionMapper;
+    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
+
+    @Autowired
+    private LibraryVersionRepository libraryVersionRepository;
 
     @Autowired
     private ClassSignatureRepository classSignatureRepository;
@@ -70,6 +65,9 @@ public class LibraryIdentityService {
     @Autowired
     private ClassToLibraryVersionRepository classToLibraryVersionRepository;
 
+    @Autowired
+    private LibraryVersionToDependenciesRepository libraryVersionToDependenciesRepository;
+
     @Value("${migration-helper.library-identity.maven-url-base}")
     private final String mavenUrlBase = "https://repo1.maven.org/maven2/";
 
@@ -78,16 +76,24 @@ public class LibraryIdentityService {
 
     public void extractVersions(String groupId, String artifactId) {
         // Create or find library information
-        LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
-        if (groupArtifact == null) {
+        LibraryGroupArtifact groupArtifact;
+        Optional<LibraryGroupArtifact> opt = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId);
+        if (!opt.isPresent()) {
             groupArtifact = new LibraryGroupArtifact()
+                    .setId(mongoUtilService.getNextIdForCollection("libraryGroupArtifact"))
                     .setGroupId(groupId)
                     .setArtifactId(artifactId)
                     .setVersionExtracted(false)
                     .setParsed(false)
                     .setParseError(false);
-            libraryGroupArtifactMapper.insert(Collections.singletonList(groupArtifact));
-            groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
+            groupArtifact = libraryGroupArtifactRepository.save(groupArtifact);
+        } else {
+            groupArtifact = opt.get();
+        }
+
+        if (groupArtifact.isVersionExtracted()) {
+            LOG.info("Skip {} because its version is extracted", groupArtifact);
+            return;
         }
 
         // Extract all library versions if version data not exist
@@ -97,26 +103,61 @@ public class LibraryIdentityService {
             List<String> versions = extractAllVersionsFromMaven(groupId, artifactId);
             List<LibraryVersion> versionData = new ArrayList<>(versions.size());
             versions.forEach(version -> versionData.add(new LibraryVersion()
+                    .setId(mongoUtilService.getNextIdForCollection("libraryVersion"))
                     .setGroupArtifactId(groupArtifactId)
                     .setVersion(version)
                     .setDownloaded(false)
                     .setParsed(false)
                     .setParseError(false)));
-            libraryVersionMapper.insert(versionData);
+            libraryVersionRepository.saveAll(versionData);
             groupArtifact.setVersionExtracted(true);
-            libraryGroupArtifactMapper.update(groupArtifact);
+            libraryGroupArtifactRepository.save(groupArtifact);
             LOG.info("extract library versions success id = {}", groupArtifactId);
         } catch (Exception e) {
             LOG.error("extract library versions fail id = {}, {}", groupArtifactId, e);
         }
     }
 
-    public void parseGroupArtifact(String groupId, String artifactId) {
-        LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
-        if (groupArtifact == null || !groupArtifact.isVersionExtracted()) {
+    public void extractDependencies(String groupId, String artifactId) {
+        LibraryGroupArtifact groupArtifact;
+        Optional<LibraryGroupArtifact> opt = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId);
+        if (!opt.isPresent() || !opt.get().isVersionExtracted()) {
             extractVersions(groupId, artifactId);
-            groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
         }
+        groupArtifact = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId).get();
+
+        List<LibraryVersion> versions = libraryVersionRepository.findByGroupArtifactId(groupArtifact.getId());
+        for (LibraryVersion v : versions) {
+            LibraryVersionToDependency lv2d = new LibraryVersionToDependency()
+                    .setId(v.getId())
+                    .setGroupId(groupId)
+                    .setArtifactId(artifactId)
+                    .setVersion(v.getVersion())
+                    .setHasError(false);
+
+            try {
+                List<PomAnalysisService.LibraryInfo> libs = extractDependenciesFromMaven(groupId, artifactId, v.getVersion());
+                lv2d.setDependencies(libs);
+            } catch (DocumentException|IOException e) {
+                LOG.error("Error while extracting dependencies for {}:{}-{}", groupId, artifactId, v.getVersion());
+                lv2d.setHasError(true);
+            }
+
+            libraryVersionToDependenciesRepository.save(lv2d);
+        }
+    }
+
+    public void parseGroupArtifact(String groupId, String artifactId) {
+        Optional<LibraryGroupArtifact> opt = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId);
+        LibraryGroupArtifact groupArtifact;
+
+        if (!opt.isPresent())
+            extractVersions(groupId, artifactId);
+        groupArtifact = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId).get();
+        if (groupArtifact.isVersionExtracted())
+            extractVersions(groupId, artifactId);
+        groupArtifact = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId).get();
+
         if(groupArtifact.isVersionExtracted() && groupArtifact.isParsed() && !groupArtifact.isParseError())  {
             LOG.info("skip {} because it is parsed and does not contain error", groupArtifact);
             return;
@@ -127,10 +168,10 @@ public class LibraryIdentityService {
                 groupArtifactId, groupId, artifactId);
 
         boolean containError = false;
-        List<LibraryVersion> versionDataList = libraryVersionMapper.findByGroupArtifactId(groupArtifactId);
+        List<LibraryVersion> versions = libraryVersionRepository.findByGroupArtifactId(groupArtifactId);
         Map<String, List<Long>> classToVersions = new HashMap<>();
-        Map<Long, List<String>>  versionToClasses = new HashMap<>();
-        for (LibraryVersion versionData : versionDataList) {
+        Map<Long, List<String>> versionToClasses = new HashMap<>();
+        for (LibraryVersion versionData : versions) {
             String version = versionData.getVersion();
             File jarFile = new File(generateJarDownloadPath(groupId, artifactId, version));
             List<ClassSignature> classes;
@@ -142,7 +183,7 @@ public class LibraryIdentityService {
                     if (!availableFiles.contains(String.format("%s-%s.jar", artifactId, version))) {
                         LOG.info("{}:{}-{} do not have corresponding JAR file, skipping...", groupId, artifactId, version);
                         versionData.setParsed(false).setParseError(false).setDownloaded(false);
-                        libraryVersionMapper.update(versionData);
+                        versionData = libraryVersionRepository.save(versionData);
                         continue;
                     }
                     LOG.info("library need download {}-{}", groupArtifact.getGroupArtifactId(), versionData.getVersion());
@@ -152,7 +193,7 @@ public class LibraryIdentityService {
                         throw new IOException("Fail in creating new jarFile " + jarFile);
                     downloadLibraryFromMaven(groupId, artifactId, version, new FileOutputStream(jarFile));
                     versionData.setDownloaded(true);
-                    libraryVersionMapper.update(versionData);
+                    versionData = libraryVersionRepository.save(versionData);
                 }
                 double jarSize = jarFile.length() / (1024.0 * 1024.0);
                 LOG.info("start parse library {}-{}, size = {} MB",
@@ -162,7 +203,7 @@ public class LibraryIdentityService {
                 LOG.error("IOException when downloading/parsing JAR {}, {}", jarFile, ex);
                 containError = true;
                 versionData.setDownloaded(false).setParsed(false).setParseError(true);
-                libraryVersionMapper.update(versionData);
+                libraryVersionRepository.save(versionData);
                 continue;
             }
 
@@ -178,7 +219,7 @@ public class LibraryIdentityService {
             }
 
             versionData.setParsed(true).setParseError(false);
-            libraryVersionMapper.update(versionData);
+            libraryVersionRepository.save(versionData);
         }
 
         for (String classId : classToVersions.keySet()) {
@@ -201,13 +242,13 @@ public class LibraryIdentityService {
             } else {
                 lv2c.setId(versionId).setClassIds(versionToClasses.get(versionId));
             }
-            String version = libraryVersionMapper.findById(versionId).getVersion();
+            String version = libraryVersionRepository.findById(versionId).get().getVersion();
             lv2c.setGroupId(groupId).setArtifactId(artifactId).setVersion(version);
             libraryVersionToClassRepository.save(lv2c);
         }
 
         groupArtifact.setParsed(true).setParseError(containError);
-        libraryGroupArtifactMapper.update(groupArtifact);
+        libraryGroupArtifactRepository.save(groupArtifact);
         LOG.info("Download and parse {}:{} success!", groupId, artifactId);
     }
 
@@ -253,6 +294,26 @@ public class LibraryIdentityService {
         }
     }
 
+    public List<PomAnalysisService.LibraryInfo> extractDependenciesFromMaven(
+            String groupId, String artifactId, String version) throws IOException, DocumentException {
+        String url = mavenUrlBase
+                + groupId.replace(".", "/") + "/"
+                + artifactId + "/" + version + "/"
+                + artifactId + "-" + version + ".pom";
+        HttpGet request = new HttpGet(url);
+        List<PomAnalysisService.LibraryInfo> infos;
+        try {
+            HttpResponse response = executeHttpRequest(request);
+            infos = pomAnalysisService.analyzePom(response.getEntity().getContent());
+        } catch (Exception e) {
+            LOG.error("Extract dependencies fail, url = {}", url);
+            throw e;
+        } finally {
+            request.releaseConnection();
+        }
+        return infos;
+    }
+
     public boolean extractGroupArtifactFromMavenMeta(String metaUrl) throws IOException, DocumentException {
         HttpGet request = new HttpGet(metaUrl);
         try {
@@ -266,14 +327,15 @@ public class LibraryIdentityService {
             }
             String groupId = groupNode.getStringValue().trim();
             String artifactId = artifactNode.getStringValue().trim();
-            LibraryGroupArtifact libraryGroupArtifact = libraryGroupArtifactMapper
+            Optional<LibraryGroupArtifact> opt = libraryGroupArtifactRepository
                     .findByGroupIdAndArtifactId(groupId, artifactId);
-            if (libraryGroupArtifact == null) {
+            LibraryGroupArtifact libraryGroupArtifact;
+            if (!opt.isPresent()) {
                 libraryGroupArtifact = new LibraryGroupArtifact()
                         .setGroupId(groupId)
                         .setArtifactId(artifactId)
                         .setVersionExtracted(false);
-                libraryGroupArtifactMapper.insert(Collections.singletonList(libraryGroupArtifact));
+                libraryGroupArtifactRepository.save(libraryGroupArtifact);
             }
             return true;
         } finally {
@@ -326,6 +388,14 @@ public class LibraryIdentityService {
                 + groupId.replace(".", "/") + "/"
                 + artifactId + "-" + version + ".jar";
     }
+
+    @Autowired
+    @Deprecated
+    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+
+    @Autowired
+    @Deprecated
+    private LibraryVersionMapper libraryVersionMapper;
 
     @Deprecated
     @Autowired

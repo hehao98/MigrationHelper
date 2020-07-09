@@ -1,10 +1,13 @@
 package edu.pku.migrationhelper.data.lib;
 
+import org.springframework.data.annotation.Id;
+
 /**
  * Created by xuyul on 2020/2/16.
  */
-public class LioProjectWithRepository {
+public class LioProject {
 
+    @Id
     private long id;
 
     private String platform;
@@ -35,7 +38,7 @@ public class LioProjectWithRepository {
         return id;
     }
 
-    public LioProjectWithRepository setId(long id) {
+    public LioProject setId(long id) {
         this.id = id;
         return this;
     }
@@ -44,7 +47,7 @@ public class LioProjectWithRepository {
         return platform;
     }
 
-    public LioProjectWithRepository setPlatform(String platform) {
+    public LioProject setPlatform(String platform) {
         this.platform = platform;
         return this;
     }
@@ -53,7 +56,7 @@ public class LioProjectWithRepository {
         return language;
     }
 
-    public LioProjectWithRepository setLanguage(String language) {
+    public LioProject setLanguage(String language) {
         this.language = language;
         return this;
     }
@@ -62,7 +65,7 @@ public class LioProjectWithRepository {
         return name;
     }
 
-    public LioProjectWithRepository setName(String name) {
+    public LioProject setName(String name) {
         this.name = name;
         return this;
     }
@@ -71,7 +74,7 @@ public class LioProjectWithRepository {
         return repositoryUrl;
     }
 
-    public LioProjectWithRepository setRepositoryUrl(String repositoryUrl) {
+    public LioProject setRepositoryUrl(String repositoryUrl) {
         this.repositoryUrl = repositoryUrl;
         return this;
     }
@@ -80,7 +83,7 @@ public class LioProjectWithRepository {
         return repositoryId;
     }
 
-    public LioProjectWithRepository setRepositoryId(long repositoryId) {
+    public LioProject setRepositoryId(long repositoryId) {
         this.repositoryId = repositoryId;
         return this;
     }
@@ -89,7 +92,7 @@ public class LioProjectWithRepository {
         return sourceRank;
     }
 
-    public LioProjectWithRepository setSourceRank(int sourceRank) {
+    public LioProject setSourceRank(int sourceRank) {
         this.sourceRank = sourceRank;
         return this;
     }
@@ -98,7 +101,7 @@ public class LioProjectWithRepository {
         return repositoryStarCount;
     }
 
-    public LioProjectWithRepository setRepositoryStarCount(int repositoryStarCount) {
+    public LioProject setRepositoryStarCount(int repositoryStarCount) {
         this.repositoryStarCount = repositoryStarCount;
         return this;
     }
@@ -107,7 +110,7 @@ public class LioProjectWithRepository {
         return repositoryForkCount;
     }
 
-    public LioProjectWithRepository setRepositoryForkCount(int repositoryForkCount) {
+    public LioProject setRepositoryForkCount(int repositoryForkCount) {
         this.repositoryForkCount = repositoryForkCount;
         return this;
     }
@@ -116,7 +119,7 @@ public class LioProjectWithRepository {
         return repositoryWatchersCount;
     }
 
-    public LioProjectWithRepository setRepositoryWatchersCount(int repositoryWatchersCount) {
+    public LioProject setRepositoryWatchersCount(int repositoryWatchersCount) {
         this.repositoryWatchersCount = repositoryWatchersCount;
         return this;
     }
@@ -125,7 +128,7 @@ public class LioProjectWithRepository {
         return repositorySourceRank;
     }
 
-    public LioProjectWithRepository setRepositorySourceRank(int repositorySourceRank) {
+    public LioProject setRepositorySourceRank(int repositorySourceRank) {
         this.repositorySourceRank = repositorySourceRank;
         return this;
     }
@@ -134,7 +137,7 @@ public class LioProjectWithRepository {
         return dependentProjectsCount;
     }
 
-    public LioProjectWithRepository setDependentProjectsCount(int dependentProjectsCount) {
+    public LioProject setDependentProjectsCount(int dependentProjectsCount) {
         this.dependentProjectsCount = dependentProjectsCount;
         return this;
     }
@@ -143,7 +146,7 @@ public class LioProjectWithRepository {
         return dependentRepositoriesCount;
     }
 
-    public LioProjectWithRepository setDependentRepositoriesCount(int dependentRepositoriesCount) {
+    public LioProject setDependentRepositoriesCount(int dependentRepositoriesCount) {
         this.dependentRepositoriesCount = dependentRepositoriesCount;
         return this;
     }

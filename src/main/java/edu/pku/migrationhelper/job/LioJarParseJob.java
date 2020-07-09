@@ -2,7 +2,7 @@ package edu.pku.migrationhelper.job;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import edu.pku.migrationhelper.data.lib.LioProjectWithRepository;
+import edu.pku.migrationhelper.data.lib.LioProject;
 import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
@@ -57,6 +57,10 @@ public class LioJarParseJob implements CommandLineRunner {
     @Value("${migration-helper.lio-jar-parse.extract-version-only}")
     @Parameter(names = "--extract-version-only", description = "if true, extract versions, update if necessary")
     private boolean extractVersionOnly;
+
+    @Value("${migration-helper.lio-jar-parse.extract-dependencies}")
+    @Parameter(names = "--extract-dependencies", description = "if true, extract dependency for each version")
+    private boolean extractDependencies;
 
     @Value("${migration-helper.lio-jar-parse.reverse-order}")
     @Parameter(names = "--reverse-order")
@@ -117,7 +121,7 @@ public class LioJarParseJob implements CommandLineRunner {
 
         @Override
         public void run() {
-            LioProjectWithRepository p = lioProjectWithRepositoryMapper.findById(projectId);
+            LioProject p = lioProjectWithRepositoryMapper.findById(projectId);
             if (p == null) {
                LOG.error("Project not found, id = {}", projectId);
                return;
@@ -136,6 +140,8 @@ public class LioJarParseJob implements CommandLineRunner {
             try {
                 if (extractVersionOnly) {
                     libraryIdentityService.extractVersions(nameSplits[0], nameSplits[1]);
+                } else if (extractDependencies) {
+                    libraryIdentityService.extractDependencies(nameSplits[0], nameSplits[1]);
                 } else {
                     libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1]);
                 }

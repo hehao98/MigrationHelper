@@ -7,6 +7,7 @@ import java.util.List;
 /**
  * Created by xuyul on 2020/2/28.
  */
+@Deprecated
 public class LibrarySignatureToVersion {
 
     private long signatureId;

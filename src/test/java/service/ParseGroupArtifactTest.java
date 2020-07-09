@@ -4,18 +4,16 @@ import edu.pku.migrationhelper.config.DataSourceConfiguration;
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.api.ClassToLibraryVersion;
-import edu.pku.migrationhelper.data.api.LibraryVersionToClass;
+import edu.pku.migrationhelper.data.lib.LibraryVersionToClass;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lib.LibraryVersion;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
-import edu.pku.migrationhelper.repository.ClassSignatureRepository;
-import edu.pku.migrationhelper.repository.ClassToLibraryVersionRepository;
-import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
+import edu.pku.migrationhelper.repository.*;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
-import org.apache.tomcat.jni.Library;
+import edu.pku.migrationhelper.service.PomAnalysisService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,12 +37,9 @@ import static org.junit.Assert.*;
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @SpringBootTest(classes = {
         MongoDbConfiguration.class, MongoDbUtilService.class, JarAnalysisService.class,
-        DataSourceConfiguration.class, LibraryIdentityService.class,
+        DataSourceConfiguration.class, LibraryIdentityService.class, PomAnalysisService.class,
 })
 public class ParseGroupArtifactTest {
-
-    @Value("${spring.datasource.dbcp2.url}")
-    String mySqlDbUrl;
 
     @Autowired
     MongoDbUtilService utilService;
@@ -59,10 +54,10 @@ public class ParseGroupArtifactTest {
     ClassToLibraryVersionRepository c2lvRepo;
 
     @Autowired
-    LibraryGroupArtifactMapper lgaMapper;
+    LibraryVersionRepository lvRepo;
 
     @Autowired
-    LibraryVersionMapper lvMapper;
+    LibraryGroupArtifactRepository lgaRepo;
 
     @Autowired
     LibraryIdentityService libraryIdentityService;
@@ -73,28 +68,25 @@ public class ParseGroupArtifactTest {
     @Before
     public void init() {
         assertTrue(utilService.getDbName().contains("test"));
-        assertTrue(mySqlDbUrl.contains("test"));
         csRepo.deleteAll();
         lv2cRepo.deleteAll();
         c2lvRepo.deleteAll();
+        lvRepo.deleteAll();
+        lgaRepo.deleteAll();
         utilService.initMongoDb();
-        lgaMapper.dropTable();
-        lvMapper.dropTable();
-        lgaMapper.createTable();
-        lvMapper.createTable();
     }
 
     @Test
     public void testParseGroupArtifact() {
         libraryIdentityService.extractVersions("com.google.code.gson", "gson");
-        assertEquals(1, lgaMapper.findAll().size());
-        LibraryGroupArtifact lib = lgaMapper.findByGroupIdAndArtifactId("com.google.code.gson", "gson");
+        assertEquals(1, lgaRepo.findAll().size());
+        LibraryGroupArtifact lib = lgaRepo.findByGroupIdAndArtifactId("com.google.code.gson", "gson").get();
         assertNotEquals(null, lib);
         assertEquals("gson", lib.getArtifactId());
-        assertTrue(lvMapper.findByGroupArtifactId(lib.getId()).size() > 5);
+        assertTrue(lvRepo.findByGroupArtifactId(lib.getId()).size() > 5);
 
         libraryIdentityService.parseGroupArtifact("com.google.code.gson", "gson");
-        lib = lgaMapper.findByGroupIdAndArtifactId("com.google.code.gson", "gson");
+        lib = lgaRepo.findByGroupIdAndArtifactId("com.google.code.gson", "gson").get();
         assertTrue(lib.isVersionExtracted() && lib.isParsed() && !lib.isParseError());
 
         for (ClassSignature cs : csRepo.findAll()) {
@@ -112,12 +104,12 @@ public class ParseGroupArtifactTest {
 
         for (ClassToLibraryVersion c2lv : c2lvRepo.findAll()) {
             for (long versionId : c2lv.getVersionIds()) {
-                LibraryVersion lv = lvMapper.findById(versionId);
+                LibraryVersion lv = lvRepo.findById(versionId).get();
                 assertNotNull(lv);
             }
         }
 
-        List<LibraryVersion> versions = lvMapper.findByGroupArtifactId(lib.getId());
+        List<LibraryVersion> versions = lvRepo.findByGroupArtifactId(lib.getId());
         for (int i = 1; i < versions.size(); ++i) {
             LibraryVersion version = versions.get(i);
             LibraryVersion previous = versions.get(i - 1);

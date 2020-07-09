@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.data.lib;
 
+@Deprecated
 public class LibraryOverlap {
 
     private long groupArtifactId1;
