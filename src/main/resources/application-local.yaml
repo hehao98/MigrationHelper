@@ -10,9 +10,7 @@ spring:
       max-total: 100
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: migration_helper
+      uri: mongodb://localhost:27017/migration_helper
 
 logging:
   config: classpath:log4j2.local.yaml

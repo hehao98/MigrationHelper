@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
 
-public interface LioProjectRepository extends MongoRepository<LioProject, String> {
+public interface LioProjectRepository extends MongoRepository<LioProject, Long> {
     Optional<LioProject> findByName(String name);
     Page<LioProject> findAll(Pageable pageable);
 }

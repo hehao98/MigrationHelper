@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.config;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,27 +16,22 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories(basePackages = "edu.pku.migrationhelper.repository")
 public class MongoDbConfiguration extends AbstractMongoClientConfiguration {
 
-    @Value("${spring.data.mongodb.host}")
-    private String host;
-
-    @Value("${spring.data.mongodb.port}")
-    private int port;
-
-    @Value("${spring.data.mongodb.database}")
-    private String database;
+    @Value("${spring.data.mongodb.uri}")
+    private String uri;
 
     @Override
     protected String getDatabaseName() {
-        return database;
+        return new ConnectionString(uri).getDatabase();
     }
 
     @Override
     public @Bean MongoClient mongoClient() {
-        return MongoClients.create(String.format("mongodb://%s:%d", host, port));
+        return MongoClients.create(uri);
     }
 
     @Override
     public @Bean MongoTemplate mongoTemplate() throws Exception {
+
         MongoTemplate template = new MongoTemplate(mongoDbFactory(), mappingMongoConverter());
         template.setWriteResultChecking(WriteResultChecking.EXCEPTION);
         return template;
@@ -47,4 +43,6 @@ public class MongoDbConfiguration extends AbstractMongoClientConfiguration {
         //converter.setMapKeyDotReplacement("/");
         return converter;
     }
+
+
 }

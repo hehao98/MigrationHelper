@@ -4,6 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import edu.pku.migrationhelper.data.lib.LioProject;
 import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
+import edu.pku.migrationhelper.repository.LioProjectRepository;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import org.slf4j.Logger;
@@ -38,7 +39,7 @@ public class LioJarParseJob implements CommandLineRunner {
     private ExecutorService executorService;
 
     @Autowired
-    private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
+    private LioProjectRepository lioProjectRepository;
 
     @Autowired
     private LibraryIdentityService libraryIdentityService;
@@ -121,11 +122,12 @@ public class LioJarParseJob implements CommandLineRunner {
 
         @Override
         public void run() {
-            LioProject p = lioProjectWithRepositoryMapper.findById(projectId);
-            if (p == null) {
+            Optional<LioProject> opt = lioProjectRepository.findById(projectId);
+            if (!opt.isPresent()) {
                LOG.error("Project not found, id = {}", projectId);
                return;
             }
+            LioProject p = opt.get();
             if(!"Maven".equals(p.getPlatform())) {
                 LOG.error("Project not Maven, id = {}", projectId);
                 return;

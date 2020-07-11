@@ -38,6 +38,25 @@ More patches that do rigorous testing of any module is always welcome.
 
 We also rely on logging and exception handling for debugging. 
 
+## Database Configuration
+
+For local usage, you need to have a running MySQL server, and a running MongoDB server with the configurations specified 
+ in `src/main/resources/application-local.yaml`. 
+For World of Code usage, the servers should be already running on `da1.eecs.utk.edu`.
+
+### Start MongoDB Server on World of Code da1
+
+Make sure MongoDB server is not already running. Run the following command at `/da1_data/play/heh/mongodb/bin`.
+
+```shell script
+nohup ./mongod --auth --dbpath /da1_data/play/heh/mongodb/data \
+    --logpath /da1_data/play/heh/mongodb/db.log --fork --port 27020 --wiredTigerCacheSizeGB 100 &
+```
+
+### Start MySQL Server on World of Code da1
+
+Make sure the MySQL server is not already running. Use the `run.sh` at `/da1_data/play/heh/mysql`.
+
 ## Usage Instructions
 
 In this section, we detail on how to run this tool either locally or remotely on World of Code servers.
@@ -46,8 +65,7 @@ We have two utility scripts for executing our tool: `run-local.sh` is for runnin
  and `run-woc.sh` is for running on any of the World of Code servers. 
 However, some jobs may not work properly without access to blob database, so we strongly recommend running jobs on da4.
 
-For local usage, you need to have a running MySQL server with the configurations specified 
- in `src/main/resources/application-local.yaml`
+
 
 ### Mining Data
 

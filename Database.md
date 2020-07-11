@@ -1,3 +1,19 @@
+Do NOT share this file on any public repository!!!
+
+# MongoDB Documentation
+
+```
+url: da1.eecs.utk.edu:27020
+username: myUserAdmin
+pwd: HeHMgt2020
+```
+
+```
+url: da1.eecs.utk.edu:27020
+username: migration_helper
+pwd: HeHMgt2020
+```
+
 # MySQL表结构文档
 
 ## 如何访问数据库
