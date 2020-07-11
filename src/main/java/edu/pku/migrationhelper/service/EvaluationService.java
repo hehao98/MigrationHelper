@@ -1,8 +1,11 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LioProject;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
+import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import edu.pku.migrationhelper.repository.LioProjectRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -10,11 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -55,10 +61,10 @@ public class EvaluationService {
     private DependencyChangePatternAnalysisService dependencyChangePatternAnalysisService;
 
     @Autowired
-    private LioProjectWithRepositoryMapper lioProjectWithRepositoryMapper;
+    private LioProjectRepository lioProjectRepository;
 
     @Autowired
-    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
 
     private List<GroundTruth> groundTruths;
 
@@ -68,9 +74,9 @@ public class EvaluationService {
 
     private long getGroupArtifactId(String name) {
         String[] ga = name.split(":");
-        LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]);
-        if (lib != null) {
-            return lib.getId();
+        Optional<LibraryGroupArtifact> opt =  libraryGroupArtifactRepository.findByGroupIdAndArtifactId(ga[0], ga[1]);
+        if (opt.isPresent()) {
+            return opt.get().getId();
         } else {
             LOG.warn("{} does not exist in database", name);
             return -1;
@@ -115,7 +121,7 @@ public class EvaluationService {
     @PostConstruct
     public synchronized void initializeGroupArtifactCache() {
         LOG.info("Initializing group artifact cache...");
-        List<LibraryGroupArtifact> list = libraryGroupArtifactMapper.findAll();
+        List<LibraryGroupArtifact> list = libraryGroupArtifactRepository.findAll();
         Map<Long, LibraryGroupArtifact> map = new HashMap<>(list.size() * 2);
         for (LibraryGroupArtifact groupArtifact : list) {
             map.put(groupArtifact.getId(), groupArtifact);
@@ -316,41 +322,53 @@ public class EvaluationService {
         Set<Long> result = new HashSet<>();
         for (GroundTruth gt : groundTruths) {
             result.addAll(gt.fromGroupArtifacts.stream()
-                    .map(s -> lioProjectWithRepositoryMapper.findByName(s).getId())
+                    .map(s -> lioProjectRepository.findByName(s).get().getId())
                     .collect(Collectors.toList()));
             result.addAll(gt.toGroupArtifacts.stream()
-                    .map(s -> lioProjectWithRepositoryMapper.findByName(s).getId())
+                    .map(s -> lioProjectRepository.findByName(s).get().getId())
                     .collect(Collectors.toList()));
         }
         return new ArrayList<>(result);
     }
 
+    public List<Long> getLioProjectIdsBy(String property, int limit, boolean ascending) {
+        final List<String> legalProperties = Arrays.asList(
+                "sourceRank", "repositoryStarCount", "repositoryForkCount",
+                "repositoryWatchersCount", "repositorySourceRank", "dependentProjectsCount",
+                "dependentRepositoriesCount");
+        if (!legalProperties.contains(property)) {
+            throw new IllegalArgumentException(
+                    String.format("Unknown property %s, supported: %s", property, legalProperties));
+        }
+        PageRequest r;
+        if (ascending) {
+            r = PageRequest.of(0, limit, Sort.by(property).ascending());
+        } else {
+            r = PageRequest.of(0, limit, Sort.by(property).descending());
+        }
+        return lioProjectRepository.findAll(r).getContent()
+                .stream().map(LioProject::getId).collect(Collectors.toList());
+    }
+
     public List<Long> getLioProjectIdsByCombinedPopularity(int limitCount) {
         LOG.info("Get libraries by combining results from different popularity measure, limit = {}", limitCount);
-
         Set<Long> idSet = new HashSet<>();
         List<Long> needParseIds = new LinkedList<>();
-        Iterator<Long>[] idsArray = new Iterator[7];
-        idsArray[0] = lioProjectWithRepositoryMapper.selectIdOrderByDependentProjectsCountLimit(limitCount).iterator();
-        idsArray[1] = lioProjectWithRepositoryMapper.selectIdOrderByDependentRepositoriesCountLimit(limitCount).iterator();
-        idsArray[2] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryForkCountLimit(limitCount).iterator();
-        idsArray[3] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryStarCountLimit(limitCount).iterator();
-        idsArray[4] = lioProjectWithRepositoryMapper.selectIdOrderByRepositoryWatchersCountLimit(limitCount).iterator();
-        idsArray[5] = lioProjectWithRepositoryMapper.selectIdOrderBySourceRankLimit(limitCount).iterator();
-        idsArray[6] = lioProjectWithRepositoryMapper.selectIdOrderByRepositorySourceRankLimit(limitCount).iterator();
-        while (true) {
-            boolean remain = false;
-            for (Iterator<Long> longIterator : idsArray) {
-                if (longIterator.hasNext()) {
-                    remain = true;
-                    long id = longIterator.next();
-                    if (!idSet.contains(id)) {
-                        needParseIds.add(id);
-                        idSet.add(id);
-                    }
+        List<List<Long>> idsList = new ArrayList<>();
+        idsList.add(getLioProjectIdsBy("sourceRank", limitCount, false));
+        idsList.add(getLioProjectIdsBy("repositoryStarCount", limitCount, false));
+        idsList.add(getLioProjectIdsBy("repositoryForkCount", limitCount, false));
+        idsList.add(getLioProjectIdsBy("repositoryWatchersCount", limitCount, false));
+        idsList.add(getLioProjectIdsBy("repositorySourceRank", limitCount, false));
+        idsList.add(getLioProjectIdsBy("dependentProjectsCount", limitCount, false));
+        idsList.add(getLioProjectIdsBy("dependentRepositoriesCount", limitCount, false));
+        for (List<Long> ids : idsList) {
+            for (long id : ids) {
+                if (!idSet.contains(id)) {
+                    needParseIds.add(id);
+                    idSet.add(id);
                 }
             }
-            if(!remain) break;
         }
         return needParseIds;
     }

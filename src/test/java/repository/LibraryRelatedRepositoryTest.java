@@ -1,7 +1,11 @@
 package repository;
 
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
+import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LibraryVersion;
 import edu.pku.migrationhelper.data.lib.LioProject;
+import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import edu.pku.migrationhelper.repository.LibraryVersionRepository;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
 import org.junit.Before;
@@ -17,6 +21,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Optional;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -24,13 +31,19 @@ import static org.junit.Assert.assertTrue;
 @ActiveProfiles("test")
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @SpringBootTest(classes = { MongoDbConfiguration.class, MongoDbUtilService.class })
-public class LioProjectRepositoryTest {
+public class LibraryRelatedRepositoryTest {
 
     @Autowired
     MongoDbUtilService utilService;
 
     @Autowired
     LioProjectRepository lioProjectRepository;
+
+    @Autowired
+    LibraryVersionRepository libraryVersionRepository;
+
+    @Autowired
+    LibraryGroupArtifactRepository libraryGroupArtifactRepository;
 
     @Before
     public void init() {
@@ -57,5 +70,18 @@ public class LioProjectRepositoryTest {
         assertEquals(10, result.getSize());
         assertEquals(11, result.getTotalPages());
         assertEquals(0, result.getContent().get(0).getSourceRank());
+    }
+
+    @Test
+    public void testLibraryGroupArtifactRepo() {
+        LibraryGroupArtifact lga = new LibraryGroupArtifact().setId(0).setArtifactId("aaa").setGroupId("aaa");
+        libraryGroupArtifactRepository.save(lga);
+        Optional<LibraryGroupArtifact> opt = libraryGroupArtifactRepository.findByGroupIdAndArtifactId("aaa", "aaa");
+        assertTrue(opt.isPresent());
+        assertEquals(0, opt.get().getId());
+        LibraryVersion lv = new LibraryVersion().setId(1000).setGroupArtifactId(0).setVersion("1.0.0");
+        List<LibraryVersion> vs = libraryVersionRepository.findByGroupArtifactId(0);
+        assertEquals(1, vs.size());
+        assertEquals("1.0.0", vs.get(0).getVersion());
     }
 }
