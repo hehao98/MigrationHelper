@@ -49,6 +49,8 @@ public class LibraryRelatedRepositoryTest {
     public void init() {
         assertTrue(utilService.getDbName().contains("test"));
         lioProjectRepository.deleteAll();
+        libraryVersionRepository.deleteAll();
+        libraryGroupArtifactRepository.deleteAll();
         utilService.initMongoDb();
     }
 
@@ -80,6 +82,7 @@ public class LibraryRelatedRepositoryTest {
         assertTrue(opt.isPresent());
         assertEquals(0, opt.get().getId());
         LibraryVersion lv = new LibraryVersion().setId(1000).setGroupArtifactId(0).setVersion("1.0.0");
+        libraryVersionRepository.save(lv);
         List<LibraryVersion> vs = libraryVersionRepository.findByGroupArtifactId(0);
         assertEquals(1, vs.size());
         assertEquals("1.0.0", vs.get(0).getVersion());
