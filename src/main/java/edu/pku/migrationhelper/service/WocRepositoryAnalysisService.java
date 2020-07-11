@@ -56,17 +56,17 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 //        b2f = new WocHdbDriver(b2fBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         c2ta = new WocHdbDriver(c2taBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.Text);
         p2c.openDatabaseFile(true);
-        c2pc.openDatabaseFile();
+        c2pc.openDatabaseFile(true);
 //        c2b.openDatabaseFile();
 //        b2f.openDatabaseFile();
-        c2ta.openDatabaseFile();
+        c2ta.openDatabaseFile(true);
         if(!wocObjectEnabled) return;
         blobIndex = new WocHdbDriver(blobIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.BerNumberList);
         commitIndex = new WocHdbDriver(commitIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         treeIndex = new WocHdbDriver(treeIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
-        blobIndex.openDatabaseFile();
-        commitIndex.openDatabaseFile();
-        treeIndex.openDatabaseFile();
+        blobIndex.openDatabaseFile(true);
+        commitIndex.openDatabaseFile(true);
+        treeIndex.openDatabaseFile(true);
     }
 
     public void closeAllWocDatabase() {

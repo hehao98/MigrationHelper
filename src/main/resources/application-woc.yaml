@@ -8,9 +8,9 @@ spring:
       password: if48SrV7#e
       driver-class-name: com.mysql.cj.jdbc.Driver
       max-total: 500
-    data:
-      mongodb:
-        uri: mongodb://migration_helper:HeHMgt2020@da1.eecs.utk:27020/migration_helper?authSource=migration_helper
+  data:
+    mongodb:
+      uri: mongodb://migration_helper:HeHMgt2020@da1.eecs.utk.edu:27020/migration_helper?authSource=migration_helper
 
 logging:
   config: classpath:log4j2.woc.yaml
@@ -45,7 +45,7 @@ migration-helper:
   woc-repo-analysis-job:
     repository-list-file: test_data/repositories.csv
   libraries-io-import:
-    project-with-repository-path: export/LibrariesIOProjectWithRepositories.csv
+    project-with-repository-path: /home/heh/libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv
   lio-jar-parse:
     data-source: all
     limit-count: 10000
