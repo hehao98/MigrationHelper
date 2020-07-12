@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.data.lib;
 
-import edu.pku.migrationhelper.service.PomAnalysisService;
+import edu.pku.migrationhelper.service.MavenService;
 import org.springframework.data.annotation.Id;
 
 import java.util.Collection;
@@ -21,7 +21,7 @@ public class LibraryVersionToDependency {
 
     private boolean hasError;
 
-    private Set<PomAnalysisService.LibraryInfo> dependencies = new HashSet<>();
+    private Set<MavenService.LibraryInfo> dependencies = new HashSet<>();
 
     public long getId() {
         return id;
@@ -68,16 +68,16 @@ public class LibraryVersionToDependency {
         return this;
     }
 
-    public Set<PomAnalysisService.LibraryInfo> getDependencies() {
+    public Set<MavenService.LibraryInfo> getDependencies() {
         return Collections.unmodifiableSet(dependencies);
     }
 
-    public LibraryVersionToDependency setDependencies(Collection<PomAnalysisService.LibraryInfo> dependencies) {
+    public LibraryVersionToDependency setDependencies(Collection<MavenService.LibraryInfo> dependencies) {
         this.dependencies = new HashSet<>(dependencies);
         return this;
     }
 
-    public boolean addDependency(PomAnalysisService.LibraryInfo dependency) {
+    public boolean addDependency(MavenService.LibraryInfo dependency) {
         return this.dependencies.add(dependency);
     }
 }

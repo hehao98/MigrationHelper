@@ -7,7 +7,7 @@ import edu.pku.migrationhelper.repository.LibraryVersionToDependenciesRepository
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
-import edu.pku.migrationhelper.service.PomAnalysisService;
+import edu.pku.migrationhelper.service.MavenService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
 @ActiveProfiles("test")
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @SpringBootTest(classes = { MongoDbConfiguration.class, MongoDbUtilService.class,
-        PomAnalysisService.class, LibraryIdentityService.class, JarAnalysisService.class,
+        MavenService.class, LibraryIdentityService.class, JarAnalysisService.class,
         DataSourceConfiguration.class })
 public class LibraryVersionToDependencyTest {
 
@@ -38,7 +38,7 @@ public class LibraryVersionToDependencyTest {
     LibraryVersionToDependenciesRepository lv2dRepo;
 
     @Autowired
-    PomAnalysisService pomAnalysisService;
+    MavenService mavenService;
 
     @Autowired
     LibraryIdentityService libraryIdentityService;
@@ -56,7 +56,7 @@ public class LibraryVersionToDependencyTest {
         String artifactId = "spring-core";
         String version = "5.2.7.RELEASE";
         LibraryVersionToDependency lv2d = new LibraryVersionToDependency();
-        List<PomAnalysisService.LibraryInfo> deps = libraryIdentityService.extractDependenciesFromMaven(groupId, artifactId, version);
+        List<MavenService.LibraryInfo> deps = libraryIdentityService.extractDependenciesFromMaven(groupId, artifactId, version);
         lv2d.setDependencies(deps).setGroupId(groupId).setArtifactId(artifactId).setVersion(version).setId(0);
         lv2dRepo.save(lv2d);
         assertTrue(lv2dRepo.findById(0L).isPresent());

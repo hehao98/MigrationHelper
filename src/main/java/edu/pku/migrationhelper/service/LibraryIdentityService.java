@@ -9,6 +9,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.HttpClients;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -48,7 +49,7 @@ public class LibraryIdentityService {
     private JarAnalysisService jarAnalysisService;
 
     @Autowired
-    private PomAnalysisService pomAnalysisService;
+    private MavenService mavenService;
 
     @Autowired
     private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
@@ -136,9 +137,9 @@ public class LibraryIdentityService {
                     .setHasError(false);
 
             try {
-                List<PomAnalysisService.LibraryInfo> libs = extractDependenciesFromMaven(groupId, artifactId, v.getVersion());
+                List<MavenService.LibraryInfo> libs = extractDependenciesFromMaven(groupId, artifactId, v.getVersion());
                 lv2d.setDependencies(libs);
-            } catch (DocumentException|IOException e) {
+            } catch (XmlPullParserException|IOException e) {
                 LOG.error("Error while extracting dependencies for {}:{}-{}", groupId, artifactId, v.getVersion());
                 lv2d.setHasError(true);
             }
@@ -294,17 +295,17 @@ public class LibraryIdentityService {
         }
     }
 
-    public List<PomAnalysisService.LibraryInfo> extractDependenciesFromMaven(
-            String groupId, String artifactId, String version) throws IOException, DocumentException {
+    public List<MavenService.LibraryInfo> extractDependenciesFromMaven(
+            String groupId, String artifactId, String version) throws IOException, XmlPullParserException {
         String url = mavenUrlBase
                 + groupId.replace(".", "/") + "/"
                 + artifactId + "/" + version + "/"
                 + artifactId + "-" + version + ".pom";
         HttpGet request = new HttpGet(url);
-        List<PomAnalysisService.LibraryInfo> infos;
+        List<MavenService.LibraryInfo> infos;
         try {
             HttpResponse response = executeHttpRequest(request);
-            infos = pomAnalysisService.analyzePom(response.getEntity().getContent());
+            infos = mavenService.analyzePom(response.getEntity().getContent());
         } catch (Exception e) {
             LOG.error("Extract dependencies fail, url = {}", url);
             throw e;

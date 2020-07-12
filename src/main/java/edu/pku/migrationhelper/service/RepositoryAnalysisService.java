@@ -33,7 +33,7 @@ public abstract class RepositoryAnalysisService {
     protected JavaCodeAnalysisService javaCodeAnalysisService;
 
     @Autowired
-    protected PomAnalysisService pomAnalysisService;
+    protected MavenService mavenService;
 
     @Autowired
     protected LibraryIdentityService libraryIdentityService;
@@ -1066,8 +1066,8 @@ public abstract class RepositoryAnalysisService {
     }
 
     public void analyzePomContent(String content, Set<Long> versionIds, Set<Long> groupArtifactIds) throws Exception {
-        List<PomAnalysisService.LibraryInfo> libraryInfoList = pomAnalysisService.analyzePom(content);
-        for (PomAnalysisService.LibraryInfo libraryInfo : libraryInfoList) {
+        List<MavenService.LibraryInfo> libraryInfoList = mavenService.analyzePom(content);
+        for (MavenService.LibraryInfo libraryInfo : libraryInfoList) {
             LibraryVersion libraryVersion = libraryVersionMapper.findByGroupIdAndArtifactIdAndVersion(
                     libraryInfo.groupId, libraryInfo.artifactId, libraryInfo.version);
             if(libraryVersion != null) {

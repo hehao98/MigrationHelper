@@ -7,18 +7,15 @@ import edu.pku.migrationhelper.data.api.ClassToLibraryVersion;
 import edu.pku.migrationhelper.data.lib.LibraryVersionToClass;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lib.LibraryVersion;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
-import edu.pku.migrationhelper.mapper.LibraryVersionMapper;
 import edu.pku.migrationhelper.repository.*;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
-import edu.pku.migrationhelper.service.PomAnalysisService;
+import edu.pku.migrationhelper.service.MavenService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,7 +34,7 @@ import static org.junit.Assert.*;
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @SpringBootTest(classes = {
         MongoDbConfiguration.class, MongoDbUtilService.class, JarAnalysisService.class,
-        DataSourceConfiguration.class, LibraryIdentityService.class, PomAnalysisService.class,
+        DataSourceConfiguration.class, LibraryIdentityService.class, MavenService.class,
 })
 public class ParseGroupArtifactTest {
 

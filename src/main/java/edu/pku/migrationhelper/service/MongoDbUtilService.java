@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Update;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.springframework.data.mongodb.core.FindAndModifyOptions.options;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -55,6 +58,13 @@ public class MongoDbUtilService {
                 .ensureIndex(new CompoundIndexDefinition(compoundIndex).unique());
 
         mongoTemplate.indexOps(LioProject.class).ensureIndex(new Index().on("name", Sort.Direction.ASC));
+        final List<String> lioProjectProperties = Arrays.asList(
+                "sourceRank", "repositoryStarCount", "repositoryForkCount",
+                "repositoryWatchersCount", "repositorySourceRank", "dependentProjectsCount",
+                "dependentRepositoriesCount");
+        for (String property : lioProjectProperties) {
+            mongoTemplate.indexOps(LioProject.class).ensureIndex(new Index().on(property, Sort.Direction.DESC));
+        }
     }
 
     public String getDbName() {
