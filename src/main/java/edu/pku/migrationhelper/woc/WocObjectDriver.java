@@ -8,9 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-/**
- * Created by xuyul on 2020/2/21.
- */
 public class WocObjectDriver {
 
     Logger LOG = LoggerFactory.getLogger(getClass());

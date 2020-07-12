@@ -6,9 +6,6 @@ import org.apache.ibatis.annotations.*;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Created by xuyul on 2020/1/2.
- */
 @Mapper
 @Deprecated
 public interface LibraryVersionMapper {

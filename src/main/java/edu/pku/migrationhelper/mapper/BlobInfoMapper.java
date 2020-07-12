@@ -5,9 +5,6 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
-/**
- * Created by xuyul on 2020/2/7.
- */
 @Mapper
 public interface BlobInfoMapper {
 

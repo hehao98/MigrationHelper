@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-/**
- * Created by xuyul on 2020/2/15.
- */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "MavenArtifactExtractJob")
 public class MavenArtifactExtractJob {

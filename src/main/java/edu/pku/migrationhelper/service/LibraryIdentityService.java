@@ -28,9 +28,6 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.*;
 
-/**
- * Created by xuyul on 2020/1/2.
- */
 @Service
 @ConfigurationProperties(prefix = "migration-helper.library-identity")
 public class LibraryIdentityService {

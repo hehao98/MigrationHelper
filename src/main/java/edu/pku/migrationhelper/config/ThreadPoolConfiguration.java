@@ -9,9 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Created by xuyul on 2020/2/15.
- */
 @Configuration
 @ConfigurationProperties(prefix = "migration-helper.thread-pool")
 public class ThreadPoolConfiguration {

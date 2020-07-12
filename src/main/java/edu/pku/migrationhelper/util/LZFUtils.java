@@ -2,9 +2,6 @@ package edu.pku.migrationhelper.util;
 
 import java.util.Arrays;
 
-/**
- * Created by xuyul on 2020/2/22.
- */
 public class LZFUtils {
 
     public static class LZFException extends Exception {

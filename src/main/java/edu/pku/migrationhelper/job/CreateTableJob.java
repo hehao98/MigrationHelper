@@ -13,9 +13,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by xuyul on 2020/2/29.
- */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "CreateTableJob")
 public class CreateTableJob {

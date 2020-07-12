@@ -4,9 +4,6 @@ import edu.pku.migrationhelper.service.RepositoryAnalysisService;
 
 import java.util.List;
 
-/**
- * Created by xuyul on 2020/2/4.
- */
 public class CommitInfo {
 
     private byte[] commitId;

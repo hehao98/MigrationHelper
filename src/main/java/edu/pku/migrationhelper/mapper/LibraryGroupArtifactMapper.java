@@ -5,9 +5,6 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
-/**
- * Created by xuyul on 2020/1/3.
- */
 @Mapper
 @Deprecated
 public interface LibraryGroupArtifactMapper {

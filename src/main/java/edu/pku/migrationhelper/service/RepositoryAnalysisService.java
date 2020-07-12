@@ -19,9 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.*;
 import java.util.function.Consumer;
 
-/**
- * Created by xuyul on 2020/2/4.
- */
 public abstract class RepositoryAnalysisService {
 
     protected Logger LOG = LoggerFactory.getLogger(getClass());

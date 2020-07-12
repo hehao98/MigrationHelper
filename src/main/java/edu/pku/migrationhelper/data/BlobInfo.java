@@ -2,9 +2,6 @@ package edu.pku.migrationhelper.data;
 
 import java.util.List;
 
-/**
- * Created by xuyul on 2020/2/4.
- */
 public class BlobInfo {
 
     public enum BlobType {

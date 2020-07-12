@@ -31,9 +31,6 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Created by xuyul on 2020/1/2.
- */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "TestJob")
 public class TestJob implements CommandLineRunner {

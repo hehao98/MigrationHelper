@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Created by xuyul on 2020/2/21.
- */
 public class MathUtils {
 
     private static final char[] hex = "0123456789abcdef".toCharArray();

@@ -10,9 +10,6 @@ import tokyocabinet.HDB;
 
 import java.util.*;
 
-/**
- * Created by xuyul on 2020/2/21.
- */
 public class WocHdbDriver {
 
     public enum ContentType {

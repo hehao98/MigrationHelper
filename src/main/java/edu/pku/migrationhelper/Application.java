@@ -8,9 +8,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-/**
- * Created by xuyul on 2020/1/2.
- */
 @SpringBootApplication(exclude = {
         DataSourceAutoConfiguration.class,
         TransactionAutoConfiguration.class,

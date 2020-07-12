@@ -25,9 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-/**
- * Created by xuyul on 2020/2/24.
- */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DataExportJob")
 public class DataExportJob implements CommandLineRunner {

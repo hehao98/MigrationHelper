@@ -20,9 +20,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Created by xuyul on 2020/2/21.
- */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocTestJob")
 public class WocTestJob {

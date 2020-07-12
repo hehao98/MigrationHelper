@@ -13,9 +13,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 
-/**
- * Created by xuyul on 2020/2/4.
- */
 @Service
 @ConfigurationProperties(prefix = "migration-helper.woc-repository-analysis")
 public class WocRepositoryAnalysisService extends RepositoryAnalysisService {

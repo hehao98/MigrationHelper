@@ -19,9 +19,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by xuyul on 2020/2/16.
- */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LibrariesIoImportJob")
 public class LibrariesIoImportJob implements CommandLineRunner {

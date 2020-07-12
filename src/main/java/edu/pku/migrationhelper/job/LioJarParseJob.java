@@ -22,9 +22,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by xuyul on 2020/2/16.
- */
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "LioJarParseJob")
 public class LioJarParseJob implements CommandLineRunner {

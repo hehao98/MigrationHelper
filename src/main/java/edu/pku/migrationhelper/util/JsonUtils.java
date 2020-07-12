@@ -8,9 +8,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 
-/**
- * Created by xuyul on 2020/2/7.
- */
 public class JsonUtils {
 
     private static final ObjectMapper objectMapper = new ObjectMapper()
