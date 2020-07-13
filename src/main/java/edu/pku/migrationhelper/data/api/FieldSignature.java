@@ -2,6 +2,9 @@ package edu.pku.migrationhelper.data.api;
 
 import org.apache.bcel.classfile.Field;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class FieldSignature extends FieldOrMethod {
     public static long getFlagsForFieldSignature(Field f) {
         long flag = 0;
@@ -31,11 +34,14 @@ public class FieldSignature extends FieldOrMethod {
         this.signature = f.getGenericSignature();
         this.type = f.getType().toString();
         this.flags = getFlagsForFieldSignature(f);
+        this.annotations = Arrays.stream(f.getAnnotationEntries()).map(Annotation::new).collect(Collectors.toList());
     }
 
     @Override
     public String toString() {
-        return String.format("%s %s", type, name);
+        String flagString = getFlagString();
+        String delimiter = flagString.length() == 0 ? "" : " ";
+        return String.format("%s%s%s %s", flagString, delimiter, type, name);
     }
 
 }
