@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.data.api;
 
+import java.util.Collections;
 import java.util.List;
 
 class FieldOrMethod {
@@ -73,4 +74,50 @@ class FieldOrMethod {
         if (s.length() > 0) return s.substring(0, s.length() - 1);
         return s.toString();
     }
+
+    public long getFlags() {
+        return flags;
+    }
+
+    public FieldOrMethod setFlags(long flags) {
+        this.flags = flags;
+        return this;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public FieldOrMethod setType(String type) {
+        this.type = type;
+        return this;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public FieldOrMethod setSignature(String signature) {
+        this.signature = signature;
+        return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public FieldOrMethod setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public List<Annotation> getAnnotations() {
+        return Collections.unmodifiableList(annotations);
+    }
+
+    public FieldOrMethod setAnnotations(List<Annotation> annotations) {
+        this.annotations = annotations;
+        return this;
+    }
+
 }

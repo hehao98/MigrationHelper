@@ -115,6 +115,10 @@ public class ClassSignature {
         return id;
     }
 
+    public long getFlags() {
+        return flags;
+    }
+
     private void generateId() {
         this.id = DigestUtils.sha1Hex(
                 String.format("%x,%s,%s,%s,%s,%s,%s,%s", flags, className, superClassName, superClassId,
@@ -245,6 +249,12 @@ public class ClassSignature {
         return superClassName;
     }
 
+    public ClassSignature setSuperClassName(String superClassName) {
+        this.superClassName = superClassName;
+        generateId();
+        return this;
+    }
+
     public String getSuperClassId() {
         return superClassId;
     }
@@ -259,8 +269,20 @@ public class ClassSignature {
         return Collections.unmodifiableCollection(interfaceNames);
     }
 
+    public ClassSignature setInterfaceNames(List<String> interfaceNames) {
+        this.interfaceNames = interfaceNames;
+        generateId();
+        return this;
+    }
+
     public Collection<String> getInterfaceIds() {
         return Collections.unmodifiableCollection(interfaceIds);
+    }
+
+    public ClassSignature setInterfaceIds(List<String> interfaceIds) {
+        this.interfaceIds = interfaceIds;
+        generateId();
+        return this;
     }
 
     public String getInterfaceId(String interfaceName) {
@@ -297,5 +319,17 @@ public class ClassSignature {
 
     public List<FieldSignature> getFields() {
         return Collections.unmodifiableList(fields);
+    }
+
+    public ClassSignature setMethods(List<MethodSignature> methods) {
+        this.methods = methods;
+        generateId();
+        return this;
+    }
+
+    public ClassSignature setFields(List<FieldSignature> fields) {
+        this.fields = fields;
+        generateId();
+        return this;
     }
 }

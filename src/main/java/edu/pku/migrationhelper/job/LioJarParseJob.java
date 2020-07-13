@@ -18,6 +18,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -145,7 +147,10 @@ public class LioJarParseJob implements CommandLineRunner {
                     libraryIdentityService.parseGroupArtifact(nameSplits[0], nameSplits[1]);
                 }
             } catch (Exception e) {
-                LOG.error("Parse jar fail, id = {}, library = {}, {}", projectId, name, e);
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                LOG.error("Parse jar fail, id = {}, library = {}, {}", projectId, name, sw.toString());
             }
             LOG.info("Parse job finished jobId = {}, projectId = {}, library = {}", jobId, projectId, name);
         }

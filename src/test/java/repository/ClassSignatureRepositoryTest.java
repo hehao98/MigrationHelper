@@ -1,10 +1,13 @@
 package repository;
 
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
+import edu.pku.migrationhelper.data.api.Annotation;
 import edu.pku.migrationhelper.data.api.ClassSignature;
+import edu.pku.migrationhelper.data.api.MethodSignature;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
+import javafx.util.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -78,5 +82,18 @@ public class ClassSignatureRepositoryTest {
         for (ClassSignature x : queryResult) {
             assertTrue(x.getClassName().startsWith("com.google.gson"));
         }
+    }
+
+    @Test
+    public void testAnnotations() {
+        Annotation a = new Annotation().setValuePairs(Collections.singletonList("aaa=bbb"));
+        MethodSignature m = new MethodSignature();
+        m.setAnnotations(Collections.singletonList(a));
+        ClassSignature cs = new ClassSignature().setMethods(Collections.singletonList(m)).setClassName("abc");
+        csRepo.save(cs);
+        Optional<ClassSignature> opt = csRepo.findById(cs.getId());
+        assertTrue(opt.isPresent());
+        assertEquals("aaa=bbb", opt.get().getMethods().get(0).getAnnotations().get(0).getValuePairs().get(0));
+        System.out.println(opt.get());
     }
 }

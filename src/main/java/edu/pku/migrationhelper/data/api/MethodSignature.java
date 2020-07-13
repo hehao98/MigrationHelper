@@ -32,9 +32,9 @@ public class MethodSignature extends FieldOrMethod {
         return flag;
     }
 
-    private List<String> parameters;
+    private List<String> parameters = new ArrayList<>();
 
-    private List<String> exceptions;
+    private List<String> exceptions = new ArrayList<>();
 
     public MethodSignature() {}
 
@@ -68,5 +68,15 @@ public class MethodSignature extends FieldOrMethod {
 
     public List<String> getExceptions() {
         return Collections.unmodifiableList(exceptions);
+    }
+
+    public MethodSignature setParameters(List<String> parameters) {
+        this.parameters = parameters;
+        return this;
+    }
+
+    public MethodSignature setExceptions(List<String> exceptions) {
+        this.exceptions = exceptions;
+        return this;
     }
 }
