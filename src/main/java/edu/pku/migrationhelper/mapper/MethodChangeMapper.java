@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.mapper;
 
-import edu.pku.migrationhelper.data.MethodChange;
+import edu.pku.migrationhelper.data.MethodChangeOld;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -44,7 +44,7 @@ public interface MethodChangeMapper {
             "(#{e.deleteSignatureIds}, #{e.addSignatureIds}, #{e.deleteGroupArtifactIds}, #{e.addGroupArtifactIds}, #{e.counter})" +
             "on duplicate key update counter = counter + values(counter)" +
             "</script>")
-    int insertOne(@Param("tableNum") int tableNum, @Param("e") MethodChange e);
+    int insertOne(@Param("tableNum") int tableNum, @Param("e") MethodChangeOld e);
 
     @Select("<script>" +
             "select id from " + tableName + "${tableNum} where " +
@@ -56,10 +56,10 @@ public interface MethodChangeMapper {
             "select * from " + tableName + "${tableNum} where " +
             "id = #{id}" +
             "</script>")
-    MethodChange findById(@Param("tableNum") int tableNum, @Param("id") long id);
+    MethodChangeOld findById(@Param("tableNum") int tableNum, @Param("id") long id);
 
     @Select("<script>" +
             "select * from " + tableName + "${tableNum} order by id limit #{offset}, #{limit} " +
             "</script>")
-    List<MethodChange> findList(@Param("tableNum") int tableNum, @Param("offset") long offset, @Param("limit") int limit);
+    List<MethodChangeOld> findList(@Param("tableNum") int tableNum, @Param("offset") long offset, @Param("limit") int limit);
 }

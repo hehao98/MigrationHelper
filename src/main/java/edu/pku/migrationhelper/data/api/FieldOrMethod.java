@@ -2,11 +2,12 @@ package edu.pku.migrationhelper.data.api;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 class FieldOrMethod {
     protected long flags;
     protected String type;
-    protected String signature;
+    protected String signature; // might be null
     protected String name;
     protected List<Annotation> annotations;
 
@@ -75,6 +76,23 @@ class FieldOrMethod {
         return s.toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FieldOrMethod that = (FieldOrMethod) o;
+        return flags == that.flags &&
+                type.equals(that.type) &&
+                signature.equals(that.signature) &&
+                name.equals(that.name) &&
+                annotations.equals(that.annotations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(flags, type, signature, name, annotations);
+    }
+
     public long getFlags() {
         return flags;
     }
@@ -118,6 +136,13 @@ class FieldOrMethod {
     public FieldOrMethod setAnnotations(List<Annotation> annotations) {
         this.annotations = annotations;
         return this;
+    }
+
+    public int getVisibilityLevel() {
+        if (isPublic()) return 4;
+        if (isProtected()) return 3;
+        if (isPackage()) return 2;
+        return 1;
     }
 
 }

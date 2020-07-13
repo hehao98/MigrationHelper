@@ -3,6 +3,7 @@ package edu.pku.migrationhelper.data.api;
 import org.apache.bcel.classfile.Field;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FieldSignature extends FieldOrMethod {
@@ -37,11 +38,29 @@ public class FieldSignature extends FieldOrMethod {
         this.annotations = Arrays.stream(f.getAnnotationEntries()).map(Annotation::new).collect(Collectors.toList());
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        FieldSignature that = (FieldSignature) obj;
+        return name.equals(that.name)
+                && type.equals(that.type) && flags == that.flags
+                && annotations.equals(that.annotations);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() + Objects.hash(this.name, this.signature, this.type, this.flags);
+    }
+
     @Override
     public String toString() {
+        String annotationString = annotations.stream().map(Annotation::toString).collect(Collectors.joining(" "));
+        String annotationDelimiter = annotationString.length() == 0 ? "" : " ";
         String flagString = getFlagString();
         String delimiter = flagString.length() == 0 ? "" : " ";
-        return String.format("%s%s%s %s", flagString, delimiter, type, name);
+        return String.format("%s%s%s%s%s %s", annotationString, annotationDelimiter, flagString, delimiter, type, name);
     }
 
 }

@@ -3,10 +3,7 @@ package edu.pku.migrationhelper.data.api;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.Type;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MethodSignature extends FieldOrMethod {
@@ -50,6 +47,21 @@ public class MethodSignature extends FieldOrMethod {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MethodSignature that = (MethodSignature) o;
+        return name.equals(that.name)
+                && type.equals(that.type) && flags == that.flags && annotations.equals(that.annotations)
+                && parameters.equals(that.parameters) && exceptions.equals(that.exceptions);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() + Objects.hash(parameters, exceptions);
+    }
+
+    @Override
     public String toString() {
         String annotationString = annotations.stream().map(Annotation::toString).collect(Collectors.joining(" "));
         String annotationDelimiter = annotationString.length() == 0 ? "" : " ";
@@ -60,6 +72,12 @@ public class MethodSignature extends FieldOrMethod {
         if (exceptions.size() > 0)
             s += String.format(" throws %s", String.join(",", exceptions));
         return s;
+    }
+
+    public String getReturnType() { return getType(); }
+
+    public String getNameWithParameters() {
+        return String.format("%s(%s)", name, String.join(",", parameters));
     }
 
     public List<String> getParameters() {

@@ -479,15 +479,15 @@ public class TestJob implements CommandLineRunner {
                 i++;
                 if(i % 2 == 0) continue;
                 int methodChangeSlice = RepositoryAnalysisService.getMethodChangeSliceKey(methodChangeId);
-                MethodChange methodChange = methodChangeMapper.findById(methodChangeSlice, methodChangeId);
-                System.out.println("MethodChangeId: " + methodChange.getId());
-                System.out.println("Counter: " + methodChange.getCounter());
-                System.out.println("DelSig: " + methodChange.getDeleteSignatureIdList());
-                methodChange.getDeleteSignatureIdList().forEach(this::showMethodSignature);
-                System.out.println("AddSig: " + methodChange.getAddSignatureIdList());
-                methodChange.getAddSignatureIdList().forEach(this::showMethodSignature);
-                System.out.println("DelGA: " + methodChange.getDeleteGroupArtifactIdList());
-                System.out.println("AddGA: " + methodChange.getAddGroupArtifactIdList());
+                MethodChangeOld methodChangeOld = methodChangeMapper.findById(methodChangeSlice, methodChangeId);
+                System.out.println("MethodChangeId: " + methodChangeOld.getId());
+                System.out.println("Counter: " + methodChangeOld.getCounter());
+                System.out.println("DelSig: " + methodChangeOld.getDeleteSignatureIdList());
+                methodChangeOld.getDeleteSignatureIdList().forEach(this::showMethodSignature);
+                System.out.println("AddSig: " + methodChangeOld.getAddSignatureIdList());
+                methodChangeOld.getAddSignatureIdList().forEach(this::showMethodSignature);
+                System.out.println("DelGA: " + methodChangeOld.getDeleteGroupArtifactIdList());
+                System.out.println("AddGA: " + methodChangeOld.getAddGroupArtifactIdList());
             }
         }
     }

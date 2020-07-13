@@ -499,7 +499,7 @@ public abstract class RepositoryAnalysisService {
 
         if(commitNeedAnalyzeMethodChange(thisCommit)) {
             List<BlobInCommit[]> diffBlobs = getCommitBlobDiff(repository, thisCommit, parentCommit);
-            Map<List<Long>, MethodChange> methodChangeMap = new HashMap<>();
+            Map<List<Long>, MethodChangeOld> methodChangeMap = new HashMap<>();
             for (BlobInCommit[] diffBlob : diffBlobs) {
                 List<Set<Long>[]> deleteAddSigIds = analyzeBlobDiff(repository, diffBlob[0], diffBlob[1]);
                 for (Set<Long>[] deleteAddSigId : deleteAddSigIds) {
@@ -512,24 +512,24 @@ public abstract class RepositoryAnalysisService {
                     key.add(-1L);
                     key.addAll(addIds);
                     if(methodChangeMap.containsKey(key)) {
-                        MethodChange methodChange = methodChangeMap.get(key);
-                        methodChange.setCounter(methodChange.getCounter() + 1);
+                        MethodChangeOld methodChangeOld = methodChangeMap.get(key);
+                        methodChangeOld.setCounter(methodChangeOld.getCounter() + 1);
                     } else {
-                        MethodChange methodChange = new MethodChange();
-                        methodChange.setDeleteSignatureIdList(deleteIds);
-                        methodChange.setAddSignatureIdList(addIds);
-                        methodChange.setCounter(1);
-                        methodChangeMap.put(key, methodChange);
+                        MethodChangeOld methodChangeOld = new MethodChangeOld();
+                        methodChangeOld.setDeleteSignatureIdList(deleteIds);
+                        methodChangeOld.setAddSignatureIdList(addIds);
+                        methodChangeOld.setCounter(1);
+                        methodChangeMap.put(key, methodChangeOld);
                     }
                 }
             }
             Set<Long> allSignatureIds = new HashSet<>();
-            for (MethodChange mc : methodChangeMap.values()) {
+            for (MethodChangeOld mc : methodChangeMap.values()) {
                 allSignatureIds.addAll(mc.getDeleteSignatureIdList());
                 allSignatureIds.addAll(mc.getAddSignatureIdList());
             }
             Map<Long, List<Long>> s2ga = libraryIdentityService.getSignatureToGroupArtifact(allSignatureIds);
-            for (MethodChange mc : methodChangeMap.values()) {
+            for (MethodChangeOld mc : methodChangeMap.values()) {
                 Set<Long> deleteGA = new HashSet<>();
                 Set<Long> addGA = new HashSet<>();
                 for (Long signatureId : mc.getDeleteSignatureIdList()) {
@@ -545,11 +545,11 @@ public abstract class RepositoryAnalysisService {
                 mc.setDeleteGroupArtifactIdList(deleteIds);
                 mc.setAddGroupArtifactIdList(addIds);
             }
-            List<MethodChange> methodChanges = saveMethodChange(methodChangeMap.values());
-            List<Long> methodChangeIds = new ArrayList<>(methodChanges.size() * 2);
-            for (MethodChange methodChange : methodChanges) {
-                methodChangeIds.add(methodChange.getId());
-                methodChangeIds.add(methodChange.getCounter());
+            List<MethodChangeOld> methodChangeOlds = saveMethodChange(methodChangeMap.values());
+            List<Long> methodChangeIds = new ArrayList<>(methodChangeOlds.size() * 2);
+            for (MethodChangeOld methodChangeOld : methodChangeOlds) {
+                methodChangeIds.add(methodChangeOld.getId());
+                methodChangeIds.add(methodChangeOld.getCounter());
             }
             thisCommit.setMethodChangeIdList(methodChangeIds);
         }
@@ -562,29 +562,29 @@ public abstract class RepositoryAnalysisService {
         return (int)(methodChangeId >> MethodChangeMapper.MAX_ID_BIT) & (MethodChangeMapper.MAX_TABLE_COUNT - 1);
     }
 
-    public static int getMethodChangeSliceKey(MethodChange methodChange) {
-        byte[] deleteIds = methodChange.getDeleteSignatureIds();
+    public static int getMethodChangeSliceKey(MethodChangeOld methodChangeOld) {
+        byte[] deleteIds = methodChangeOld.getDeleteSignatureIds();
         if(deleteIds != null && deleteIds.length > 0) {
             return deleteIds[0] & (MethodChangeMapper.MAX_TABLE_COUNT - 1);
         }
-        byte[] addIds = methodChange.getAddSignatureIds();
+        byte[] addIds = methodChangeOld.getAddSignatureIds();
         if(addIds != null && addIds.length > 0) {
             return addIds[0] & (MethodChangeMapper.MAX_TABLE_COUNT - 1);
         }
         return 0;
     }
 
-    private List<MethodChange> saveMethodChange(Collection<MethodChange> methodChanges) {
-        for (MethodChange methodChange : methodChanges) {
-            int sliceKey = getMethodChangeSliceKey(methodChange);
-            methodChangeMapper.insertOne(sliceKey, methodChange);
-            Long id = methodChangeMapper.findId(sliceKey, methodChange.getDeleteSignatureIds(), methodChange.getAddSignatureIds());
+    private List<MethodChangeOld> saveMethodChange(Collection<MethodChangeOld> methodChangeOlds) {
+        for (MethodChangeOld methodChangeOld : methodChangeOlds) {
+            int sliceKey = getMethodChangeSliceKey(methodChangeOld);
+            methodChangeMapper.insertOne(sliceKey, methodChangeOld);
+            Long id = methodChangeMapper.findId(sliceKey, methodChangeOld.getDeleteSignatureIds(), methodChangeOld.getAddSignatureIds());
             if(id == null) {
-                id = methodChangeMapper.findId(sliceKey, methodChange.getDeleteSignatureIds(), methodChange.getAddSignatureIds());
+                id = methodChangeMapper.findId(sliceKey, methodChangeOld.getDeleteSignatureIds(), methodChangeOld.getAddSignatureIds());
             }
-            methodChange.setId(id);
+            methodChangeOld.setId(id);
         }
-        return new ArrayList<>(methodChanges);
+        return new ArrayList<>(methodChangeOlds);
     }
 
     private List<String> splitContent2Lines(String content) {

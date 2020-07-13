@@ -264,21 +264,21 @@ public class DataExportJob implements CommandLineRunner {
         boolean end = false;
         while(!end) {
             LOG.info("start export table = {}, offset = {}", tableNum, offset);
-            List<MethodChange> methodChangeList = methodChangeMapper.findList(tableNum, offset, limit);
-            offset += methodChangeList.size();
-            end = methodChangeList.size() < limit;
+            List<MethodChangeOld> methodChangeOldList = methodChangeMapper.findList(tableNum, offset, limit);
+            offset += methodChangeOldList.size();
+            end = methodChangeOldList.size() < limit;
             if(end && tableNum < 127) {
                 end = false;
                 offset = 0;
                 tableNum++;
             }
-            for (MethodChange methodChange : methodChangeList) {
-                outputLine(writer, methodChange.getId(),
-                        methodChange.getDeleteSignatureIdList().size(),
-                        methodChange.getAddSignatureIdList().size(),
-                        methodChange.getDeleteGroupArtifactIdList().size(),
-                        methodChange.getAddGroupArtifactIdList().size(),
-                        methodChange.getCounter());
+            for (MethodChangeOld methodChangeOld : methodChangeOldList) {
+                outputLine(writer, methodChangeOld.getId(),
+                        methodChangeOld.getDeleteSignatureIdList().size(),
+                        methodChangeOld.getAddSignatureIdList().size(),
+                        methodChangeOld.getDeleteGroupArtifactIdList().size(),
+                        methodChangeOld.getAddGroupArtifactIdList().size(),
+                        methodChangeOld.getCounter());
             }
         }
     }
@@ -291,21 +291,21 @@ public class DataExportJob implements CommandLineRunner {
         boolean end = false;
         while(!end) {
             LOG.info("start export table = {}, offset = {}", tableNum, offset);
-            List<MethodChange> methodChangeList = methodChangeMapper.findList(tableNum, offset, limit);
-            offset += methodChangeList.size();
-            end = methodChangeList.size() < limit;
+            List<MethodChangeOld> methodChangeOldList = methodChangeMapper.findList(tableNum, offset, limit);
+            offset += methodChangeOldList.size();
+            end = methodChangeOldList.size() < limit;
             if(end && tableNum < 127) {
                 end = false;
                 offset = 0;
                 tableNum++;
             }
-            for (MethodChange methodChange : methodChangeList) {
-                outputLine(writer, methodChange.getId(),
-                        concatList(methodChange.getDeleteSignatureIdList()),
-                        concatList(methodChange.getAddSignatureIdList()),
-                        concatList(methodChange.getDeleteGroupArtifactIdList()),
-                        concatList(methodChange.getAddGroupArtifactIdList()),
-                        methodChange.getCounter());
+            for (MethodChangeOld methodChangeOld : methodChangeOldList) {
+                outputLine(writer, methodChangeOld.getId(),
+                        concatList(methodChangeOld.getDeleteSignatureIdList()),
+                        concatList(methodChangeOld.getAddSignatureIdList()),
+                        concatList(methodChangeOld.getDeleteGroupArtifactIdList()),
+                        concatList(methodChangeOld.getAddGroupArtifactIdList()),
+                        methodChangeOld.getCounter());
             }
         }
     }
@@ -318,21 +318,21 @@ public class DataExportJob implements CommandLineRunner {
         Map<Long, Map<Long, Long>> result = new HashMap<>(100000);
         while(!end) {
             LOG.info("start export table = {}, offset = {}", tableNum, offset);
-            List<MethodChange> methodChangeList = methodChangeMapper.findList(tableNum, offset, limit);
-            offset += methodChangeList.size();
-            end = methodChangeList.size() < limit;
+            List<MethodChangeOld> methodChangeOldList = methodChangeMapper.findList(tableNum, offset, limit);
+            offset += methodChangeOldList.size();
+            end = methodChangeOldList.size() < limit;
             if(end && tableNum < 127) {
                 end = false;
                 offset = 0;
                 tableNum++;
             }
-            for (MethodChange methodChange : methodChangeList) {
-                if(methodChange.getDeleteGroupArtifactIdList().isEmpty() || methodChange.getAddGroupArtifactIdList().isEmpty()) {
+            for (MethodChangeOld methodChangeOld : methodChangeOldList) {
+                if(methodChangeOld.getDeleteGroupArtifactIdList().isEmpty() || methodChangeOld.getAddGroupArtifactIdList().isEmpty()) {
                     continue;
                 }
-                Set<Long> delGASet = new HashSet<>(methodChange.getDeleteGroupArtifactIdList());
-                Set<Long> addGASet = new HashSet<>(methodChange.getAddGroupArtifactIdList());
-                long counter = methodChange.getCounter();
+                Set<Long> delGASet = new HashSet<>(methodChangeOld.getDeleteGroupArtifactIdList());
+                Set<Long> addGASet = new HashSet<>(methodChangeOld.getAddGroupArtifactIdList());
+                long counter = methodChangeOld.getCounter();
                 Set<Long> delGANoDup = new HashSet<>(delGASet);
                 delGANoDup.removeAll(addGASet);
                 if(delGANoDup.isEmpty()) continue;

@@ -1,5 +1,7 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.data.api.FieldSignature;
+import edu.pku.migrationhelper.data.api.MethodSignature;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +25,20 @@ import java.util.*;
 @Service
 public class JavaCodeAnalysisService {
 
-    Logger LOG = LoggerFactory.getLogger(getClass());
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    public static class APIReference {
+        public int startLine;
+        public int endLine;
+        public String packageName;
+        public String className;
+        public MethodSignature methodSignature;
+        public FieldSignature fieldSignature;
+    }
 
     // TODO
     // 标识符识别的方法，难以鉴别带有继承关系的参数，比如用子类作为参数去调用一个以父类为参数的API，会识别成调用了一个以子类为参数的API，最终导致无法查到到
+    @Deprecated
     public List<MethodSignatureOld> analyzeJavaCode(String javaCode) {
         List<MethodSignatureOld> result = new LinkedList<>();
         if(javaCode == null || "".equals(javaCode)) return result;
