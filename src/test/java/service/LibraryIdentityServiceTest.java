@@ -48,5 +48,9 @@ public class LibraryIdentityServiceTest {
         assertTrue(result.contains("parentpom-1.15.0.pom"));
         result = lis.extractAvailableFilesFromMaven("org.apache.cxf", "cxf-rt-frontend-jaxrs", "2.1.10");
         assertTrue(result.contains("cxf-rt-frontend-jaxrs-2.1.10.jar"));
+        result = lis.extractAvailableFilesFromMaven("org.springframework.boot",
+                "spring-boot-starter-actuator", "2.3.1.RELEASE");
+        System.out.println(result);
+        assertTrue(result.contains("spring-boot-starter-actuator-2.3.1.RELEASE-javadoc.jar"));
     }
 }

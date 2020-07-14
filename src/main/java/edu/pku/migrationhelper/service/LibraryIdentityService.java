@@ -156,7 +156,7 @@ public class LibraryIdentityService {
             extractVersions(groupId, artifactId);
         groupArtifact = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId).get();
 
-        if(groupArtifact.isVersionExtracted() && groupArtifact.isParsed() && !groupArtifact.isParseError())  {
+        if (groupArtifact.isVersionExtracted() && groupArtifact.isParsed() && !groupArtifact.isParseError())  {
             LOG.info("skip {} because it is parsed and does not contain error", groupArtifact);
             return;
         }
@@ -181,6 +181,7 @@ public class LibraryIdentityService {
                     if (!availableFiles.contains(String.format("%s-%s.jar", artifactId, version))) {
                         LOG.info("{}:{}-{} do not have corresponding JAR file, skipping...", groupId, artifactId, version);
                         versionData.setParsed(false).setParseError(false).setDownloaded(false);
+                        containError = true;
                         versionData = libraryVersionRepository.save(versionData);
                         continue;
                     }
@@ -351,7 +352,7 @@ public class LibraryIdentityService {
             org.jsoup.nodes.Document doc = Jsoup.connect(url).get();
             Elements files = doc.select("a");
             for (org.jsoup.nodes.Element file : files) {
-                result.add(file.text());
+                result.add(file.attr("href"));
             }
         } catch (HttpStatusException e) {
             if (e.getStatusCode() == 404) {
