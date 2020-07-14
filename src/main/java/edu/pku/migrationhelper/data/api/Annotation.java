@@ -6,13 +6,19 @@ import org.apache.bcel.classfile.ElementValuePair;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Annotation {
+    // For unknown reason in BCEL the className is JAR signature format
+    //  e.g. java.lang.Deprecated will be stored as @Ljava/lang/Deprecated;
     private String className;
     private boolean isRuntimeVisible;
     private List<String> valuePairs;
 
+    /**
+     * For Spring data reflection, should not be used
+     */
     public Annotation() {
 
     }
@@ -37,11 +43,28 @@ public class Annotation {
         if (valuePairs.size() > 0) {
             s = String.format("(%s)", String.join(",", valuePairs));
         }
-        return String.format("@%s%s", className, s);
+        return String.format("@%s%s", getClassName(), s);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Annotation that = (Annotation) o;
+        return isRuntimeVisible == that.isRuntimeVisible &&
+                className.equals(that.className) &&
+                valuePairs.equals(that.valuePairs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(className, isRuntimeVisible, valuePairs);
     }
 
     public String getClassName() {
-        return className;
+        int i = className.indexOf("L");
+        int j = className.indexOf(";");
+        return className.substring(i + 1, j).replace("/", ".");
     }
 
     public List<String> getValuePairs() {

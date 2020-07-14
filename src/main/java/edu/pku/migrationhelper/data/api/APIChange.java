@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.data.api;
 
+import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,7 +43,27 @@ public class APIChange {
         this.changedClasses = names.stream()
                 .filter(n -> nameFromClasses.get(n) == null || !nameFromClasses.get(n).equals(nameToClasses.get(n)))
                 .map(n -> new ClassChange(nameFromClasses.get(n), nameToClasses.get(n)))
+                .sorted((c1, c2) -> {
+                    if (c1.getOldClass() == null) return -1;
+                    if (c2.getOldClass() == null) return 1;
+                    return c1.getOldClass().getClassName().compareTo(c2.getOldClass().getClassName());
+                })
                 .collect(Collectors.toList());
+    }
+
+    public void printAPIChange(PrintStream ps) {
+        ps.printf("%s:%s %s -> %s\n", groupId, artifactId, fromVersion, toVersion);
+        for (ClassChange chg : changedClasses) {
+            ClassSignature c1 = chg.getOldClass();
+            ClassSignature c2 = chg.getNewClass();
+            ps.println(c1 + " -> " + c2);
+            for (MethodChange mc : chg.getChangedMethods()) {
+                ps.println("-- " + mc.getOldMethod() + " -> " + mc.getNewMethod());
+            }
+            for (FieldChange fc : chg.getChangedFields()) {
+                ps.println("-- " + fc.getOldField() + " -> " + fc.getNewField());
+            }
+        }
     }
 
     public String getGroupId() {

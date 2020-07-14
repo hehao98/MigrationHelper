@@ -17,33 +17,31 @@ public class APIChangeTest {
         return jas.analyzeJar(jarFilePath, true, null);
     }
 
-    void printAPIChanges(APIChange change) {
-        for (ClassChange chg : change.getChangedClasses()) {
-            System.out.println(chg.getOldClass() + " " + chg.getNewClass());
-            for (MethodChange mc : chg.getChangedMethods()) {
-                System.out.println("-- " + mc.getOldMethod() + " -> " + mc.getNewMethod());
-            }
-            for (FieldChange fc : chg.getChangedFields()) {
-                System.out.println("-- " + fc.getOldField() + " -> " + fc.getNewField());
-            }
-        }
-    }
 
     @Test
     public void testAPIChanges() throws Exception {
         System.out.println("========== testAPIChanges ==========");
-        List<ClassSignature> from = getFromJar("jars/gson-2.8.5.jar");
+        List<ClassSignature> from = getFromJar("jars/gson-2.7.jar");
         List<ClassSignature> to = getFromJar("jars/gson-2.8.6.jar");
-        APIChange change = new APIChange("gson", "gson", "2.8.5", "2.8.6", from, to);
-        printAPIChanges(change);
+        APIChange change = new APIChange("com.google.code.gson", "gson", "2.7", "2.8.6", from, to);
+        change.printAPIChange(System.out);
     }
 
     @Test
-    public void testAPIChangesMany() throws Exception {
-        System.out.println("========== testAPIChangesMany ==========");
+    public void testAPIChanges2() throws Exception {
+        System.out.println("========== testAPIChanges2 ==========");
+        List<ClassSignature> from = getFromJar("jars/gson-2.7.jar");
+        List<ClassSignature> to = getFromJar("jars/gson-2.8.5.jar");
+        APIChange change = new APIChange("com.google.code.gson", "gson", "2.7", "2.8.5", from, to);
+        change.printAPIChange(System.out);
+    }
+
+    @Test
+    public void testAPIChanges3() throws Exception {
+        System.out.println("========== testAPIChanges3 ==========");
         List<ClassSignature> from = getFromJar("jars/gson-2.8.5.jar");
-        List<ClassSignature> to = getFromJar("jars/gson-2.7.jar");
-        APIChange change = new APIChange("gson", "gson", "2.7", "2.8.6", from, to);
-        printAPIChanges(change);
+        List<ClassSignature> to = getFromJar("jars/gson-2.8.6.jar");
+        APIChange change = new APIChange("com.google.code.gson", "gson", "2.8.5", "2.8.6", from, to);
+        change.printAPIChange(System.out);
     }
 }
