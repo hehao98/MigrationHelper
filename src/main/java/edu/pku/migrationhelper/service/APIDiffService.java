@@ -1,7 +1,6 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.api.APIChange;
-import edu.pku.migrationhelper.data.api.ClassChange;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.lib.LibraryVersionToClass;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
@@ -9,10 +8,11 @@ import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+@Service
 public class APIDiffService {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
@@ -27,8 +27,8 @@ public class APIDiffService {
      * Given two versions of a same Maven artifact, return all changed APIs
      * This function will first extract all classes in the two versions,
      *   then perform class to class comparison to extract changed fields and changed methods.
-     * TODO: Currently it does not detect renaming of classes, methods and fields
-     * TODO: Currently it does not detect changes in super classes and interfaces
+     * TODO: Currently it does not detect renaming of classes and fields (method renaming detection is implemented)
+     * TODO: Currently it does not detect changes in super classes and interfaces that are NOT in current package
      *
      * @param groupId groupId of the Maven artifact
      * @param artifactId artifactId of the Maven artifact
@@ -60,12 +60,13 @@ public class APIDiffService {
 
     /**
      * Return class name to class signature object mapping, given a list of classes
-     * TODO: resolve all super classes and interfaces, and put them in mapping
+     * For class of the same name, only one version will be retained, as JVM does
+     * TODO: resolve all super classes and interfaces from other packages, if they can be found in database
      *
      * @param classes the input classes
      * @return class name to class signature object mapping
      */
-    private Map<String, ClassSignature> resolveClasses(List<ClassSignature> classes) {
+    private Map<String, ClassSignature> resolveClasses(Collection<ClassSignature> classes) {
         Map<String, ClassSignature> result = new HashMap<>(classes.size() * 4);
         for (ClassSignature cs : classes) {
             result.put(cs.getClassName(), cs);

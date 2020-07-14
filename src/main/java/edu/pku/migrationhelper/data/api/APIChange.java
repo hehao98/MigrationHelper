@@ -35,18 +35,20 @@ public class APIChange {
         this.fromClasses = fromClasses;
         this.toClasses = toClasses;
         Map<String, ClassSignature> nameFromClasses = fromClasses.stream()
-                .collect(Collectors.toMap(ClassSignature::getClassName, x -> x));
+                .collect(Collectors.toMap(ClassSignature::getClassName, x -> x, (x, y) -> x));
         Map<String, ClassSignature> nameToClasses = toClasses.stream()
-                .collect(Collectors.toMap(ClassSignature::getClassName, x -> x));
+                .collect(Collectors.toMap(ClassSignature::getClassName, x -> x, (x, y) -> x));
         Set<String> names = Stream.concat(nameFromClasses.keySet().stream(), nameToClasses.keySet().stream())
                 .collect(Collectors.toSet());
         this.changedClasses = names.stream()
                 .filter(n -> nameFromClasses.get(n) == null || !nameFromClasses.get(n).equals(nameToClasses.get(n)))
                 .map(n -> new ClassChange(nameFromClasses.get(n), nameToClasses.get(n)))
                 .sorted((c1, c2) -> {
-                    if (c1.getOldClass() == null) return -1;
-                    if (c2.getOldClass() == null) return 1;
-                    return c1.getOldClass().getClassName().compareTo(c2.getOldClass().getClassName());
+                    String str1 = "";
+                    String str2 = "";
+                    if (c1.getOldClass() != null) str1 = c1.getOldClass().getClassName();
+                    if (c2.getOldClass() != null) str2 = c2.getOldClass().getClassName();
+                    return str1.compareTo(str2);
                 })
                 .collect(Collectors.toList());
     }
@@ -56,14 +58,78 @@ public class APIChange {
         for (ClassChange chg : changedClasses) {
             ClassSignature c1 = chg.getOldClass();
             ClassSignature c2 = chg.getNewClass();
-            ps.println(c1 + " -> " + c2);
+            ps.println("@@@ " + c1 + " -> " + c2);
+            if (c1 != null && c2 != null && !c1.getSuperClassId().equals(c2.getSuperClassId())) {
+                ps.printf("Super class changed: %s#%s -> %s#%s\n",
+                        c1.getSuperClassName(), c1.getSuperClassId().substring(0, 6),
+                        c2.getSuperClassName(), c2.getSuperClassId().substring(0, 6));
+            }
             for (MethodChange mc : chg.getChangedMethods()) {
-                ps.println("-- " + mc.getOldMethod() + " -> " + mc.getNewMethod());
+                if (mc.getOldMethod() != null) {
+                    ps.println("- " + mc.getOldMethod());
+                }
+                if (mc.getNewMethod() != null) {
+                    ps.println("+ " + mc.getNewMethod());
+                }
             }
             for (FieldChange fc : chg.getChangedFields()) {
-                ps.println("-- " + fc.getOldField() + " -> " + fc.getNewField());
+                if (fc.getOldField() != null) {
+                    ps.println("- " + fc.getOldField());
+                }
+                if (fc.getNewField() != null) {
+                    ps.println("+ " + fc.getNewField());
+                }
             }
+            ps.println();
         }
+    }
+
+    public long getBreakingChangeCount() {
+        return changedClasses.stream()
+                .mapToLong(chg ->
+                        chg.getChangedFields().stream().filter(FieldChange::isBreakingChange).count()
+                        + chg.getChangedMethods().stream().filter(MethodChange::isBreakingChange).count())
+                .sum();
+    }
+
+    public long getAddedFieldCount() {
+        return changedClasses.stream()
+                .mapToLong(chg -> chg.getChangedFields().stream().filter(x -> x.getOldField() == null).count())
+                .sum();
+    }
+
+    public long getRemovedFieldCount() {
+        return changedClasses.stream()
+                .mapToLong(chg -> chg.getChangedFields().stream().filter(x -> x.getNewField() == null).count())
+                .sum();
+    }
+
+    public long getChangedFieldCount() {
+        return changedClasses.stream()
+                .mapToLong(chg -> chg.getChangedFields().stream()
+                        .filter(x -> x.getOldField() != null && x.getNewField() != null)
+                        .count())
+                .sum();
+    }
+
+    public long getAddedMethodCount() {
+        return changedClasses.stream()
+                .mapToLong(chg -> chg.getChangedMethods().stream().filter(x -> x.getOldMethod() == null).count())
+                .sum();
+    }
+
+    public long getRemovedMethodCount() {
+        return changedClasses.stream()
+                .mapToLong(chg -> chg.getChangedMethods().stream().filter(x -> x.getNewMethod() == null).count())
+                .sum();
+    }
+
+    public long getChangedMethodCount() {
+        return changedClasses.stream()
+                .mapToLong(chg -> chg.getChangedMethods().stream()
+                        .filter(x -> x.getOldMethod() != null && x.getNewMethod() != null)
+                        .count())
+                .sum();
     }
 
     public String getGroupId() {

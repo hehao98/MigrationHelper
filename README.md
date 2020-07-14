@@ -162,12 +162,9 @@ However, some jobs may not work properly without access to blob database, so we 
   ```
   
 - LibraryUpgradeRecommendJob
-
-  ```shell script
-  bash -x ./run-local.sh LibraryUpgradeRecommendJob test_data/test-upgrade-input.csv test_output/
-  ```
   
   ```shell script
-  bash -x ./run-woc.sh LibraryUpgradeRecommendJob test_data/test-upgrade-input.csv test_output/
+  bash -x ./run-woc.sh LibraryUpgradeRecommendJob -l com.google.code.gson:gson -v 2.8.5
+  bash -x ./run-woc.sh LibraryUpgradeRecommendJob -i test_data/test-upgrade-input.csv
   ```
 

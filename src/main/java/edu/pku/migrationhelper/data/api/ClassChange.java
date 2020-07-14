@@ -87,9 +87,11 @@ public class ClassChange {
             result.add(new MethodChange(ms, null));
         }
         result.sort((m1, m2) -> {
-            if (m1.getOldMethod() == null) return -1;
-            if (m2.getOldMethod() == null) return 1;
-            return m1.getOldMethod().getNameWithParameters().compareTo(m2.getOldMethod().getNameWithParameters());
+            String str1 = "";
+            String str2 = "";
+            if (m1.getOldMethod() != null) str1 = m1.getOldMethod().getNameWithParameters();
+            if (m2.getOldMethod() != null) str2 = m2.getOldMethod().getNameWithParameters();
+            return str1.compareTo(str2);
         });
         return result;
     }
@@ -105,9 +107,11 @@ public class ClassChange {
                 .filter(n -> oldFields.get(n) == null || !oldFields.get(n).equals(newFields.get(n)))
                 .map(n -> new FieldChange(oldFields.get(n), newFields.get(n)))
                 .sorted((f1, f2) -> {
-                    if (f1.getOldField() == null) return -1;
-                    if (f2.getOldField() == null) return 1;
-                    return f1.getOldField().getName().compareTo(f2.getOldField().getName());
+                    String str1 = "";
+                    String str2 = "";
+                    if (f1.getOldField() != null) str1 = f1.getOldField().getName();
+                    if (f2.getOldField() != null) str2 = f2.getOldField().getName();
+                    return str1.compareTo(str2);
                 })
                 .collect(Collectors.toList());
     }

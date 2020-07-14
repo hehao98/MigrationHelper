@@ -190,9 +190,9 @@ public class LibraryIdentityService {
                     if (!jarFile.createNewFile())
                         throw new IOException("Fail in creating new jarFile " + jarFile);
                     downloadLibraryFromMaven(groupId, artifactId, version, new FileOutputStream(jarFile));
-                    versionData.setDownloaded(true);
-                    versionData = libraryVersionRepository.save(versionData);
                 }
+                versionData.setDownloaded(true);
+                versionData = libraryVersionRepository.save(versionData);
                 double jarSize = jarFile.length() / (1024.0 * 1024.0);
                 LOG.info("start parse library {}-{}, size = {} MB",
                         groupArtifact.getGroupArtifactId(), versionData.getVersion(), jarSize);
