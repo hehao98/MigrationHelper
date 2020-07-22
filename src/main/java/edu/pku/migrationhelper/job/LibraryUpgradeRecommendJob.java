@@ -163,10 +163,18 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
         List<LibraryVersion> result = new ArrayList<>();
         try (CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new FileReader(path))) {
             for (CSVRecord record : parser) {
-                String name = record.get("Name");
-                String groupId = name.split(":")[0];
-                String artifactId = name.split(":")[1];
-                String versionString = record.get("Version");
+                String groupId;
+                String artifactId;
+                String versionString;
+                if (parser.getHeaderNames().contains("name")) {
+                    String name = record.get("name");
+                    groupId = name.split(":")[0];
+                    artifactId = name.split(":")[1];
+                } else {
+                    groupId = record.get("groupId");
+                    artifactId = record.get("artifactId");
+                }
+                versionString = record.get("version");
                 Optional<LibraryVersion> lvOpt = getLibraryVersion(groupId, artifactId, versionString);
                 lvOpt.ifPresent(result::add);
             }
@@ -236,18 +244,18 @@ public class LibraryUpgradeRecommendJob implements CommandLineRunner {
     }
 
     private void outputChangedAPIs(String outputPath, VersionCandidate candidate) throws IOException {
-        Path path = Paths.get(outputPath, String.format("%s-%s", candidate.groupId, candidate.artifactId));
+        Path path = Paths.get(outputPath, candidate.groupId + "#" + candidate.artifactId);
         if (!Files.exists(path)) {
             Files.createDirectory(path);
         }
-        Path jsonPath = Paths.get(path.toString(), String.format("changed-api-%s-%s.json",
-                candidate.fromVersion, candidate.toVersion));
+        //Path jsonPath = Paths.get(path.toString(), String.format("changed-api-%s-%s.json",
+                //candidate.fromVersion, candidate.toVersion));
         Path txtPath = Paths.get(path.toString(), String.format("changed-api-%s-%s.txt",
                 candidate.fromVersion, candidate.toVersion));
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (PrintWriter out = new PrintWriter(jsonPath.toFile())) {
-            out.println(gson.toJson(candidate.apiChange));
-        }
+        //Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        //try (PrintWriter out = new PrintWriter(jsonPath.toFile())) {
+        //    out.println(gson.toJson(candidate.apiChange));
+        //}
         try (PrintStream out = new PrintStream(txtPath.toFile())) {
             candidate.apiChange.printAPIChange(out);
         }

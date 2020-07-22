@@ -4,9 +4,12 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LibraryVersion;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.service.DependencyChangePatternAnalysisService;
 import edu.pku.migrationhelper.service.EvaluationService;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,19 +102,43 @@ public class LibraryRecommendJob implements CommandLineRunner {
     }
 
     private List<LibraryGroupArtifact> readLibraryFromQueryFile() throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(queryFile));
-        String line;
         List<LibraryGroupArtifact> result = new LinkedList<>();
-        while ((line = reader.readLine()) != null) {
-            String[] ga = line.split(":");
-            LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]);
-            if(groupArtifact == null) {
-                LOG.warn("groupArtifact not found: {}", line);
-                continue;
+
+        if (queryFile.endsWith(".csv")) {
+            try (CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new FileReader(queryFile))) {
+                for (CSVRecord record : parser) {
+                    String groupId;
+                    String artifactId;
+                    if (parser.getHeaderNames().contains("name")) {
+                        String name = record.get("name");
+                        groupId = name.split(":")[0];
+                        artifactId = name.split(":")[1];
+                    } else {
+                        groupId = record.get("groupId");
+                        artifactId = record.get("artifactId");
+                    }
+                    LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
+                    if (lib == null) {
+                        LOG.warn("groupArtifact not found: {}:{}", groupId, artifactId);
+                        continue;
+                    }
+                    result.add(lib);
+                }
             }
-            result.add(groupArtifact);
+        } else if (queryFile.endsWith(".txt")) {
+            BufferedReader reader = new BufferedReader(new FileReader(queryFile));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] ga = line.split(":");
+                LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]);
+                if (groupArtifact == null) {
+                    LOG.warn("groupArtifact not found: {}", line);
+                    continue;
+                }
+                result.add(groupArtifact);
+            }
+            reader.close();
         }
-        reader.close();
         return result;
     }
 
@@ -127,6 +154,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
                 Long fromId = fromLib.getId();
                 List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
                         candidateList = recommendationResult.get(fromId);
+                if (candidateList == null) continue;
 
                 candidateList = candidateList.stream()
                         .filter(candidate -> {
