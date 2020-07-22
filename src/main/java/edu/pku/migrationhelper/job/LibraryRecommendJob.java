@@ -4,8 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
-import edu.pku.migrationhelper.data.lib.LibraryVersion;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
+import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.service.DependencyChangePatternAnalysisService;
 import edu.pku.migrationhelper.service.EvaluationService;
 import org.apache.commons.csv.CSVParser;
@@ -40,7 +39,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     private ConfigurableApplicationContext context;
 
     @Autowired
-    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
 
     @Autowired
     private DependencyChangePatternAnalysisService dependencyChangePatternAnalysisService;
@@ -58,7 +57,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     public boolean evaluate = false;
 
     @Parameter(names = {"-r", "--output-repo-commit"})
-    public boolean outputRepoCommit = false;
+    public String outputRepoCommit = null;
 
     @Override
     public void run(String... args) throws Exception {
@@ -78,7 +77,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
         LOG.info("Generating recommendation result...");
         Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit, outputRepoCommit);
+                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit, outputRepoCommit != null);
 
         EvaluationService.EvaluationResult evaluationResult = null;
         if (evaluate) {
@@ -95,7 +94,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
         LOG.info("Writing results to csv...");
         outputCsv(queryList, result, evaluationResult);
-        if (outputRepoCommit) outputRelatedRepoAndCommit(result);
+        if (outputRepoCommit != null) outputRelatedRepoAndCommit(result);
 
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
@@ -117,12 +116,12 @@ public class LibraryRecommendJob implements CommandLineRunner {
                         groupId = record.get("groupId");
                         artifactId = record.get("artifactId");
                     }
-                    LibraryGroupArtifact lib = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(groupId, artifactId);
-                    if (lib == null) {
+                    Optional<LibraryGroupArtifact> lib = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId);
+                    if (!lib.isPresent()) {
                         LOG.warn("groupArtifact not found: {}:{}", groupId, artifactId);
                         continue;
                     }
-                    result.add(lib);
+                    result.add(lib.get());
                 }
             }
         } else if (queryFile.endsWith(".txt")) {
@@ -130,12 +129,12 @@ public class LibraryRecommendJob implements CommandLineRunner {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] ga = line.split(":");
-                LibraryGroupArtifact groupArtifact = libraryGroupArtifactMapper.findByGroupIdAndArtifactId(ga[0], ga[1]);
-                if (groupArtifact == null) {
+                Optional<LibraryGroupArtifact> groupArtifact = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(ga[0], ga[1]);
+                if (!groupArtifact.isPresent()) {
                     LOG.warn("groupArtifact not found: {}", line);
                     continue;
                 }
-                result.add(groupArtifact);
+                result.add(groupArtifact.get());
             }
             reader.close();
         }
@@ -158,7 +157,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
                 candidateList = candidateList.stream()
                         .filter(candidate -> {
-                            LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                            LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
                             return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
                         }).collect(Collectors.toList());
 
@@ -168,7 +167,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
                         .collect(Collectors.toList());
 
                 for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                    LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
                     String isCorrect = evaluationResult == null ?
                             "unknown" : evaluationResult.correctnessMap.get(fromId).get(candidate.toId).toString();
                     printer.printRecord(fromId, candidate.toId,
@@ -188,38 +187,21 @@ public class LibraryRecommendJob implements CommandLineRunner {
     private void outputRelatedRepoAndCommit(
             Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {
-        FileWriter correct = new FileWriter("export/CorrectLibraryMigration.csv");
-        FileWriter unknown = new FileWriter("export/UnknownLibraryMigration.csv");
+        FileWriter writer = new FileWriter(outputRepoCommit);
         result.forEach((fromId, candidateList) -> {
-            LibraryGroupArtifact fromLib = libraryGroupArtifactMapper.findById(fromId);
+            LibraryGroupArtifact fromLib = libraryGroupArtifactRepository.findById(fromId).get();
             candidateList = candidateList.stream()
                     .filter(candidate -> {
-                        LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                        LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
                         return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                    }).collect(Collectors.toList());
+                    }).limit(20).collect(Collectors.toList());
             if (candidateList.isEmpty()) return;
-            boolean isTruth;
-            if (evaluationService.getGroundTruthMap().containsKey(fromId)) {
-                isTruth = true;
-                Set<Long> thisTruth = evaluationService.getGroundTruthMap().get(fromId);
-                candidateList = candidateList.stream()
-                        .filter(candidate -> thisTruth.contains(candidate.toId))
-                        .limit(20)
-                        .collect(Collectors.toList());
-            } else {
-                isTruth = false;
-                candidateList = candidateList.stream()
-                        .limit(20)
-                        .collect(Collectors.toList());
-            }
-            if (candidateList.isEmpty()) return;
-            FileWriter writer = isTruth ? correct : unknown;
             try {
                 for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                     writer.write(fromLib.getGroupId());
                     writer.write(":");
                     writer.write(fromLib.getArtifactId());
-                    LibraryGroupArtifact toLib = libraryGroupArtifactMapper.findById(candidate.toId);
+                    LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
                     writer.write(",");
                     writer.write(toLib.getGroupId());
                     writer.write(":");
@@ -238,7 +220,6 @@ public class LibraryRecommendJob implements CommandLineRunner {
                 throw new RuntimeException(e);
             }
         });
-        correct.close();
-        unknown.close();
+        writer.close();
     }
 }
