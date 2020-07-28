@@ -1,8 +1,12 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
+import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -74,6 +78,21 @@ public class DependencyChangePatternAnalysisService {
 
     private List<String> depSeqRepoList;
 
+    // TODO avoid this after the mysql library is deprecated, this is extremely error prone!!!!
+    @Autowired
+    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
+    @Autowired
+    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
+    private final Map<Long, Long> idCache = new HashMap<>();
+    private long libMysqlIdToMongoDbId(long mysqlId) {
+        if (mysqlId == 0) return 0;
+        if (idCache.containsKey(mysqlId)) return idCache.get(mysqlId);
+        LibraryGroupArtifact lib = libraryGroupArtifactMapper.findById(mysqlId);
+        long mongoId = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(lib.getGroupId(), lib.getArtifactId()).get().getId();
+        idCache.put(mysqlId, mongoId);
+        return mongoId;
+    }
+
     @PostConstruct
     public void initializeMethodChangeSupportMap() throws IOException {
         if (!new File(methodChangeSupportFile).isFile()) {
@@ -86,8 +105,8 @@ public class DependencyChangePatternAnalysisService {
         methodChangeSupportMap = new HashMap<>(100000);
         while((line = reader.readLine()) != null) {
             String[] attrs = line.split(",");
-            Long fromId = Long.parseLong(attrs[0]);
-            Long toId = Long.parseLong(attrs[1]);
+            Long fromId = libMysqlIdToMongoDbId(Long.parseLong(attrs[0]));
+            Long toId = libMysqlIdToMongoDbId(Long.parseLong(attrs[1]));
             Integer counter = Integer.parseInt(attrs[2]);
             methodChangeSupportMap.computeIfAbsent(fromId, k -> new HashMap<>()).put(toId, counter);
         }
@@ -114,7 +133,9 @@ public class DependencyChangePatternAnalysisService {
             String[] libIds = libIdString.split(";");
             List<Long> libIdList = new ArrayList<>(libIds.length);
             for (String libId : libIds) {
-                libIdList.add(Long.parseLong(libId));
+                long id = Long.parseLong(libId);
+                if (id < 0) libIdList.add(-libMysqlIdToMongoDbId(-id));
+                else libIdList.add(libMysqlIdToMongoDbId(id));
             }
             repositoryDepSeq.add(libIdList);
         }

@@ -1,12 +1,22 @@
 package edu.pku.migrationhelper.job;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.data.lib.*;
 import edu.pku.migrationhelper.mapper.*;
+import edu.pku.migrationhelper.repository.ClassSignatureRepository;
+import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import edu.pku.migrationhelper.repository.LibraryVersionRepository;
+import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import javafx.util.Pair;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +28,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -71,6 +84,18 @@ public class DataExportJob implements CommandLineRunner {
     private MethodSignatureMapper methodSignatureMapper;
 
     @Autowired
+    private ClassSignatureRepository classSignatureRepository;
+
+    @Autowired
+    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
+
+    @Autowired
+    private LibraryVersionRepository libraryVersionRepository;
+
+    @Autowired
+    private LibraryVersionToClassRepository libraryVersionToClassRepository;
+
+    @Autowired
     private WocRepositoryAnalysisService wocRepositoryAnalysisService;
 
     @Autowired
@@ -91,70 +116,103 @@ public class DataExportJob implements CommandLineRunner {
         }
         String dataType = args[0];
         String outputFile = args[1];
-        FileWriter writer = new FileWriter(outputFile);
+        LOG.info("DataExportJob: {}", dataType);
         switch (dataType) {
             case "BlobInfo": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportBlobInfo(writer);
+                writer.close();
                 break;
             }
             case "CommitInfo": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportCommitInfo(writer);
+                writer.close();
                 break;
             }
             case "MethodChangeCommit": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportMethodChangeCommit(writer, args);
+                writer.close();
                 break;
             }
             case "LibraryVersion": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportLibraryVersion(writer);
+                writer.close();
                 break;
             }
             case "LibraryGroupArtifact": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportLibraryGroupArtifact(writer);
+                writer.close();
                 break;
             }
             case "MethodChange": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportMethodChange(writer);
+                writer.close();
                 break;
             }
             case "MethodChangeDetail": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportMethodChangeDetail(writer);
+                writer.close();
+                break;
+            }
+            case "LibraryAPI": {
+                exportLibraryAPI(args);
                 break;
             }
             case "APISupport": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportApiSupport(writer);
+                writer.close();
                 break;
             }
             case "APIMapping": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportApiMapping(writer, args);
+                writer.close();
                 break;
             }
             case "LioProject": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportLioProject(writer);
+                writer.close();
                 break;
             }
             case "LioProjectParseStatus": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportLioProjectParseStatus(writer);
+                writer.close();
                 break;
             }
             case "RepositoryDepSeq": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportRepositoryDepSeq(writer, args);
+                writer.close();
                 break;
             }
             case "CommitLibraryOverlap": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportCommitLibraryOverlap(writer, args);
+                writer.close();
                 break;
             }
             case "LibraryOverlap": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportLibraryOverlap(writer, args);
+                writer.close();
                 break;
             }
             case "GroundTruth": {
+                FileWriter writer = new FileWriter(outputFile);
                 exportGroundTruth(writer, args);
+                writer.close();
                 break;
             }
         }
-        writer.close();
         LOG.info("Export success");
         System.exit(SpringApplication.exit(context));
     }
@@ -308,6 +366,50 @@ public class DataExportJob implements CommandLineRunner {
                         methodChangeOld.getCounter());
             }
         }
+    }
+
+
+    public void exportLibraryAPI(String[] args) throws IOException {
+        String inputCSVPath = args[1];
+        String outputFolder = args[2];
+        LOG.info("Input: {}, Output to {}", inputCSVPath, outputFolder);
+        try (CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new FileReader(inputCSVPath))) {
+            for (CSVRecord record : parser) {
+                String groupId;
+                String artifactId;
+                if (parser.getHeaderNames().contains("name")) {
+                    String name = record.get("name");
+                    groupId = name.split(":")[0];
+                    artifactId = name.split(":")[1];
+                } else if (parser.getHeaderNames().contains("toGroupArtifact")) {
+                    String name = record.get("toGroupArtifact");
+                    groupId = name.split(":")[0];
+                    artifactId = name.split(":")[1];
+                } else {
+                    groupId = record.get("groupId");
+                    artifactId = record.get("artifactId");
+                }
+                Path classOutputFile = Paths.get(outputFolder, groupId + "#" + artifactId, "classSignatures.json");
+                Path versionToClassPath = Paths.get(outputFolder, groupId + "#" + artifactId, "versionToClass.json");
+                LOG.info("Exporting API of {}:{} to {} and {}", groupId, artifactId, classOutputFile, versionToClassPath);
+                Assert.isTrue(classOutputFile.getParent().toFile().exists() || classOutputFile.getParent().toFile().mkdir(),
+                        "Error making directories");
+                Map<String, ClassSignature> classes = new HashMap<>();
+                List<LibraryVersionToClass> versions = libraryVersionToClassRepository.findByGroupIdAndArtifactId(groupId, artifactId);
+                for (LibraryVersionToClass lv2c : versions) {
+                    Iterator<ClassSignature> it = classSignatureRepository.findAllById(lv2c.getClassIds()).iterator();
+                    it.forEachRemaining(cs -> classes.put(cs.getId(), cs));
+                }
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                try (PrintWriter out = new PrintWriter(versionToClassPath.toFile())) {
+                    out.println(gson.toJson(versions));
+                }
+                try (PrintWriter out = new PrintWriter(classOutputFile.toFile())) {
+                    out.println(gson.toJson(classes));
+                }
+            }
+        }
+
     }
 
     public void exportApiSupport(FileWriter writer) throws Exception {
