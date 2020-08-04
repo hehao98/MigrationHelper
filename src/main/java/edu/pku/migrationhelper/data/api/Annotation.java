@@ -4,6 +4,7 @@ import javafx.util.Pair;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.ElementValuePair;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -14,7 +15,7 @@ public class Annotation {
     //  e.g. java.lang.Deprecated will be stored as @Ljava/lang/Deprecated;
     private String className;
     private boolean isRuntimeVisible;
-    private List<String> valuePairs;
+    private List<String> valuePairs = new ArrayList<>();
 
     /**
      * For Spring data reflection, should not be used
@@ -62,6 +63,7 @@ public class Annotation {
     }
 
     public String getClassName() {
+        if (className == null) return null;
         int i = className.indexOf("L");
         int j = className.indexOf(";");
         return className.substring(i + 1, j).replace("/", ".");
