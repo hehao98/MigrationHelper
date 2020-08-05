@@ -1,3 +1,6 @@
+# Warning: This script is only preliminary and not very useful
+#    Many work still needs to be done if we want to make this tool work on Pengcheng Servers
+
 if [ "$1" != "MongoDbInitializeJob" ] && [ "$1" != "LibrariesIoImportJob" ] && [ "$1" != "LioJarParseJob" ]; then
   echo "Usage: run-woc.sh <Job Name> <Arg1> <Arg2> <Arg3> <Arg4>"
   echo "Currently Supported Jobs: MongoDbInitializeJob, LibrariesIoImportJob, LioJarParseJob"
