@@ -1,4 +1,4 @@
-package edu.pku.migrationhelper.data.lib;
+package edu.pku.migrationhelper.data;
 
 import org.springframework.data.annotation.Id;
 

@@ -46,6 +46,7 @@ migration-helper:
     repository-list-file: test_data/repositories.csv
   libraries-io-import:
     project-with-repository-path: /home/heh/libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv
+    repository-path: /home/heh/libraries-1.6.0-2020-01-12/repositories-1.6.0-2020-01-12.csv
   lio-jar-parse:
     data-source: all
     limit-count: 10000
