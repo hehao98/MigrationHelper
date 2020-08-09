@@ -76,10 +76,10 @@ repository analysis code are refactored, we can safely discard all MySQL related
 
 ### Start MongoDB Server on World of Code da1
 
-Make sure MongoDB server is not already running. Run the following command at `/da1_data/play/heh/mongodb/bin`.
+Make sure MongoDB server is not already running. Run the following command.
 
 ```shell script
-nohup ./mongod --auth --dbpath /da1_data/play/heh/mongodb/data \
+nohup /da1_data/play/heh/mongodb/bin/mongod --auth --dbpath /da1_data/play/heh/mongodb/data \
     --logpath /da1_data/play/heh/mongodb/db.log --fork --port 27020 --wiredTigerCacheSizeGB 100 \
     --bind_ip localhost,da1.eecs.utk.edu &
 ```
@@ -93,18 +93,21 @@ Make sure the MySQL server is not already running. Use the `run.sh` at `/da1_dat
 In this section, we detail on how to run this tool either locally or remotely on World of Code servers.
 
 We have two utility scripts for executing our tool: `run-local.sh` is for running locally,
- and `run-woc.sh` is for running on any of the World of Code servers. 
-However, some jobs may not work properly without access to blob database, so we strongly recommend running jobs on da4.
+ and `run-woc.sh` is for running on any of the World of Code servers. For brevity, we will only use `run-woc.sh` 
+in the script examples. For most of the jobs, if you specify the wrong parameters, usage info will be printed
+in the output.
+ 
+However, some jobs may not work properly without access to blob database, so we recommend running jobs on da4
+if you do not know whether the job uses any World of Code functionalities.
 
 ### Mining Data
 
+First, we need to initialize the databases.
+
 - CreateTableJob
 
-  创建MySQL数据表
-  
-  ```shell script
-  bash -x ./run-local.sh CreateTableJob
-  ```
+  This job is for initialize MySQL database, by creating a lot of tables. It will go wrong if the tables are 
+  already created.
   
   ```shell script
   bash -x ./run-woc.sh CreateTableJob
@@ -112,22 +115,21 @@ However, some jobs may not work properly without access to blob database, so we 
   
 - MongoDbInitializeJob
 
-  Create indexes for library data in MongoDB
+  Create indexes for library data in MongoDB. This can be run repeatedly without unsafe side effects.
   
   ```shell script
-  bash -x ./run-local.sh MongoDbInitializeJob
+  bash -x ./run-woc.sh MongoDbInitializeJob
   ```
+  
+Next, we need to import or mine data from multiple data sources.
 
 - LibrariesIoImportJob
 
-  将LibrariesIO的库数据导入数据库
-  
-  ```shell script
-  bash -x ./run-local.sh LibrariesIoImportJob
-  ```
+  Import data from the [libraries.io] dataset. It requires an additional parameter specifying which one to import.
+  Before using this, make sure the import data path in `application-xxx.yaml` is properly configured.
     
   ```shell script
-  bash -x ./run-woc.sh LibrariesIoImportJob
+  bash -x ./run-woc.sh LibrariesIoImportJob <collection-name>
   ```
 
 - LioJarParseJob
@@ -135,7 +137,7 @@ However, some jobs may not work properly without access to blob database, so we 
   从Maven下载之前导入的LibrariesIO库数据并分析，构建库与API签名映射关系
 
   ```shell script
-  bash -x ./run-local.sh LioJarParseJob 
+  bash -x ./run-woc.sh LioJarParseJob 
   ```
 
   ```shell script

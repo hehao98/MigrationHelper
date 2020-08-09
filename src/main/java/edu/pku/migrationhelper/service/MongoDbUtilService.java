@@ -1,6 +1,8 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.CustomSequences;
+import edu.pku.migrationhelper.data.LioProject;
+import edu.pku.migrationhelper.data.LioRepository;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.lib.*;
 import org.bson.Document;
@@ -34,6 +36,10 @@ public class MongoDbUtilService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    /**
+     * The initialization of MongoDB, which is currently responsible for creating indexes.
+     * In the future it can also be used for adding data constraints
+     */
     public void initMongoDb() {
         mongoTemplate.indexOps(ClassSignature.class).ensureIndex(new Index().on("className", Sort.Direction.ASC));
         Document compoundIndex = new Document();
@@ -64,6 +70,14 @@ public class MongoDbUtilService {
                 "dependentRepositoriesCount");
         for (String property : lioProjectProperties) {
             mongoTemplate.indexOps(LioProject.class).ensureIndex(new Index().on(property, Sort.Direction.DESC));
+        }
+
+        mongoTemplate.indexOps(LioRepository.class).ensureIndex((new Index().on("nameWithOwner", Sort.Direction.ASC)));
+        final List<String> lioRepositoryProperties = Arrays.asList(
+                "size", "starsCount", "forksCount", "openIssuesCount", "watchersCount", "contributorsCount"
+        );
+        for (String property : lioRepositoryProperties) {
+            mongoTemplate.indexOps(LioRepository.class).ensureIndex(new Index().on(property, Sort.Direction.DESC));
         }
     }
 

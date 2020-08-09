@@ -2,8 +2,7 @@ package edu.pku.migrationhelper.job;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import edu.pku.migrationhelper.data.lib.LioProject;
-import edu.pku.migrationhelper.mapper.LioProjectWithRepositoryMapper;
+import edu.pku.migrationhelper.data.LioProject;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.LibraryIdentityService;
