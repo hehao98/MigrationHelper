@@ -17,6 +17,9 @@ If you want to skip the test, use `mvn clean package -DskipTests` instead.
 
 ### Remote on World of Code
 
+Contact Professor [Audris Mockus](http://mockus.org) for access to World of Code servers, if you are/will be a PhD student of Minghui. 
+For others, you can contact Hao He and use his ssh account. (Remove this paragraph in the anonymous version)
+
 We strongly recommend all collaborators to create a stand-alone repository like 
 [this](https://github.com/hehao98/MigrationHelperJAR) GitHub repository for uploading JAR to remote WoC servers 
 (as direct connection is very slow). Collisions might happen if multiple people push to the same JAR repository.
@@ -246,7 +249,7 @@ analysis module.
 
 All Java related code follows the best practices of a Java project, with `pom.xml` for dependency management, 
 `src/main/java` for placing source code, `src/main/resources` for runtime files, `src/test/java` for test code,
-and `src/test/resources` for test related files. The `tool` folder is not currently used. The `pic` folder contain 
+and `src/test/resources` for test related files. The `tool` and `doc` folder is not currently used. The `pic` folder contain 
 scripts for plotting figures in the paper. The `notebook` and `embedding` folder contains preliminary results which are
 not included in current paper. The `test_data` folder contain several test input and test output files, along with ground
 truth data.
