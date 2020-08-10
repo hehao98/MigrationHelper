@@ -5,6 +5,7 @@ import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.data.lio.LioRepository;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.lib.*;
+import edu.pku.migrationhelper.data.lio.LioRepositoryDependency;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class MongoDbUtilService {
     private MongoTemplate mongoTemplate;
 
     /**
-     * The initialization of MongoDB, which is currently responsible for creating indexes.
+     * The initialization of MongoDB, which is currently responsible for creating indexes
      * In the future it can also be used for adding data constraints
      */
     public void initMongoDb() {
@@ -72,13 +73,16 @@ public class MongoDbUtilService {
             mongoTemplate.indexOps(LioProject.class).ensureIndex(new Index().on(property, Sort.Direction.DESC));
         }
 
-        mongoTemplate.indexOps(LioRepository.class).ensureIndex((new Index().on("nameWithOwner", Sort.Direction.ASC)));
+        mongoTemplate.indexOps(LioRepository.class).ensureIndex(new Index().on("nameWithOwner", Sort.Direction.ASC));
         final List<String> lioRepositoryProperties = Arrays.asList(
                 "size", "starsCount", "forksCount", "openIssuesCount", "watchersCount", "contributorsCount"
         );
         for (String property : lioRepositoryProperties) {
             mongoTemplate.indexOps(LioRepository.class).ensureIndex(new Index().on(property, Sort.Direction.DESC));
         }
+
+        mongoTemplate.indexOps(LioRepositoryDependency.class)
+                .ensureIndex(new Index().on("repositoryNameWithOwner", Sort.Direction.ASC));
     }
 
     public String getDbName() {

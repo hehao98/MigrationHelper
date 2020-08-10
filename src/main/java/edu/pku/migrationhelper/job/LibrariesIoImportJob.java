@@ -2,7 +2,9 @@ package edu.pku.migrationhelper.job;
 
 import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.data.lio.LioRepository;
+import edu.pku.migrationhelper.data.lio.LioRepositoryDependency;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
+import edu.pku.migrationhelper.repository.LioRepositoryDependencyRepository;
 import edu.pku.migrationhelper.repository.LioRepositoryRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -37,11 +39,17 @@ public class LibrariesIoImportJob implements CommandLineRunner {
     @Value("${migration-helper.libraries-io-import.repository-path}")
     private String repositoryPath;
 
+    @Value("${migration-helper.libraries-io-import.repository-dependency-path}")
+    private String repositoryDependencyPath;
+
     @Autowired
     private LioProjectRepository lioProjectRepository;
 
     @Autowired
     private LioRepositoryRepository lioRepositoryRepository;
+
+    @Autowired
+    private LioRepositoryDependencyRepository lioRepositoryDependencyRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -49,15 +57,19 @@ public class LibrariesIoImportJob implements CommandLineRunner {
             LOG.error("Usage: LibrariesIoImportJob <collectionName>");
             System.exit(SpringApplication.exit(context, () -> -1));
         }
-        if (args[0].equals("projectWithRepository")) {
-            importProjectWithRepository();
-        } else if (args[0].equals("repository")) {
-            importRepository();
-        } else if (args[0].equals("repositoryDependency")) {
-            importRepositoryDependency();
-        } else {
-            LOG.error("Supported collection names: projectWithRepository, repository, repositoryDependency");
-            System.exit(SpringApplication.exit(context, () -> -1));
+        switch (args[0]) {
+            case "projectWithRepository":
+                importProjectWithRepository();
+                break;
+            case "repository":
+                importRepository();
+                break;
+            case "repositoryDependency":
+                importRepositoryDependency();
+                break;
+            default:
+                LOG.error("Supported collection names: projectWithRepository, repository, repositoryDependency");
+                System.exit(SpringApplication.exit(context, () -> -1));
         }
         LOG.info("Import success");
         System.exit(SpringApplication.exit(context, () -> 0));
@@ -146,46 +158,39 @@ public class LibrariesIoImportJob implements CommandLineRunner {
 
     private void importRepositoryDependency() throws IOException {
         LOG.info("Start import libraries.io Java repository with dependencies");
-        FileReader fileReader = new FileReader(repositoryPath);
+        FileReader fileReader = new FileReader(repositoryDependencyPath);
         CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader);
-        int insertLimit = 10000;
-        List<LioRepository> results = new ArrayList<>(insertLimit);
+        int insertLimit = 1000000;
+        int total = 0;
+        List<LioRepositoryDependency> results = new ArrayList<>(insertLimit);
         for (CSVRecord record : parser) {
-            if (!record.get("Language").equals("Java")) {
+            if (!record.get("Manifest Platform").toLowerCase().equals("maven")) {
                 continue;
             }
-            LioRepository p = new LioRepository()
+            LioRepositoryDependency p = new LioRepositoryDependency()
                     .setId(getRecordLong(record, "ID"))
                     .setHostType(record.get("Host Type"))
-                    .setNameWithOwner(record.get("Name with Owner"))
-                    .setDescription(record.get("Description"))
-                    .setFork(getRecordBoolean(record, "Fork"))
-                    .setForkSourceNameWithOwner(record.get("Fork Source Name with Owner"))
-                    .setCreatedTimestamp(record.get("Created Timestamp"))
-                    .setUpdatedTimestamp(record.get("Updated Timestamp"))
-                    .setLastPushedTimestamp(record.get("Last pushed Timestamp"))
-                    .setHomepageURL(record.get("Homepage URL"))
-                    .setMirrorURL(record.get("Mirror URL"))
-                    .setSize(getRecordLong(record, "Size"))
-                    .setLanguage(record.get("Language"))
-                    .setStarsCount(getRecordLong(record, "Stars Count"))
-                    .setForksCount(getRecordLong(record, "Forks Count"))
-                    .setOpenIssuesCount(getRecordLong(record, "Open Issues Count"))
-                    .setWatchersCount(getRecordLong(record, "Watchers Count"))
-                    .setContributorsCount(getRecordLong(record, "Contributors Count"))
-                    .setReadmeFilename(record.get("Readme filename"))
-                    .setChangeLogFilename(record.get("Changelog filename"))
-                    .setContributingGuidelinesFilename(record.get("Contributing guidelines filename"))
-                    .setLicenseFilename(record.get("License filename"))
-                    .setCodeOfConductFilename(record.get("Code of Conduct filename"));
+                    .setRepositoryNameWithOwner(record.get("Repository Name with Owner"))
+                    .setRepositoryId(record.get("Repository ID"))
+                    .setManifestPlatform(record.get("Manifest Platform"))
+                    .setManifestFilePath(record.get("Manifest Filepath"))
+                    .setGitBranch(record.get("Git branch"))
+                    .setManifestKind(record.get("Manifest kind"))
+                    .setOptional(getRecordBoolean(record, "Optional"))
+                    .setDependencyProjectName(record.get("Dependency Project Name"))
+                    .setDependencyRequirements(record.get("Dependency Requirements"))
+                    .setDependencyKind(record.get("Dependency Kind"))
+                    .setDependencyProjectId(getRecordLong(record, "Dependency Project ID"));
             results.add(p);
             if (results.size() >= insertLimit) {
-                lioRepositoryRepository.saveAll(results);
+                lioRepositoryDependencyRepository.saveAll(results);
                 results.clear();
+                total += insertLimit;
+                LOG.info("{} entries added", total);
             }
         }
         if (results.size() > 0) {
-            lioRepositoryRepository.saveAll(results);
+            lioRepositoryDependencyRepository.saveAll(results);
         }
         fileReader.close();
     }
