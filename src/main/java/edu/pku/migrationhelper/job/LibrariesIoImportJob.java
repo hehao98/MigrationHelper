@@ -1,8 +1,12 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.LioProject;
-import edu.pku.migrationhelper.data.LioRepository;
+import edu.pku.migrationhelper.data.lio.LioProject;
+import edu.pku.migrationhelper.data.lio.LioProjectDependency;
+import edu.pku.migrationhelper.data.lio.LioRepository;
+import edu.pku.migrationhelper.data.lio.LioRepositoryDependency;
+import edu.pku.migrationhelper.repository.LioProjectDependencyRepository;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
+import edu.pku.migrationhelper.repository.LioRepositoryDependencyRepository;
 import edu.pku.migrationhelper.repository.LioRepositoryRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -34,31 +38,56 @@ public class LibrariesIoImportJob implements CommandLineRunner {
     @Value("${migration-helper.libraries-io-import.project-with-repository-path}")
     private String projectWithRepositoryPath;
 
+    @Value("${migration-helper.libraries-io-import.project-dependency-path}")
+    private String projectDependencyPath;
+
     @Value("${migration-helper.libraries-io-import.repository-path}")
     private String repositoryPath;
+
+    @Value("${migration-helper.libraries-io-import.repository-dependency-path}")
+    private String repositoryDependencyPath;
 
     @Autowired
     private LioProjectRepository lioProjectRepository;
 
     @Autowired
+    private LioProjectDependencyRepository lioProjectDependencyRepository;
+
+    @Autowired
     private LioRepositoryRepository lioRepositoryRepository;
+
+    @Autowired
+    private LioRepositoryDependencyRepository lioRepositoryDependencyRepository;
 
     @Override
     public void run(String... args) throws Exception {
         if (args.length < 1) {
-            LOG.error("Usage: LibrariesIoImportJob <collectionName>");
-            System.exit(SpringApplication.exit(context, () -> -1));
+            printUsageAndExit();
         }
-        if (args[0].equals("projectWithRepository")) {
-            importProjectWithRepository();
-        } else if (args[0].equals("repository")) {
-            importRepository();
-        } else {
-            LOG.error("Supported collection names: projectWithRepository, repository, repositoryDependency");
-            System.exit(SpringApplication.exit(context, () -> -1));
+        switch (args[0]) {
+            case "projectWithRepository":
+                importProjectWithRepository();
+                break;
+            case "projectDependency":
+                importProjectDependency();
+                break;
+            case "repository":
+                importRepository();
+                break;
+            case "repositoryDependency":
+                importRepositoryDependency();
+                break;
+            default:
+                printUsageAndExit();
         }
         LOG.info("Import success");
         System.exit(SpringApplication.exit(context, () -> 0));
+    }
+
+    private void printUsageAndExit() {
+        LOG.error("Usage: LibrariesIoImportJob <collectionName>");
+        LOG.error("Supported collection names: projectWithRepository, projectDependency, repository, repositoryDependency");
+        System.exit(SpringApplication.exit(context, () -> -1));
     }
 
     private void importProjectWithRepository() throws IOException {
@@ -92,6 +121,43 @@ public class LibrariesIoImportJob implements CommandLineRunner {
         }
         if (results.size() > 0) {
             lioProjectRepository.saveAll(results);
+        }
+        fileReader.close();
+    }
+
+    private void importProjectDependency() throws IOException {
+        LOG.info("Start import project dependency (i.e. dependency of Java Maven libraries)");
+        FileReader fileReader = new FileReader(projectDependencyPath);
+        CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader);
+        int insertLimit = 100000;
+        int total = 0;
+        List<LioProjectDependency> results = new ArrayList<>(insertLimit);
+        for (CSVRecord record : parser) {
+            if (record.get("Platform").toLowerCase().equals("maven")) {
+                LioProjectDependency p = new LioProjectDependency()
+                        .setId(getRecordLong(record, "ID"))
+                        .setPlatform(record.get("Platform"))
+                        .setProjectName(record.get("Project Name"))
+                        .setProjectId(getRecordLong(record, "Project ID"))
+                        .setVersionNumber(record.get("Version Number"))
+                        .setVersionId(getRecordLong(record, "Version ID"))
+                        .setDependencyName(record.get("Dependency Name"))
+                        .setDependencyPlatform(record.get("Dependency Platform"))
+                        .setDependencyKind(record.get("Dependency Kind"))
+                        .setOptionalDependency(getRecordBoolean(record, "Optional Dependency"))
+                        .setDependencyRequirements(record.get("Dependency Requirements"))
+                        .setDependencyProjectId(getRecordLong(record, "Dependency Project ID"));
+                results.add(p);
+            }
+            if (results.size() >= insertLimit) {
+                lioProjectDependencyRepository.saveAll(results);
+                results.clear();
+                total += insertLimit;
+                LOG.info("{} entries added", total);
+            }
+        }
+        if (results.size() > 0) {
+            lioProjectDependencyRepository.saveAll(results);
         }
         fileReader.close();
     }
@@ -138,6 +204,45 @@ public class LibrariesIoImportJob implements CommandLineRunner {
         }
         if (results.size() > 0) {
             lioRepositoryRepository.saveAll(results);
+        }
+        fileReader.close();
+    }
+
+    private void importRepositoryDependency() throws IOException {
+        LOG.info("Start import libraries.io Java repository with dependencies");
+        FileReader fileReader = new FileReader(repositoryDependencyPath);
+        CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader);
+        int insertLimit = 100000;
+        int total = 0;
+        List<LioRepositoryDependency> results = new ArrayList<>(insertLimit);
+        for (CSVRecord record : parser) {
+            if (!record.get("Manifest Platform").toLowerCase().equals("maven")) {
+                continue;
+            }
+            LioRepositoryDependency p = new LioRepositoryDependency()
+                    .setId(getRecordLong(record, "ID"))
+                    .setHostType(record.get("Host Type"))
+                    .setRepositoryNameWithOwner(record.get("Repository Name with Owner"))
+                    .setRepositoryId(record.get("Repository ID"))
+                    .setManifestPlatform(record.get("Manifest Platform"))
+                    .setManifestFilePath(record.get("Manifest Filepath"))
+                    .setGitBranch(record.get("Git branch"))
+                    .setManifestKind(record.get("Manifest kind"))
+                    .setOptional(getRecordBoolean(record, "Optional"))
+                    .setDependencyProjectName(record.get("Dependency Project Name"))
+                    .setDependencyRequirements(record.get("Dependency Requirements"))
+                    .setDependencyKind(record.get("Dependency Kind"))
+                    .setDependencyProjectId(getRecordLong(record, "Dependency Project ID"));
+            results.add(p);
+            if (results.size() >= insertLimit) {
+                lioRepositoryDependencyRepository.saveAll(results);
+                results.clear();
+                total += insertLimit;
+                LOG.info("{} entries added", total);
+            }
+        }
+        if (results.size() > 0) {
+            lioRepositoryDependencyRepository.saveAll(results);
         }
         fileReader.close();
     }

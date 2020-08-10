@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.repository;
 
-import edu.pku.migrationhelper.data.LioProject;
+import edu.pku.migrationhelper.data.lio.LioProject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
