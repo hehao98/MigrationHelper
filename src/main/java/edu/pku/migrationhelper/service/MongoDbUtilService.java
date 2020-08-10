@@ -2,6 +2,7 @@ package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.CustomSequences;
 import edu.pku.migrationhelper.data.lio.LioProject;
+import edu.pku.migrationhelper.data.lio.LioProjectDependency;
 import edu.pku.migrationhelper.data.lio.LioRepository;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.lib.*;
@@ -83,6 +84,12 @@ public class MongoDbUtilService {
 
         mongoTemplate.indexOps(LioRepositoryDependency.class)
                 .ensureIndex(new Index().on("repositoryNameWithOwner", Sort.Direction.ASC));
+
+        compoundIndex = new Document();
+        compoundIndex.put("projectName", 1);
+        compoundIndex.put("versionNumber", 1);
+        mongoTemplate.indexOps(LioProjectDependency.class)
+                .ensureIndex(new CompoundIndexDefinition(compoundIndex));
     }
 
     public String getDbName() {
