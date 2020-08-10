@@ -10,7 +10,7 @@ spring:
       max-total: 100
   data:
     mongodb:
-      uri: mongodb://localhost:27017/test_migration_helper
+      uri: mongodb://localhost:27017/test_migration_helper?serverSelectionTimeoutMS=1000&connectTimeoutMS=1000
 
 migration-helper:
   library-identity:

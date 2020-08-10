@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -64,6 +65,7 @@ public class ParseGroupArtifactTest {
 
     @Before
     public void init() {
+        assumeTrue(utilService.isDbRunning());
         assertTrue(utilService.getDbName().contains("test"));
         csRepo.deleteAll();
         lv2cRepo.deleteAll();

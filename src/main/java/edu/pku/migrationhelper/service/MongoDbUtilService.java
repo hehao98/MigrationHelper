@@ -106,4 +106,19 @@ public class MongoDbUtilService {
         assert counter != null;
         return counter.getSeq();
     }
+
+    /**
+     * Check whether the MongoDB database is up and running
+     * Note that it will either run very fast or halt for a long time,
+     *   based on different timeout settings
+     * @return is running or not
+     */
+    public boolean isDbRunning() {
+        try {
+            mongoTemplate.getDb().listCollectionNames().first();
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
 }

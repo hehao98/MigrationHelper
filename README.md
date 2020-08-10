@@ -208,9 +208,10 @@ For each collaborator, please create a new branch with your name, and do your wo
 finished doing some work, please open a pull request to `master` and let someone review it. We do not set a `dev` branch
 because this project is still in very early stage with no need for such separation. 
 
-It will be useful if we can have a CI pipeline. However, due to the unique environment requirements of this project, 
-we cannot utilize GitHub Action directly and need to set up our own server for CI. It is currently not done but we 
-welcome any effort on this.
+The project currently uses GitHub Action for continuous integration. For each commit you pushed, it will be compiled
+and tested on the GitHub remote environment. You will see a green check mark if your commit can compile and pass some tests.
+However, only a limited number of tests can be run on GitHub Actions (e.g. we skipp all DB and World of Code related 
+tests) Anyway, it will be useful to see whether your code is breaking things up or not.
 
 ### Preliminaries
 
