@@ -20,7 +20,7 @@ If you want to skip the test, use `mvn clean package -DskipTests` instead.
 Contact Professor [Audris Mockus](http://mockus.org) for access to World of Code servers, if you are/will be a PhD student of Minghui. 
 For others, you can contact Hao He and use his ssh account. (Remove this paragraph in the anonymous version)
 
-We strongly recommend all collaborators to create a stand-alone repository like 
+If you choose to develop locally, we recommend all collaborators to create a stand-alone repository like 
 [this](https://github.com/hehao98/MigrationHelperJAR) GitHub repository for uploading JAR to remote WoC servers 
 (as direct connection is very slow). Collisions might happen if multiple people push to the same JAR repository.
 
@@ -40,25 +40,37 @@ cd MigrationHelper
 git clone https://github.com/hehao98/MigrationHelperJAR.git
 ```
 
+If you choose to develop remotely, you can compile using the following command
+
+```shell script
+export JAVA_HOME=/home/heh/jdk1.8.0_144/ && /da1_data/play/heh/apache-maven-3.6.3/bin/mvn clean package -DskipTests
+```
+
 You are likely to create your own `MigrationHelper` repository on World of Code. If you do this, please copy the 
 `/da1_data/play/heh/MigrationHelper/export` folder to your cloned repository, as some files might be useful 
-in some cases.
+in some cases (Mostly for historical reasons, but I currently cannot figure them all out).
 
 ## Test
 
-We have only a limited number of unit tests (also deadly simple and not rigorous) which can be run as follows. 
+We have a limited number of tests which can be run as follows (some of them will take some time to finish). 
 
 ```shell script
 mvn clean test
 ```
 
-(What a pity on our poor software engineering practices!) 
 More patches that do rigorous testing of any module is always welcome.
 
 To run a specific test (which is very useful during development), use a command like this.
 
 ```shell script
 mvn clean test -Dtest=AbcDefTest
+```
+
+Some tests need a running MongoDb Server to work, or otherwise it will be skipped. 
+Some tests need to be run on WoC Servers, using the following command.
+
+```shell script
+export JAVA_HOME=/home/heh/jdk1.8.0_144/ && /da1_data/play/heh/apache-maven-3.6.3/bin/mvn clean test
 ```
 
 We strongly recommend create a new test or modify existing tests for any new features that you added, and make sure

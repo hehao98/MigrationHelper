@@ -17,47 +17,62 @@ import java.util.function.Consumer;
 @ConfigurationProperties(prefix = "migration-helper.woc-repository-analysis")
 public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
-    @Value("${migration-helper.woc.enabled}")
-    private boolean wocEnabled = false;
-
-    @Value("${migration-helper.woc.object-enabled}")
-    private boolean wocObjectEnabled = false;
-
     public static class WocRepository extends AbstractRepository {
         public WocObjectDriver blobDriver;
         public Map<String, List<BlobInCommit>> treeCache = new HashMap<>(100000);
     }
 
+    @Value("${migration-helper.woc.enabled}")
+    private final boolean wocEnabled = false;
+
+    @Value("${migration-helper.woc.object-enabled}")
+    private final boolean wocObjectEnabled = false;
+
+    /**
+     * configuration fields
+     */
+    private String p2cBase;
+    private String c2pcBase;
+    private String c2bBase;
+    private String b2fBase;
+    private String c2taBase;
+    private String blobIndexBase;
+    private String commitIndexBase;
+    private String treeIndexBase;
+    private String blobContentBase;
+
     private WocHdbDriver p2c;
-
     private WocHdbDriver c2pc;
-
-//    private WocHdbDriver c2b;
-
-//    private WocHdbDriver b2f;
-
+    private WocHdbDriver c2b;
+    private WocHdbDriver b2f;
     private WocHdbDriver c2ta;
-
     private WocHdbDriver blobIndex;
-
     private WocHdbDriver commitIndex;
-
     private WocHdbDriver treeIndex;
 
     @PostConstruct
-    public void postConstruct() {
-        if(!wocEnabled) return;
+    public void init() {
+        if (!wocEnabled) {
+            LOG.info("World of Code is not enabled, this service will not work properly");
+            return;
+        }
+
         p2c = new WocHdbDriver(p2cBase, 32, WocHdbDriver.ContentType.Text, WocHdbDriver.ContentType.SHA1List);
         c2pc = new WocHdbDriver(c2pcBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
-//        c2b = new WocHdbDriver(c2bBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
-//        b2f = new WocHdbDriver(b2fBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
+        c2b = new WocHdbDriver(c2bBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.SHA1List);
+        b2f = new WocHdbDriver(b2fBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         c2ta = new WocHdbDriver(c2taBase, 32, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.Text);
         p2c.openDatabaseFile(true);
         c2pc.openDatabaseFile(true);
-//        c2b.openDatabaseFile();
-//        b2f.openDatabaseFile();
+        c2b.openDatabaseFile();
+        b2f.openDatabaseFile();
         c2ta.openDatabaseFile(true);
-        if(!wocObjectEnabled) return;
+
+        if (!wocObjectEnabled) {
+            LOG.info("World of Code Object Storage is not enabled, this service will not work properly");
+            return;
+        }
+
         blobIndex = new WocHdbDriver(blobIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.BerNumberList);
         commitIndex = new WocHdbDriver(commitIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
         treeIndex = new WocHdbDriver(treeIndexBase, 128, WocHdbDriver.ContentType.SHA1, WocHdbDriver.ContentType.LZFText);
@@ -70,8 +85,8 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         if(!wocEnabled) return;
         p2c.closeDatabaseFile();
         c2pc.closeDatabaseFile();
-//        c2b.closeDatabaseFile();
-//        b2f.closeDatabaseFile();
+        c2b.closeDatabaseFile();
+        b2f.closeDatabaseFile();
         c2ta.closeDatabaseFile();
         if(!wocObjectEnabled) return;
         blobIndex.closeDatabaseFile();
@@ -162,11 +177,11 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         int p = 0, len = treeContent.length;
         while(p < len) {
             int start = p;
-            while(p < len && treeContent[p++] != 0x20);
+            while (p < len && treeContent[p++] != 0x20);
             String mode = new String(treeContent, start, p - start - 1);
             boolean isTree = "40000".equals(mode);
             start = p;
-            while(p < len && treeContent[p++] != 0x00);
+            while (p < len && treeContent[p++] != 0x00);
             String fileName = new String(treeContent, start, p - start - 1);
             String objectId = MathUtils.toHexString(treeContent, p, 20);
             p += 20;
@@ -213,27 +228,6 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         }
     }
 
-    /**
-     * configuration fields
-     */
-
-    private String p2cBase;
-
-    private String c2pcBase;
-
-    private String c2bBase;
-
-    private String b2fBase;
-
-    private String c2taBase;
-
-    private String blobIndexBase;
-
-    private String commitIndexBase;
-
-    private String treeIndexBase;
-
-    private String blobContentBase;
 
     public String getP2cBase() {
         return p2cBase;

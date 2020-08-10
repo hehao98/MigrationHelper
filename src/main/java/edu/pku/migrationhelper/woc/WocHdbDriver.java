@@ -28,15 +28,15 @@ public class WocHdbDriver {
             ContentType.Text, ContentType.LZFText, ContentType.SHA1, ContentType.SHA1List, ContentType.BerNumberList
     )));
 
-    Logger LOG = LoggerFactory.getLogger(getClass());
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private String baseName;
+    private final String baseName;
 
-    private int partCount;
+    private final int partCount;
 
-    private ContentType keyType;
+    private final ContentType keyType;
 
-    private ContentType valueType;
+    private final ContentType valueType;
 
     private HDB[] databaseArray;
 
