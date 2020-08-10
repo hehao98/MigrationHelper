@@ -553,51 +553,6 @@ public class TestJob implements CommandLineRunner {
         gitRepositoryAnalysisService.analyzeRepositoryLibrary("jgit-cookbook");
     }
 
-    public void testTokyoCabinet() throws Exception {
-        // create the object
-        HDB hdb = new HDB();
-
-        // open the database
-        if (!hdb.open("db/test_tc.tch", HDB.OWRITER | HDB.OCREAT)) {
-            int ecode = hdb.ecode();
-            LOG.error("open error: " + hdb.errmsg(ecode));
-        }
-
-        // store records
-        if (!hdb.put("foo", "hop") ||
-                !hdb.put("bar", "step") ||
-                !hdb.put("baz", "jump")) {
-            int ecode = hdb.ecode();
-            LOG.error("put error: " + hdb.errmsg(ecode));
-        }
-
-        // retrieve records
-        String value = hdb.get("foo");
-        if (value != null) {
-            LOG.info(value);
-        } else {
-            int ecode = hdb.ecode();
-            LOG.error("get error: " + hdb.errmsg(ecode));
-        }
-
-        // traverse records
-        hdb.iterinit();
-        String key;
-        while ((key = hdb.iternext2()) != null) {
-            value = hdb.get(key);
-            if (value != null) {
-                LOG.info(key + ":" + value);
-            }
-        }
-
-        // close the database
-        if (!hdb.close()) {
-            int ecode = hdb.ecode();
-            LOG.error("close error: " + hdb.errmsg(ecode));
-        }
-
-    }
-
     public void genBerIdsCode() throws Exception {
         String className = "BlobInfo";
         BufferedReader reader = new BufferedReader(new FileReader("db/test.txt"));
