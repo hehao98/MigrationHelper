@@ -31,7 +31,6 @@ public class MongoDbConfiguration extends AbstractMongoClientConfiguration {
 
     @Override
     public @Bean MongoTemplate mongoTemplate() throws Exception {
-
         MongoTemplate template = new MongoTemplate(mongoDbFactory(), mappingMongoConverter());
         template.setWriteResultChecking(WriteResultChecking.EXCEPTION);
         return template;
@@ -43,6 +42,4 @@ public class MongoDbConfiguration extends AbstractMongoClientConfiguration {
         //converter.setMapKeyDotReplacement("/");
         return converter;
     }
-
-
 }

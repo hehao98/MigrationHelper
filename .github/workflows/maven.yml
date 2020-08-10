@@ -23,3 +23,5 @@ jobs:
         java-package: jdk+fx
     - name: Build with Maven
       run: mvn clean package -DskipTests
+    - name: Test with Maven (DB and WoC tests skipped)
+      run: mvn clean test

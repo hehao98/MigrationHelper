@@ -26,6 +26,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -47,6 +48,7 @@ public class LibraryRelatedRepositoryTest {
 
     @Before
     public void init() {
+        assumeTrue(utilService.isDbRunning());
         assertTrue(utilService.getDbName().contains("test"));
         lioProjectRepository.deleteAll();
         libraryVersionRepository.deleteAll();

@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -50,6 +51,7 @@ public class LibraryVersionAndClassMappingTest {
 
     @Before
     public void init() {
+        assumeTrue(utilService.isDbRunning());
         assertTrue(utilService.getDbName().contains("test"));
         csRepo.deleteAll();
         lv2cRepo.deleteAll();

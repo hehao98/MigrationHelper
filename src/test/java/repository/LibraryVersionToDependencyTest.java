@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -45,6 +46,7 @@ public class LibraryVersionToDependencyTest {
 
     @Before
     public void init() {
+        assumeTrue(utilService.isDbRunning());
         assertTrue(utilService.getDbName().contains("test"));
         lv2dRepo.deleteAll();
         utilService.initMongoDb();
