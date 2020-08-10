@@ -6,6 +6,7 @@ import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.data.lib.*;
+import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.mapper.*;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;

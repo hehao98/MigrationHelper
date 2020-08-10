@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
-import edu.pku.migrationhelper.data.LioProject;
+import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
 import org.apache.commons.csv.CSVFormat;

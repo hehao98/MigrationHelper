@@ -1,6 +1,6 @@
 package edu.pku.migrationhelper.repository;
 
-import edu.pku.migrationhelper.data.LioRepository;
+import edu.pku.migrationhelper.data.lio.LioRepository;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;

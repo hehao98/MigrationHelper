@@ -1,8 +1,8 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.CustomSequences;
-import edu.pku.migrationhelper.data.LioProject;
-import edu.pku.migrationhelper.data.LioRepository;
+import edu.pku.migrationhelper.data.lio.LioProject;
+import edu.pku.migrationhelper.data.lio.LioRepository;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.lib.*;
 import org.bson.Document;

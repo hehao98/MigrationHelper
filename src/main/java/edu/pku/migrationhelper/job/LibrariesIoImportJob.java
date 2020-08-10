@@ -1,7 +1,7 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.LioProject;
-import edu.pku.migrationhelper.data.LioRepository;
+import edu.pku.migrationhelper.data.lio.LioProject;
+import edu.pku.migrationhelper.data.lio.LioRepository;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
 import edu.pku.migrationhelper.repository.LioRepositoryRepository;
 import org.apache.commons.csv.CSVFormat;
@@ -53,6 +53,8 @@ public class LibrariesIoImportJob implements CommandLineRunner {
             importProjectWithRepository();
         } else if (args[0].equals("repository")) {
             importRepository();
+        } else if (args[0].equals("repositoryDependency")) {
+            importRepositoryDependency();
         } else {
             LOG.error("Supported collection names: projectWithRepository, repository, repositoryDependency");
             System.exit(SpringApplication.exit(context, () -> -1));
@@ -98,6 +100,52 @@ public class LibrariesIoImportJob implements CommandLineRunner {
 
     private void importRepository() throws IOException {
         LOG.info("Start import libraries.io Java repository");
+        FileReader fileReader = new FileReader(repositoryPath);
+        CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader);
+        int insertLimit = 10000;
+        List<LioRepository> results = new ArrayList<>(insertLimit);
+        for (CSVRecord record : parser) {
+            if (!record.get("Language").equals("Java")) {
+                continue;
+            }
+            LioRepository p = new LioRepository()
+                    .setId(getRecordLong(record, "ID"))
+                    .setHostType(record.get("Host Type"))
+                    .setNameWithOwner(record.get("Name with Owner"))
+                    .setDescription(record.get("Description"))
+                    .setFork(getRecordBoolean(record, "Fork"))
+                    .setForkSourceNameWithOwner(record.get("Fork Source Name with Owner"))
+                    .setCreatedTimestamp(record.get("Created Timestamp"))
+                    .setUpdatedTimestamp(record.get("Updated Timestamp"))
+                    .setLastPushedTimestamp(record.get("Last pushed Timestamp"))
+                    .setHomepageURL(record.get("Homepage URL"))
+                    .setMirrorURL(record.get("Mirror URL"))
+                    .setSize(getRecordLong(record, "Size"))
+                    .setLanguage(record.get("Language"))
+                    .setStarsCount(getRecordLong(record, "Stars Count"))
+                    .setForksCount(getRecordLong(record, "Forks Count"))
+                    .setOpenIssuesCount(getRecordLong(record, "Open Issues Count"))
+                    .setWatchersCount(getRecordLong(record, "Watchers Count"))
+                    .setContributorsCount(getRecordLong(record, "Contributors Count"))
+                    .setReadmeFilename(record.get("Readme filename"))
+                    .setChangeLogFilename(record.get("Changelog filename"))
+                    .setContributingGuidelinesFilename(record.get("Contributing guidelines filename"))
+                    .setLicenseFilename(record.get("License filename"))
+                    .setCodeOfConductFilename(record.get("Code of Conduct filename"));
+            results.add(p);
+            if (results.size() >= insertLimit) {
+                lioRepositoryRepository.saveAll(results);
+                results.clear();
+            }
+        }
+        if (results.size() > 0) {
+            lioRepositoryRepository.saveAll(results);
+        }
+        fileReader.close();
+    }
+
+    private void importRepositoryDependency() throws IOException {
+        LOG.info("Start import libraries.io Java repository with dependencies");
         FileReader fileReader = new FileReader(repositoryPath);
         CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(fileReader);
         int insertLimit = 10000;

@@ -3,7 +3,7 @@ package repository;
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lib.LibraryVersion;
-import edu.pku.migrationhelper.data.LioProject;
+import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.repository.LibraryVersionRepository;
 import edu.pku.migrationhelper.repository.LioProjectRepository;

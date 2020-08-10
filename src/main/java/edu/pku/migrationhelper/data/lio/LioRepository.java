@@ -1,4 +1,4 @@
-package edu.pku.migrationhelper.data;
+package edu.pku.migrationhelper.data.lio;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.util.Assert;
