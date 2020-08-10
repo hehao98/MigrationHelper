@@ -35,8 +35,8 @@ migration-helper:
   woc-repository-analysis:
     p2cBase: /da0_data/basemaps/p2cFullR.
     c2pcBase: /da0_data/basemaps/c2pcFullR.
-    c2bBase: /da0_data/basemaps/c2bFullQ.
-    b2fBase: /da0_data/basemaps/b2fFullQ.
+    c2bBase: /da0_data/basemaps/c2bFullR.
+    b2fBase: /da0_data/basemaps/b2fFullR.
     c2taBase: /da0_data/basemaps/c2taFullR.
     blobIndexBase: /fast/All.sha1o/sha1.blob_ # da4 only
     commitIndexBase: /fast/All.sha1c/commit_ # da4 only

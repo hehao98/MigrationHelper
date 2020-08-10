@@ -23,10 +23,10 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
     }
 
     @Value("${migration-helper.woc.enabled}")
-    private final boolean wocEnabled = false;
+    private boolean wocEnabled = false;
 
     @Value("${migration-helper.woc.object-enabled}")
-    private final boolean wocObjectEnabled = false;
+    private boolean wocObjectEnabled = false;
 
     /**
      * configuration fields
@@ -228,6 +228,23 @@ public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
         }
     }
 
+    public boolean isWocEnabled() {
+        return wocEnabled;
+    }
+
+    public WocRepositoryAnalysisService setWocEnabled(boolean wocEnabled) {
+        this.wocEnabled = wocEnabled;
+        return this;
+    }
+
+    public boolean isWocObjectEnabled() {
+        return wocObjectEnabled;
+    }
+
+    public WocRepositoryAnalysisService setWocObjectEnabled(boolean wocObjectEnabled) {
+        this.wocObjectEnabled = wocObjectEnabled;
+        return this;
+    }
 
     public String getP2cBase() {
         return p2cBase;
