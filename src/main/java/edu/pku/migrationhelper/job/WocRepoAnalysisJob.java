@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+@Deprecated
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocRepoAnalysisJob")
 public class WocRepoAnalysisJob {

@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.*;
 import java.util.function.Consumer;
 
+@Deprecated
 public abstract class RepositoryAnalysisService {
 
     protected Logger LOG = LoggerFactory.getLogger(getClass());

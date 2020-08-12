@@ -2,6 +2,7 @@ package edu.pku.migrationhelper.data;
 
 import java.util.List;
 
+@Deprecated
 public class RepositoryDepSeq {
 
     private long id;

@@ -2,6 +2,7 @@ package service;
 
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.service.JavaCodeAnalysisService;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -24,6 +25,8 @@ public class JavaCodeAnalysisServiceTest {
         return new String(buf);
     }
 
+    @Deprecated
+    @Ignore
     @Test
     public void testJavaCodeAnalysis() throws Exception {
         String content = readFile("JavaCodeAnalysisServiceTest.java");
