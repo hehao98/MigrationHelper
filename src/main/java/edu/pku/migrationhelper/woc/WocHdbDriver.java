@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tokyocabinet.HDB;
 
+import java.io.File;
 import java.util.*;
 
 public class WocHdbDriver {
@@ -28,15 +29,15 @@ public class WocHdbDriver {
             ContentType.Text, ContentType.LZFText, ContentType.SHA1, ContentType.SHA1List, ContentType.BerNumberList
     )));
 
-    Logger LOG = LoggerFactory.getLogger(getClass());
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private String baseName;
+    private final String baseName;
 
-    private int partCount;
+    private final int partCount;
 
-    private ContentType keyType;
+    private final ContentType keyType;
 
-    private ContentType valueType;
+    private final ContentType valueType;
 
     private HDB[] databaseArray;
 
@@ -63,14 +64,27 @@ public class WocHdbDriver {
     public void openDatabaseFile(boolean ignoreError) {
         databaseArray = new HDB[partCount];
         for (int i = 0; i < partCount; i++) {
+            databaseArray[i] = null;
+        }
+
+        // Check whether this database file exists first,
+        //  to avoid too many error messages
+        String firstDbFileName = baseName + "0.tch";
+        if (!new File(firstDbFileName).exists()) {
+            LOG.error("tokyo cabinet database {} does not exist", baseName);
+            if(!ignoreError) {
+                throw new RuntimeException("open tokyo cabinet database fail");
+            }
+            return;
+        }
+
+        for (int i = 0; i < partCount; i++) {
             HDB hdb = new HDB();
             String fileName = baseName + i + ".tch";
             if(!hdb.open(fileName, HDB.OREADER)) {
                 LOG.error("open tokyo cabinet database fail, name = {}, errCode = {}, errMsg = {}",
                         fileName, hdb.ecode(), hdb.errmsg());
-                if(ignoreError) {
-                    databaseArray[i] = null;
-                } else {
+                if(!ignoreError) {
                     throw new RuntimeException("open tokyo cabinet database fail");
                 }
             } else {

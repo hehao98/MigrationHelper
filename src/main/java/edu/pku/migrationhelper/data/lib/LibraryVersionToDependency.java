@@ -1,6 +1,5 @@
 package edu.pku.migrationhelper.data.lib;
 
-import edu.pku.migrationhelper.service.MavenService;
 import org.springframework.data.annotation.Id;
 
 import java.util.Collection;
@@ -21,7 +20,7 @@ public class LibraryVersionToDependency {
 
     private boolean hasError;
 
-    private Set<MavenService.LibraryInfo> dependencies = new HashSet<>();
+    private Set<LibraryInfo> dependencies = new HashSet<>();
 
     public long getId() {
         return id;
@@ -68,16 +67,16 @@ public class LibraryVersionToDependency {
         return this;
     }
 
-    public Set<MavenService.LibraryInfo> getDependencies() {
+    public Set<LibraryInfo> getDependencies() {
         return Collections.unmodifiableSet(dependencies);
     }
 
-    public LibraryVersionToDependency setDependencies(Collection<MavenService.LibraryInfo> dependencies) {
+    public LibraryVersionToDependency setDependencies(Collection<LibraryInfo> dependencies) {
         this.dependencies = new HashSet<>(dependencies);
         return this;
     }
 
-    public boolean addDependency(MavenService.LibraryInfo dependency) {
+    public boolean addDependency(LibraryInfo dependency) {
         return this.dependencies.add(dependency);
     }
 }

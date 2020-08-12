@@ -7,6 +7,7 @@ import com.github.difflib.patch.Patch;
 import edu.pku.migrationhelper.data.*;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LibraryInfo;
 import edu.pku.migrationhelper.data.lib.LibraryOverlap;
 import edu.pku.migrationhelper.data.lib.LibraryVersion;
 import edu.pku.migrationhelper.mapper.*;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.*;
 import java.util.function.Consumer;
 
+@Deprecated
 public abstract class RepositoryAnalysisService {
 
     protected Logger LOG = LoggerFactory.getLogger(getClass());
@@ -1063,8 +1065,8 @@ public abstract class RepositoryAnalysisService {
     }
 
     public void analyzePomContent(String content, Set<Long> versionIds, Set<Long> groupArtifactIds) throws Exception {
-        List<MavenService.LibraryInfo> libraryInfoList = mavenService.analyzePom(content);
-        for (MavenService.LibraryInfo libraryInfo : libraryInfoList) {
+        List<LibraryInfo> libraryInfoList = mavenService.analyzePom(content);
+        for (LibraryInfo libraryInfo : libraryInfoList) {
             LibraryVersion libraryVersion = libraryVersionMapper.findByGroupIdAndArtifactIdAndVersion(
                     libraryInfo.groupId, libraryInfo.artifactId, libraryInfo.version);
             if(libraryVersion != null) {

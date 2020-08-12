@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 
+@Deprecated
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DropCommitTableJob")
 public class DropCommitTableJob {

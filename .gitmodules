@@ -1,0 +1,3 @@
+[submodule "scripts/oscar"]
+	path = scripts/oscar
+	url = https://github.com/ssc-oscar/oscar.py.git

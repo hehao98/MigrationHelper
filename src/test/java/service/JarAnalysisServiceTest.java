@@ -3,6 +3,7 @@ package service;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.service.JarAnalysisService;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -52,6 +53,8 @@ public class JarAnalysisServiceTest {
         assertFalse(classNamesInJar.contains("java.lang.Object"));
     }
 
+    @Deprecated
+    @Ignore
     @Test
     public void testAnalyzeJarOld() throws Exception {
         JarAnalysisService jas = new JarAnalysisService();
@@ -68,6 +71,8 @@ public class JarAnalysisServiceTest {
         assertTrue(packages.contains("com.google.gson"));
     }
 
+    @Deprecated
+    @Ignore
     @Test
     public void testEOFExceptionWhenParsingSpecificJarOld() throws Exception {
         JarAnalysisService jas = new JarAnalysisService();

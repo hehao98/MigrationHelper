@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+@Deprecated
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocTestJob")
 public class WocTestJob {

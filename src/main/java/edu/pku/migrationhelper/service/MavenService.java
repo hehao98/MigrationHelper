@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.data.lib.LibraryInfo;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -17,12 +18,6 @@ import java.util.stream.Collectors;
 public class MavenService {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
-
-    public static class LibraryInfo {
-        public String groupId;
-        public String artifactId;
-        public String version;
-    }
 
     /**
      * Do a shallow dependency extraction (i.e. no transitive dependency resolution)
