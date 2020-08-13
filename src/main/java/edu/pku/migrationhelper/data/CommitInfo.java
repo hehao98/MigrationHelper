@@ -4,6 +4,7 @@ import edu.pku.migrationhelper.service.RepositoryAnalysisService;
 
 import java.util.List;
 
+@Deprecated
 public class CommitInfo {
 
     private byte[] commitId;

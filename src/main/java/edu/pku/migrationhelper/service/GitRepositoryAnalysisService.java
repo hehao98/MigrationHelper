@@ -18,9 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Created by xuyul on 2020/2/4.
- */
+@Deprecated
 @Service
 public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
 

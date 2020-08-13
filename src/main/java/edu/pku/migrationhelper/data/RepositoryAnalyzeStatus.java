@@ -2,6 +2,7 @@ package edu.pku.migrationhelper.data;
 
 import java.util.Date;
 
+@Deprecated
 public class RepositoryAnalyzeStatus {
 
     public enum RepoType {

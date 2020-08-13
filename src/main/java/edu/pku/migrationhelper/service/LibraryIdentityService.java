@@ -134,7 +134,7 @@ public class LibraryIdentityService {
                     .setHasError(false);
 
             try {
-                List<MavenService.LibraryInfo> libs = extractDependenciesFromMaven(groupId, artifactId, v.getVersion());
+                List<LibraryInfo> libs = extractDependenciesFromMaven(groupId, artifactId, v.getVersion());
                 lv2d.setDependencies(libs);
             } catch (XmlPullParserException|IOException e) {
                 LOG.error("Error while extracting dependencies for {}:{}-{}", groupId, artifactId, v.getVersion());
@@ -293,14 +293,14 @@ public class LibraryIdentityService {
         }
     }
 
-    public List<MavenService.LibraryInfo> extractDependenciesFromMaven(
+    public List<LibraryInfo> extractDependenciesFromMaven(
             String groupId, String artifactId, String version) throws IOException, XmlPullParserException {
         String url = mavenUrlBase
                 + groupId.replace(".", "/") + "/"
                 + artifactId + "/" + version + "/"
                 + artifactId + "-" + version + ".pom";
         HttpGet request = new HttpGet(url);
-        List<MavenService.LibraryInfo> infos;
+        List<LibraryInfo> infos;
         try {
             HttpResponse response = executeHttpRequest(request);
             infos = mavenService.analyzePom(response.getEntity().getContent());

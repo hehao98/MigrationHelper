@@ -2,6 +2,7 @@ package repository;
 
 import edu.pku.migrationhelper.config.DataSourceConfiguration;
 import edu.pku.migrationhelper.config.MongoDbConfiguration;
+import edu.pku.migrationhelper.data.lib.LibraryInfo;
 import edu.pku.migrationhelper.data.lib.LibraryVersionToDependency;
 import edu.pku.migrationhelper.repository.LibraryVersionToDependenciesRepository;
 import edu.pku.migrationhelper.service.JarAnalysisService;
@@ -58,7 +59,7 @@ public class LibraryVersionToDependencyTest {
         String artifactId = "spring-core";
         String version = "5.2.7.RELEASE";
         LibraryVersionToDependency lv2d = new LibraryVersionToDependency();
-        List<MavenService.LibraryInfo> deps = libraryIdentityService.extractDependenciesFromMaven(groupId, artifactId, version);
+        List<LibraryInfo> deps = libraryIdentityService.extractDependenciesFromMaven(groupId, artifactId, version);
         lv2d.setDependencies(deps).setGroupId(groupId).setArtifactId(artifactId).setVersion(version).setId(0);
         lv2dRepo.save(lv2d);
         assertTrue(lv2dRepo.findById(0L).isPresent());

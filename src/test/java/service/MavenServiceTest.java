@@ -1,7 +1,7 @@
 package service;
 
+import edu.pku.migrationhelper.data.lib.LibraryInfo;
 import edu.pku.migrationhelper.service.MavenService;
-import org.apache.maven.model.Model;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -36,11 +36,11 @@ public class MavenServiceTest {
 
         int len = fis.read(content);
         assertEquals(len, content.length);
-        List<MavenService.LibraryInfo> libraryInfoList = mavenService.analyzePom(new String(content));
+        List<LibraryInfo> libraryInfoList = mavenService.analyzePom(new String(content));
         assertTrue(libraryInfoList.size() > 0);
 
         boolean hasJUnit = false;
-        for (MavenService.LibraryInfo libraryInfo : libraryInfoList) {
+        for (LibraryInfo libraryInfo : libraryInfoList) {
             System.out.printf("groupId = %s, artifactId = %s, version = %s\n",
                     libraryInfo.groupId, libraryInfo.artifactId, libraryInfo.version);
             if (libraryInfo.groupId.equals("org.junit.jupiter")

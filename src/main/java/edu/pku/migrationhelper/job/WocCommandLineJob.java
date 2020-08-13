@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+@Deprecated
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocCommandLineJob")
 public class WocCommandLineJob implements CommandLineRunner {

@@ -31,6 +31,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 @Component
 @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "TestJob")
 public class TestJob implements CommandLineRunner {
