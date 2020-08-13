@@ -5,10 +5,9 @@ import multiprocessing
 import subprocess
 import oscar.oscar as oscar
 from xml.etree import ElementTree
-from typing import Dict
 
 
-def replace_variables_in_pom(text: str, properties: Dict[str, str]) -> str:
+def replace_variables_in_pom(text, properties):
     pattern = re.compile(r"\${([^}]+)\}")
     for s in pattern.findall(text):
         if s in properties:
@@ -16,7 +15,7 @@ def replace_variables_in_pom(text: str, properties: Dict[str, str]) -> str:
     return text
 
 
-def get_dep_java(pom_xml: bytes) -> Dict[str, str]:
+def get_dep_java(pom_xml):
     if pom_xml is None:
         return {}
     result = {}
@@ -51,11 +50,11 @@ def get_dep_java(pom_xml: bytes) -> Dict[str, str]:
     return result
 
 
-def iter_bbcf(chunk_id: int):
+def iter_bb2cf_pom(chunk_id):
     if chunk_id < 0 or chunk_id >= 128:
         raise ValueError("Chunk ID should be [0, 128) for cf2bb")
-    path = "/da3_data/basemaps/gz/obbcfFullR{}.s".format(chunk_id)
-    zcat = subprocess.Popen(["zcat", path], bufsize=10*1024*1024, stdout=subprocess.PIPE)
+    path = "/da2_data/basemaps/gz/bb2cfFullR{}.s".format(chunk_id)
+    zcat = subprocess.Popen("zcat {} | grep pom.xml".format(path), bufsize=10*1024*1024, stdout=subprocess.PIPE, shell=True)
     for line in zcat.stdout:
         # code with utf-8 decoding is 3x slower, so we yield byte stream directly
         # line = line.decode("utf-8", "ignore")
@@ -67,34 +66,51 @@ def iter_bbcf(chunk_id: int):
         yield commit_sha, file_name, new_blob, old_blob
 
 
-def extract_pom_blobs(chunk_id: int):
+def extract_pom_blobs(chunk_id):
     logging.info("Chunk {}: Start".format(chunk_id))
     db = pymongo.MongoClient("mongodb://migration_helper:HeHMgt2020@da1.eecs.utk.edu:27020/migration_helper"
-                             "?authSource=migration_helper")
-    results = []
+                             "?authSource=migration_helper").migration_helper
+    results = {}
     insert_limit = 10000
     total = 0
-    for commit_sha, file_name, new_blob, old_blob in iter_bbcf(chunk_id):
-        if not file_name.endswith(b"pom.xml"):
+    for commit_sha, file_name, new_blob, old_blob in iter_bb2cf_pom(chunk_id):
+        if new_blob == "" or new_blob == "0000000000000000000000000000000000000000":
             continue
         pom = {
             "_id": new_blob,
-            "_class": "edu.pku.migrationhelper.data.woc.PomBlob",
+            "_class": "edu.pku.migrationhelper.data.woc.WocPomBlob",
+            "error": False,
             "dependencies": []
         }
-        for ga_id, version in get_dep_java(oscar.Blob(new_blob.decode("utf-8", "ignore")).data).items():
+        try:
+            dependencies = get_dep_java(oscar.Blob(new_blob.decode("utf-8", "ignore")).data)
+        except (TypeError, ElementTree.ParseError, LookupError) as e: # Missing blob, or malformed pom.xml
+            pom["error"] = True
+            dependencies = {}
+        for ga_id, version in dependencies.items():
+            # Skip erronous data
+            if len(ga_id) >= 1000 or len(version) >= 1000:
+                logging.warn("Too long groupId/artifactId/version, which indicates corrupted data, skipping")
+                continue
             pom["dependencies"].append({
                 "groupId": ga_id.split(":")[0],
                 "artifactId": ga_id.split(":")[1],
                 "version": version
             })
+        results[new_blob] = pom
         if len(results) >= insert_limit:
-            db.pomBlob.insert_many(results)
+            try:
+                db.wocPomBlob.insert_many(results.values(), ordered=False)
+            except pymongo.errors.BulkWriteError:
+                logging.info("Duplicates were found.")
             results.clear()
             total += insert_limit
             logging.info("Chunk {}: {} entries added".format(chunk_id, total))
     if len(results) > 0:
-        db.pomBlob.insert_many(results)
+        try:
+            db.wocPomBlob.insert_many(results.values(), ordered=False)
+        except pymongo.errors.BulkWriteError:
+            logging.info('Duplicates were found.')
         total += len(results)
     logging.info("Chunk {}: Success".format(chunk_id))
     return
@@ -106,19 +122,18 @@ if __name__ == "__main__":
         level=logging.INFO)
 
     logging.info("Start!")
-    pool = multiprocessing.Pool(4)
+
+    # extract_pom_blobs(0)
+    
+    pool = multiprocessing.Pool(16)
     count = 0
     results = []
-    extract_pom_blobs(0)
-    # for i in range(0, 128):
-    #     results.append(pool.apply_async(extract_pom_blobs, (i,)))
+    for i in range(0, 128):
+        results.append(pool.apply_async(extract_pom_blobs, (i,)))
     for result in results:
         result.get()
     pool.close()
     pool.join()
+    
     logging.info("Finish!")
-
-
-
-
-
+ 
