@@ -2,7 +2,6 @@ package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lio.LioProject;
-import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -61,24 +60,11 @@ public class EvaluationService {
     private LioProjectRepository lioProjectRepository;
 
     @Autowired
-    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
+    private GroupArtifactService groupArtifactService;
 
     private List<GroundTruth> groundTruths;
 
     private Map<Long, Set<Long>> groundTruthMap;
-
-    private Map<Long, LibraryGroupArtifact> groupArtifactCache;
-
-    private long getGroupArtifactId(String name) {
-        String[] ga = name.split(":");
-        Optional<LibraryGroupArtifact> opt =  libraryGroupArtifactRepository.findByGroupIdAndArtifactId(ga[0], ga[1]);
-        if (opt.isPresent()) {
-            return opt.get().getId();
-        } else {
-            LOG.warn("{} does not exist in database", name);
-            return -1;
-        }
-    }
 
     @PostConstruct
     public void initializeGroundTruth() throws IOException {
@@ -98,9 +84,9 @@ public class EvaluationService {
                 else
                     gt.fromGroupArtifacts = new ArrayList<>();
                 gt.fromGroupArtifactIds = gt.fromGroupArtifacts.stream()
-                        .map(this::getGroupArtifactId).collect(Collectors.toList());
+                        .map(groupArtifactService::getIdByName).collect(Collectors.toList());
                 gt.toGroupArtifactIds = gt.toGroupArtifacts.stream()
-                        .map(this::getGroupArtifactId).collect(Collectors.toList());
+                        .map(groupArtifactService::getIdByName).collect(Collectors.toList());
                 groundTruths.add(gt);
             }
         }
@@ -113,17 +99,6 @@ public class EvaluationService {
                 groundTruthMap.computeIfAbsent(toId, k -> new HashSet<>()).addAll(gt.fromGroupArtifactIds);
             }
         }
-    }
-
-    @PostConstruct
-    public synchronized void initializeGroupArtifactCache() {
-        LOG.info("Initializing group artifact cache...");
-        List<LibraryGroupArtifact> list = libraryGroupArtifactRepository.findAll();
-        Map<Long, LibraryGroupArtifact> map = new HashMap<>(list.size() * 2);
-        for (LibraryGroupArtifact groupArtifact : list) {
-            map.put(groupArtifact.getId(), groupArtifact);
-        }
-        groupArtifactCache = Collections.unmodifiableMap(map);
     }
 
     /**
@@ -147,11 +122,11 @@ public class EvaluationService {
                 .sorted(Comparator.comparingLong(Map.Entry::getKey))
                 .forEach(entry -> {
                     long fromId = entry.getKey();
-                    LibraryGroupArtifact fromLib = groupArtifactCache.get(fromId);
+                    LibraryGroupArtifact fromLib = groupArtifactService.getGroupArtifactById(fromId);
                     List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList = entry
                             .getValue().stream()
                             .filter(candidate -> { // Filter out candidates under same groupId, is this necessary?
-                                LibraryGroupArtifact toLib = groupArtifactCache.get(candidate.toId);
+                                LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                                 return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
                             }).collect(Collectors.toList());
 
@@ -241,7 +216,7 @@ public class EvaluationService {
         for (List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
             for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                 if (groundTruthMap.get(candidate.fromId) == null) {
-                    missing.add(groupArtifactCache.get(candidate.fromId).toString());
+                    missing.add(groupArtifactService.getGroupArtifactById(candidate.fromId).toString());
                     continue;
                 }
                 output.write(candidate.fromId + "," + candidate.toId + "," +
