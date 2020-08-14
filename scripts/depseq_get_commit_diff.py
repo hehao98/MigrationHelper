@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     # get_commit_with_diff(0, commits)
 
-    pool = multiprocessing.Pool(16)
+    pool = multiprocessing.Pool(4)
     count = 0
     results = []
     for i in range(0, 128):

@@ -144,7 +144,7 @@ if __name__ == "__main__":
     #for woc_repo in db.wocRepository.find():
         #build_depseq(woc_repo)
     
-    pool = multiprocessing.Pool(16)
+    pool = multiprocessing.Pool(4)
     results = []
     for woc_repo in db.wocRepository.find():
         results.append(pool.apply_async(build_depseq, (woc_repo,)))
