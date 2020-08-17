@@ -42,7 +42,7 @@ migration-helper:
     treeIndexBase: /fast/All.sha1c/tree_ # da4 only
     blobContentBase: /data/All.blobs/blob_ # da4 only
   woc-repo-analysis-job:
-    repository-list-file: repositories.csv
+    repository-list-file: evaluation/deprecated/repositories.csv
   libraries-io-import:
     project-with-repository-path: export/LibrariesIOProjectWithRepositories.csv
   lio-jar-parse:
@@ -56,4 +56,4 @@ migration-helper:
     method-change-support-file: export/GAChangeInMethodChange-all.csv
     dependency-seq-file: export/RepositoryDepSeq-withCommit.csv
   evaluation:
-    ground-truth-file: test_data/ground-truth.csv
+    ground-truth-file: evaluation/test-ground-truth.csv

@@ -103,7 +103,7 @@ public class EvaluationService {
 
     /**
      * Evaluate library migration recommendation result based on the ground truth files constructed above
-     * @param result result from DependencyChangeAnalysisService.miningLibraryMigrationCandidate()
+     * @param result result from DepSeqAnalysisService.miningLibraryMigrationCandidate()
      * @param maxK evaluate from top-1 to top-maxK
      * @return detailed evaluation result
      */
@@ -210,7 +210,7 @@ public class EvaluationService {
     public void runRQ1(
             Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {
-        FileWriter output = new FileWriter("pic/RQ1-pomOnly.csv");
+        FileWriter output = new FileWriter("evaluation/pic/RQ1-pomOnly.csv");
         output.write("fromLib,toLib,isTruth,patternSupport,patternSupportP,occurCount,hot,hotRank\n");
         Set<String> missing = new HashSet<>();
         for (List<DepSeqAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
@@ -232,8 +232,8 @@ public class EvaluationService {
     }
 
     public void runRQ2() throws IOException {
-        FileWriter truthPercent = new FileWriter("pic/RQ2-truth-percent.csv");
-        FileWriter truthPosition = new FileWriter("pic/RQ2-truth-position.csv");
+        FileWriter truthPercent = new FileWriter("evaluation/pic/RQ2-truth-percent.csv");
+        FileWriter truthPosition = new FileWriter("evaluation/pic/RQ2-truth-position.csv");
         truthPercent.write("fromId,truthCount,totalCount,percent\n");
         truthPosition.write("fromId,toId,isTruth,distance,total\n");
         for (List<Long> depSeq : depSeqAnalysisService.getRepositoryDepSeq()) {
@@ -265,7 +265,7 @@ public class EvaluationService {
     public void runRQ3(
             Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {
-        FileWriter output = new FileWriter("pic/RQ3.csv");
+        FileWriter output = new FileWriter("evaluation/pic/RQ3.csv");
         output.write("fromId,toId,isTruth,APISupport,APIRank0,patternSupport\n");
         for (List<DepSeqAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
             boolean containsTruth = false;
