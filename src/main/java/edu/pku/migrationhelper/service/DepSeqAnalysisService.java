@@ -1,8 +1,11 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.woc.WocDepSeq;
+import edu.pku.migrationhelper.data.woc.WocDepSeqItem;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import edu.pku.migrationhelper.repository.WocDepSeqRepository;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class DependencyChangePatternAnalysisService {
+public class DepSeqAnalysisService {
 
     public static final int DefaultMinPatternSupport = 8;
 
@@ -63,6 +66,12 @@ public class DependencyChangePatternAnalysisService {
     }
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private WocDepSeqRepository depSeqRepository;
+
+    @Autowired
+    private GroupArtifactService groupArtifactService;
 
     @Value("${migration-helper.dependency-change-pattern-analysis.method-change-support-file}")
     private String methodChangeSupportFile;
@@ -113,8 +122,8 @@ public class DependencyChangePatternAnalysisService {
         reader.close();
     }
 
-    @PostConstruct
-    public void initializeRepositoryDepSeq() throws IOException {
+    //@PostConstruct
+    public void initializeRepositoryDepSeqOld() throws IOException {
         if (!new File(dependencySeqFile).isFile()) {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
             return;
@@ -142,7 +151,7 @@ public class DependencyChangePatternAnalysisService {
         reader.close();
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void initializeDepSeqCommitList() throws IOException {
         if (!new File(dependencySeqFile).isFile()) {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
@@ -171,7 +180,7 @@ public class DependencyChangePatternAnalysisService {
         reader.close();
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void initializeDepSeqRepoList() throws IOException {
         if (!new File(dependencySeqFile).isFile()) {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
@@ -191,6 +200,41 @@ public class DependencyChangePatternAnalysisService {
             depSeqRepoList.add(attrs[1]);
         }
         reader.close();
+    }
+
+
+    @PostConstruct
+    public void initializeRepositoryDepSeq() {
+        LOG.info("Initializing repository dependency sequence...");
+        repositoryDepSeq = new LinkedList<>();
+        depSeqCommitList = new LinkedList<>();
+        depSeqRepoList = new LinkedList<>();
+        for (WocDepSeq seq : depSeqRepository.findAll()) {
+            List<Long> libIdList = new ArrayList<>();
+            for (WocDepSeqItem item : seq.getSeq()) {
+                for (String change : item.getChanges()) {
+                    String libName = change.substring(1);
+                    if (!groupArtifactService.exist(libName)) {
+                        continue;
+                    }
+                    if (change.startsWith("+")) {
+                        libIdList.add(groupArtifactService.getIdByName(libName));
+                    } else {
+                        libIdList.add(-groupArtifactService.getIdByName(libName));
+                    }
+                }
+                libIdList.add(0L);
+            }
+            // LOG.info("{}", libIdList);
+            repositoryDepSeq.add(libIdList);
+
+            List<String> commitList = new ArrayList<>();
+            for (WocDepSeqItem item : seq.getSeq()) {
+                commitList.add(item.getCommit());
+            }
+            depSeqCommitList.add(commitList);
+            depSeqRepoList.add(seq.getRepoName());
+        }
     }
 
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(Set<Long> fromIdLimit, boolean outputRepoCommit) {
@@ -222,7 +266,7 @@ public class DependencyChangePatternAnalysisService {
 //            System.out.println(repoName);
             List<String> commitList0 = commitListIt == null ? null : commitListIt.next();
             List<String> commitList = commitList0 == null ? null : new ArrayList<>(commitList0.size());
-            depSeq = simplifyLibIdList(depSeq, commitList0, commitList);
+            depSeq = simplifyDepSeq(depSeq, commitList0, commitList);
             calcOccurCounter(depSeq, occurCounter);
             List<LibraryMigrationPattern> patternList = miningSingleDepSeq(depSeq, fromIdLimit, commitList);
             for (LibraryMigrationPattern pattern : patternList) {
@@ -321,6 +365,11 @@ public class DependencyChangePatternAnalysisService {
         return result;
     }
 
+    /**
+     * Update occurCounter based on one depSeq
+     * @param depSeq dependency change sequence
+     * @param occurCounter number of times (lib1, lib2) co-occurs
+     */
     public void calcOccurCounter(List<Long> depSeq, Map<Long, Map<Long, Integer>> occurCounter) {
         Set<Long> occurLib = new HashSet<>();
         for (Long lib : depSeq) {
@@ -348,14 +397,21 @@ public class DependencyChangePatternAnalysisService {
 
     public List<List<Long>> getRepositoryDepSeq() { return repositoryDepSeq; }
 
+    /**
+     * Mine single depSeq to extract a set of patterns to be analyzed in subsequent steps
+     * @param depSeq the dependency sequence to mine
+     * @param fromIdLimit the set of libraries to consider only
+     * @param commitList the list of commit along with depSeq
+     * @return the set of patterns
+     */
     public List<LibraryMigrationPattern> miningSingleDepSeq(List<Long> depSeq, Set<Long> fromIdLimit, List<String> commitList) {
         Map<Long, LibraryMigrationPattern> patternMap = new HashMap<>();
         Set<Long> removeIds = new HashSet<>();
         Map<Long, String> removeId2Commit = new HashMap<>();
         int i = depSeq.size() - 1;
         int commitIt = 0;
-        if(commitList != null) commitIt = commitList.size() - 1;
-        while(i > 0) {
+        if (commitList != null) commitIt = commitList.size() - 1;
+        while (i > 0) {
             String currCommit0 = null;
             if(commitList != null) {
                 currCommit0 = commitList.get(commitIt--);
@@ -363,7 +419,7 @@ public class DependencyChangePatternAnalysisService {
             String currCommit = currCommit0;
             long currentId = depSeq.get(i--);
             List<Long> addIds = new LinkedList<>();
-            while(i >= 0 && (currentId = depSeq.get(i--)) != 0L) {
+            while (i >= 0 && (currentId = depSeq.get(i--)) != 0L) {
                 if(currentId > 0) {
                     addIds.add(currentId);
                 } else {
@@ -413,34 +469,42 @@ public class DependencyChangePatternAnalysisService {
         return new ArrayList<>(patternMap.values());
     }
 
-    public List<Long> simplifyLibIdList(List<Long> libIds, List<String> commitList, List<String> commitResult) {
-        List<Long> result = new ArrayList<>(libIds.size());
+    /**
+     * Simplify a depSeq by the following
+     *   1. Remove commits with no depSeq changes
+     *   2. Remove (-lib) items that have not been added before
+     * @param depSeq dependency sequence to simplify
+     * @param commitList the list of commit related to the deqSeq should also be simplified, if not null
+     * @param commitResult the simplified commit list will be put into here
+     * @return the simplified dependency sequence
+     */
+    public List<Long> simplifyDepSeq(List<Long> depSeq, List<String> commitList, List<String> commitResult) {
+        List<Long> result = new ArrayList<>(depSeq.size());
         Set<Long> currentLibs = new HashSet<>();
         List<Long> currentList = new LinkedList<>();
         Iterator<String> commitIt = null;
-        if(commitList != null) {
+        if (commitList != null) {
             commitIt = commitList.iterator();
         }
-        for (Long libId : libIds) {
-            if(libId == 0) {
+        for (Long libId : depSeq) {
+            if (libId == 0) {
                 String commitId = commitIt == null ? null : commitIt.next();
-                if(currentList.isEmpty()) continue;
+                if (currentList.isEmpty()) continue;
                 result.addAll(currentList);
                 result.add(0L);
                 currentList.clear();
-                if(commitResult != null) {
+                if (commitResult != null) {
                     commitResult.add(commitId);
                 }
             } else {
-                if(libId > 0) {
+                if (libId > 0) {
                     if(currentLibs.contains(libId)) continue;
                     currentLibs.add(libId);
-                    currentList.add(libId);
                 } else {
                     if(!currentLibs.contains(-libId)) continue;
                     currentLibs.remove(-libId);
-                    currentList.add(libId);
                 }
+                currentList.add(libId);
             }
         }
         return result;

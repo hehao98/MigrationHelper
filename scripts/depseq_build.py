@@ -2,6 +2,7 @@ import logging
 import multiprocessing
 import pymongo
 import oscar.oscar as oscar
+from datetime import datetime
 from xml.etree import ElementTree
 from depseq_get_pom_blobs import get_dep_java
 
@@ -14,9 +15,14 @@ def build_depseq(woc_repo):
 
     # First step: load all commits and diffs related to this repo
     commits = dict()
+    error = 0
     for commit in db.wocCommit.find({"_id": {"$in": woc_repo["commits"]}}):
+        if type(commit["timestamp"]) == unicode or commit["timestamp"] is None or commit["error"] == True:
+            error += 1
+            continue
         commits[commit["_id"]] = commit
-    logging.info("{}: {} commits ({} commits in database)".format(woc_repo["name"], len(woc_repo["commits"]), len(commits)))
+    logging.info("{}: {} commits ({} commits in database, {} errors)"
+        .format(woc_repo["name"], len(woc_repo["commits"]), len(commits), error))
 
     # Second step: find number of different pom.xml files in the repo
     pom_paths = set()
@@ -85,7 +91,7 @@ def build_depseq(woc_repo):
     for path, seq in blob_seq.items():
         blob_seq = [b for b, c in seq]
         blobs = {pom_blob["_id"]: pom_blob for pom_blob in db.wocPomBlob.find({"_id": {"$in": blob_seq}})}
-        logging.info(u"{}: {} blobs ({} in database)".format(path, len(seq), len(blobs)))
+        # logging.info(u"{}: {} blobs ({} in database)".format(path, len(seq), len(blobs)))
         seq = [(s, cs) for s, cs in seq if s in blobs and blobs[s]["error"] == False]
         for i in range(0, len(seq)):
             if i == 0:
@@ -112,12 +118,15 @@ def build_depseq(woc_repo):
     
     # Save the sequence to database
     for path, seq in dep_seq.items():
-        db.wocDepSeq.insert_one({
-            "_class": "edu.pku.migrationhelper.data.woc.WocDepSeq",
-            "repoName": woc_repo["name"],
-            "fileName": path,
-            "seq": seq
-        })
+        try:
+            db.wocDepSeq.insert_one({
+                "_class": "edu.pku.migrationhelper.data.woc.WocDepSeq",
+                "repoName": woc_repo["name"],
+                "fileName": path,
+                "seq": seq
+            })
+        except pymongo.errors.DocumentTooLarge:
+            logging.error("{} {} dep seq too large, will not be inserted to db".format(woc_repo["name"], path))
     logging.info("{}: Finish".format(woc_repo["name"]))
 
 
@@ -135,7 +144,7 @@ if __name__ == "__main__":
     #for woc_repo in db.wocRepository.find():
         #build_depseq(woc_repo)
     
-    pool = multiprocessing.Pool(16)
+    pool = multiprocessing.Pool(4)
     results = []
     for woc_repo in db.wocRepository.find():
         results.append(pool.apply_async(build_depseq, (woc_repo,)))

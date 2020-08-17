@@ -163,7 +163,7 @@ Next, we need to import or mine data from multiple data sources.
 
   在WoC上分析一系列Java仓库，获得API替换关系、依赖变更等数据
 
-### Exporting Data
+### Exporting Data (Deprecated)
 
 - DataExportJob: LibraryGroupArtifact
   
@@ -205,14 +205,14 @@ Next, we need to import or mine data from multiple data sources.
   使用数据导出阶段的APISupport和RepositoryDepSeq，根据文件输入的依赖库列表，进行替代库推荐
   
   ```shell script
-  bash -x ./run-woc.sh LibraryRecommendJob -q test_data/test-lib-input.txt -o test_data/test-recommend-output.csv
+  bash -x ./run-woc.sh LibraryRecommendJob -q evaluation/test-lib-input.txt -o evaluation/test-recommend-output.csv
   ```
   
 - LibraryUpgradeRecommendJob
   
   ```shell script
   bash -x ./run-woc.sh LibraryUpgradeRecommendJob -l com.google.code.gson:gson -v 2.8.5
-  bash -x ./run-woc.sh LibraryUpgradeRecommendJob -i test_data/test-upgrade-input.csv
+  bash -x ./run-woc.sh LibraryUpgradeRecommendJob -i evaluation/test-upgrade-input.csv
   ```
   
 ## Contributing
@@ -262,10 +262,9 @@ I've found a very useful WoC tutorial [here](https://github.com/woc-hack/tutoria
 
 All Java related code follows the best practices of a Java project, with `pom.xml` for dependency management, 
 `src/main/java` for placing source code, `src/main/resources` for runtime files, `src/test/java` for test code,
-and `src/test/resources` for test related files. The `tool` and `doc` folder is not currently used. The `pic` folder contain 
-scripts for plotting figures in the paper. The `notebook` and `embedding` folder contains preliminary results which are
-not included in current paper. The `test_data` folder contain several test input and test output files, along with ground
-truth data.
+and `src/test/resources` for test related files. The `tool` and `doc` folder is not currently used. The `notebook` and `embedding` folder contains preliminary results which are
+not included in current paper. The `evaluation` folder contain several test input and test output files, along with ground
+truth data. Inside this, the `pic` folder contain scripts for plotting figures in the paper.
 
 ### Code Structure
 

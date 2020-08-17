@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     # extract_pom_blobs(0)
     
-    pool = multiprocessing.Pool(16)
+    pool = multiprocessing.Pool(4)
     count = 0
     results = []
     for i in range(0, 128):

@@ -5,7 +5,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
-import edu.pku.migrationhelper.service.DependencyChangePatternAnalysisService;
+import edu.pku.migrationhelper.service.DepSeqAnalysisService;
 import edu.pku.migrationhelper.service.EvaluationService;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -42,7 +42,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
 
     @Autowired
-    private DependencyChangePatternAnalysisService dependencyChangePatternAnalysisService;
+    private DepSeqAnalysisService depSeqAnalysisService;
 
     @Autowired
     private EvaluationService evaluationService;
@@ -76,8 +76,8 @@ public class LibraryRecommendJob implements CommandLineRunner {
         queryList.forEach(e -> fromIdLimit.add(e.getId()));
 
         LOG.info("Generating recommendation result...");
-        Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result =
-                dependencyChangePatternAnalysisService.miningLibraryMigrationCandidate(fromIdLimit, outputRepoCommit != null);
+        Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result =
+                depSeqAnalysisService.miningLibraryMigrationCandidate(fromIdLimit, outputRepoCommit != null);
 
         EvaluationService.EvaluationResult evaluationResult = null;
         if (evaluate) {
@@ -143,7 +143,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
     private void outputCsv(
             List<LibraryGroupArtifact> queryList,
-            Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> recommendationResult,
+            Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> recommendationResult,
             EvaluationService.EvaluationResult evaluationResult
     ) {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
@@ -151,7 +151,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
                     "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
             for (LibraryGroupArtifact fromLib : queryList) {
                 Long fromId = fromLib.getId();
-                List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>
+                List<DepSeqAnalysisService.LibraryMigrationCandidate>
                         candidateList = recommendationResult.get(fromId);
                 if (candidateList == null) continue;
 
@@ -162,11 +162,8 @@ public class LibraryRecommendJob implements CommandLineRunner {
                         }).collect(Collectors.toList());
 
                 if(candidateList.isEmpty()) continue;
-                candidateList = candidateList.stream()
-                        .limit(20)
-                        .collect(Collectors.toList());
 
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                     LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
                     String isCorrect = evaluationResult == null ?
                             "unknown" : evaluationResult.correctnessMap.get(fromId).get(candidate.toId).toString();
@@ -185,7 +182,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     }
 
     private void outputRelatedRepoAndCommit(
-            Map<Long, List<DependencyChangePatternAnalysisService.LibraryMigrationCandidate>> result
+            Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {
         FileWriter writer = new FileWriter(outputRepoCommit);
         result.forEach((fromId, candidateList) -> {
@@ -194,10 +191,10 @@ public class LibraryRecommendJob implements CommandLineRunner {
                     .filter(candidate -> {
                         LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
                         return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
-                    }).limit(20).collect(Collectors.toList());
+                    }).collect(Collectors.toList());
             if (candidateList.isEmpty()) return;
             try {
-                for (DependencyChangePatternAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                     writer.write(fromLib.getGroupId());
                     writer.write(":");
                     writer.write(fromLib.getArtifactId());

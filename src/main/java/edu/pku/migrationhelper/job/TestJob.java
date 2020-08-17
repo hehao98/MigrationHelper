@@ -25,7 +25,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
-import tokyocabinet.HDB;
 
 import java.io.*;
 import java.util.*;
@@ -63,7 +62,7 @@ public class TestJob implements CommandLineRunner {
     private GitObjectStorageService gitObjectStorageService;
 
     @Autowired
-    private DependencyChangePatternAnalysisService dependencyChangePatternAnalysisService;
+    private DepSeqAnalysisService depSeqAnalysisService;
 
     @Autowired
     private BlobInfoMapper blobInfoMapper;
