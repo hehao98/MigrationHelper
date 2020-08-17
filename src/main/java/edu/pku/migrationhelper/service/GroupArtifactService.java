@@ -18,24 +18,9 @@ public class GroupArtifactService {
     @Autowired
     private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
 
-    private Map<Long, Set<Long>> groundTruthMap;
-
     private Map<Long, LibraryGroupArtifact> groupArtifactCache;
 
     private Map<String, Long> groupArtifactNameToId;
-
-    public LibraryGroupArtifact getGroupArtifactById(long id) {
-        return groupArtifactCache.get(id);
-    }
-
-    public long getIdByName(String name) {
-        if (groupArtifactNameToId.containsKey(name)) {
-            return groupArtifactNameToId.get(name);
-        } else {
-            LOG.warn("{} does not exist in database", name);
-            return -1;
-        }
-    }
 
     @PostConstruct
     public synchronized void initializeGroupArtifactCache() {
@@ -49,5 +34,22 @@ public class GroupArtifactService {
         }
         groupArtifactCache = Collections.unmodifiableMap(map);
         groupArtifactNameToId = Collections.unmodifiableMap(name2id);
+    }
+
+    public LibraryGroupArtifact getGroupArtifactById(long id) {
+        return groupArtifactCache.get(id);
+    }
+
+    public boolean exist(String name) {
+        return groupArtifactNameToId.containsKey(name);
+    }
+
+    public long getIdByName(String name) {
+        if (groupArtifactNameToId.containsKey(name)) {
+            return groupArtifactNameToId.get(name);
+        } else {
+            LOG.warn("{} does not exist in database", name);
+            return -1;
+        }
     }
 }
