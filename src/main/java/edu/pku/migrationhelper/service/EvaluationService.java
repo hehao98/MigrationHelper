@@ -103,7 +103,7 @@ public class EvaluationService {
 
     /**
      * Evaluate library migration recommendation result based on the ground truth files constructed above
-     * @param result result from DependencyChangeAnalysisService.miningLibraryMigrationCandidate()
+     * @param result result from DepSeqAnalysisService.miningLibraryMigrationCandidate()
      * @param maxK evaluate from top-1 to top-maxK
      * @return detailed evaluation result
      */

@@ -43,7 +43,7 @@ migration-helper:
     treeIndexBase: /fast/All.sha1c/tree_ # da4 only
     blobContentBase: /data/All.blobs/blob_ # da4 only
   woc-repo-analysis-job:
-    repository-list-file: test_data/repositories.csv
+    repository-list-file: evaluation/deprecated/repositories.csv
   libraries-io-import:
     project-with-repository-path: /home/heh/libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv
     project-dependency-path: /home/heh/libraries-1.6.0-2020-01-12/dependencies-1.6.0-2020-01-12.csv
@@ -60,4 +60,4 @@ migration-helper:
     method-change-support-file: export/APISupport.csv
     dependency-seq-file: export/RepositoryDepSeq.csv
   evaluation:
-    ground-truth-file: test_data/ground-truth.csv
+    ground-truth-file: evaluation/test-ground-truth.csv

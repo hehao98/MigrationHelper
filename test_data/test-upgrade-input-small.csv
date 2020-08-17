@@ -1,4 +1,0 @@
-name,version
-log4j:log4j,1.2.15
-org.apache.kafka:kafka-clients,1.1.0
-org.webjars.npm:kind-of,6.0.2
