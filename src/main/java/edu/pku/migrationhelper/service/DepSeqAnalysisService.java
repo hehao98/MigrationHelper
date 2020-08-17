@@ -1,6 +1,8 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.woc.WocDepSeq;
+import edu.pku.migrationhelper.data.woc.WocDepSeqItem;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.repository.WocDepSeqRepository;
@@ -120,8 +122,8 @@ public class DepSeqAnalysisService {
         reader.close();
     }
 
-    @PostConstruct
-    public void initializeRepositoryDepSeq() throws IOException {
+    //@PostConstruct
+    public void initializeRepositoryDepSeqOld() throws IOException {
         if (!new File(dependencySeqFile).isFile()) {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
             return;
@@ -149,7 +151,7 @@ public class DepSeqAnalysisService {
         reader.close();
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void initializeDepSeqCommitList() throws IOException {
         if (!new File(dependencySeqFile).isFile()) {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
@@ -178,7 +180,7 @@ public class DepSeqAnalysisService {
         reader.close();
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void initializeDepSeqRepoList() throws IOException {
         if (!new File(dependencySeqFile).isFile()) {
             LOG.error("Cannot load dependency sequence file, this service will not work properly");
@@ -200,7 +202,7 @@ public class DepSeqAnalysisService {
         reader.close();
     }
 
-    /*
+
     @PostConstruct
     public void initializeRepositoryDepSeq() {
         LOG.info("Initializing repository dependency sequence...");
@@ -233,7 +235,7 @@ public class DepSeqAnalysisService {
             depSeqCommitList.add(commitList);
             depSeqRepoList.add(seq.getRepoName());
         }
-    } */
+    }
 
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(Set<Long> fromIdLimit, boolean outputRepoCommit) {
         return miningLibraryMigrationCandidate(fromIdLimit, DefaultMinPatternSupport, DefaultMinMCSupportPercent,true, true);
