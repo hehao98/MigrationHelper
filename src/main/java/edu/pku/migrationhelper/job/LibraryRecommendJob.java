@@ -82,7 +82,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
         EvaluationService.EvaluationResult evaluationResult = null;
         if (evaluate) {
             LOG.info("Doing evaluation...");
-            evaluationResult = evaluationService.evaluate(result, 10);
+            evaluationResult = evaluationService.evaluate(result, 20);
             evaluationService.printEvaluationResult(evaluationResult, System.out);
             LOG.info("Running RQ1...");
             evaluationService.runRQ1(result);
