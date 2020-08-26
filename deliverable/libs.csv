@@ -1,4 +1,4 @@
-﻿groupId,artifactId,version,count
+groupId,artifactId,version,count
 com.google.guava,failureaccess,1.0.1,
 com.google.guava,listenablefuture,9999.0-empty-to-avoid-conflict-with-guava,
 com.google.guava,guava,28.0-jre,
@@ -165,7 +165,6 @@ org.sonatype.plexus,plexus-cipher,1.4,
 org.springframework.plugin,spring-plugin-core,1.2.0.RELEASE,
 aopalliance,aopalliance,1.0,
 org.sonatype.plexus,plexus-cipher,1.4,
-,,,
 net.bytebuddy,byte-buddy,1.8.22,
 net.bytebuddy,byte-buddy-agent,1.8.22,
 com.thoughtworks.xstream,xstream,1.4.12,
