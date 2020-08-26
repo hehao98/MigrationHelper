@@ -102,6 +102,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
     private List<LibraryGroupArtifact> readLibraryFromQueryFile() throws Exception {
         List<LibraryGroupArtifact> result = new LinkedList<>();
+        Set<String> libs = new HashSet<>();
 
         if (queryFile.endsWith(".csv")) {
             try (CSVParser parser = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new FileReader(queryFile))) {
@@ -116,12 +117,17 @@ public class LibraryRecommendJob implements CommandLineRunner {
                         groupId = record.get("groupId");
                         artifactId = record.get("artifactId");
                     }
+                    if (libs.contains(groupId + ":" + artifactId)) {
+                        LOG.info("Duplicate input {}:{} encountered, skipping", groupId, artifactId);
+                        continue;
+                    }
                     Optional<LibraryGroupArtifact> lib = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId);
                     if (!lib.isPresent()) {
                         LOG.warn("groupArtifact not found: {}:{}", groupId, artifactId);
                         continue;
                     }
                     result.add(lib.get());
+                    libs.add(groupId + ":" + artifactId);
                 }
             }
         } else if (queryFile.endsWith(".txt")) {
@@ -129,12 +135,17 @@ public class LibraryRecommendJob implements CommandLineRunner {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] ga = line.split(":");
+                if (libs.contains(line)) {
+                    LOG.info("Duplicate input {} encountered, skipping", line);
+                    continue;
+                }
                 Optional<LibraryGroupArtifact> groupArtifact = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(ga[0], ga[1]);
                 if (!groupArtifact.isPresent()) {
                     LOG.warn("groupArtifact not found: {}", line);
                     continue;
                 }
                 result.add(groupArtifact.get());
+                libs.add(line);
             }
             reader.close();
         }
