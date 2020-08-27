@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class DepSeqAnalysisService {
 
-    public static final int DefaultMinPatternSupport = 8;
+    public static final int DefaultMinPatternSupport = 26;
 
     public static final double DefaultMinMCSupportPercent = 0.6;
 
@@ -261,14 +261,23 @@ public class DepSeqAnalysisService {
         Map<Long, Map<Long, LibraryMigrationCandidate>> candidateMap = new HashMap<>();
         Iterator<String> repoNameIt = returnRepoName ? depSeqRepoList.iterator() : null;
         Iterator<List<String>> commitListIt = returnCommits ? depSeqCommitList.iterator() : null;
+        Set<List<Long>> analyzedDepSeqs = new HashSet<>();
         for (List<Long> depSeq : repositoryDepSeq) {
             String repoName = repoNameIt == null ? null : repoNameIt.next();
-//            System.out.println(repoName);
             List<String> commitList0 = commitListIt == null ? null : commitListIt.next();
             List<String> commitList = commitList0 == null ? null : new ArrayList<>(commitList0.size());
+
             depSeq = simplifyDepSeq(depSeq, commitList0, commitList);
+            if (analyzedDepSeqs.contains(depSeq)) {
+                continue;
+            } else {
+                analyzedDepSeqs.add(depSeq);
+            }
+
             calcOccurCounter(depSeq, occurCounter);
+
             List<LibraryMigrationPattern> patternList = miningSingleDepSeq(depSeq, fromIdLimit, commitList);
+
             for (LibraryMigrationPattern pattern : patternList) {
                 Map<Long, LibraryMigrationCandidate> toId2Candidate = candidateMap.computeIfAbsent(pattern.fromId, k -> new HashMap<>());
                 int position = 1;
@@ -282,8 +291,10 @@ public class DepSeqAnalysisService {
                     candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1]});
                 }
             }
-//            System.out.println(repoName);
         }
+
+        LOG.info("{} raw dep seqs in which {} dep seqs are analyzed", repositoryDepSeq.size(), analyzedDepSeqs.size());
+
         Map<Long, List<LibraryMigrationCandidate>> result = new HashMap<>();
         candidateMap.forEach((fromId, toIdCandidateMap) -> {
             List<LibraryMigrationCandidate> candidateList = new ArrayList<>(toIdCandidateMap.values());
