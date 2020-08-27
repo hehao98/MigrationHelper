@@ -1,0 +1,107 @@
+year,source,title,domain,type,problem,method,result,authors
+2019,TSE,Mining Likely Analogical APIs across Thrid Party Libraries via Large Scale Unsupervised API Semantic Embedding,API Mapping,technical,Find semantically similar API mapping between similar libraries,"data: API usage embeddings + method name embeddings + documentation embeddings
+method: continous skipgram + skip-thought on embeddings and cosine similarity on embeddings
+","outperforms state of art, can find similar documents with lexical gaps. overall recall is not high","Chunyang Chen, Zhenchang Xing, Yang Liu, Kent Ong Long Xiong "
+2019,Arxiv,Learning to Recommend Third-Party Library Migration Opportunities at the API Level,"Library Migration, API Mapping",technical,Find semantically similar API mapping between similar libraries,migration data + information retrieval + machine learning,better accuracy (87%),Hussein Alrubaye and Mohamed Wiem Mkaouer and Igor Khokhlov and Leon Reznik and Ali Ouni and Jason Mcgoff
+2019,Arxiv,How Does API Migration Impact Software Quality and Comprehension? An Empirical Study,Library Migration,empirical,"Find the correlation between API migration and code coupling, cohesion and complexity",state-of-art code analysis tools,"API migration can reduce code coupling and complexity, increase cohesion and readibility",Hussein Alrubaye
+2019,SANER,GUI Migration Using MDE from GWT to Angular 6: An Industrial Case,Library Migration,empirical,,,,
+2019,ICPC,On the Use of Information Retrieval to Automate the Detection of Library Migartion at the Method Level,"Library Migration, API Mapping",technical,Find semantically similar API mapping between similar libraries,migration data + customized heap sorting + documentation mining,better accuracy (82.1%),Hussein Alrubaye and Mohamed Wiem Mkaouer and Ali Ouni
+2019,ICSME,MigrationMiner: An Automated Detection Tool of Third-Party Java Library Migration at the Method Level,Library Migration,tool,Mine migration instances and relavent code changes,a combination of state-of-art tools,better accuracy (report 100% but questionable),Hussein Alrubaye and Mohamed Wiem Mkaouer and Ali Ouni
+2018,CASCON,Automating the Detection of Third-Party Java Library Migration at the Function Level,"Library Migration, API Mapping",technical,Find semantically similar API mapping between similar libraries,migration data + lexical similarity,better accuracy (74%),Hussein Alrubaye and Mohamed Wiem Mkaouer
+2016,MSR,Logging Library Migrations: A Case Study for the Apache Software Foundation Projects,Library Migration,empirical,Study the logging library migration phenomenon in Apache projects,keyword search + manual inspection,"1. Some projects migrate to a new logging library for performance and flexibility
+2. Some projects don't migrate because core developers cannot reach consensus
+3. Code changes related to migration are usually done by core and experienced developers",Suhas Kabinna and CorPaul Bezemer and Weiyi Shang and  Ahmed E. Hassan
+2015,ICSME,ApiWave: Keeping Track of API Popularity and Migration,Library Migration,tool,Keep track of API popularity of 1000 java programs,regex match and mine from git,,
+2014,TOSEM,Mining Unit Tests for Discovery and Migration of Math APIs,Library Migration,technical,,,,
+2014,JSEP,A Study of Library Migrations in Java,Library Migration,empirical,"Study library dependencies and migrations in Java projects, taking time and category into consideration",static code analysis + manual inspection + graph visualization,"1. Large projects depend on more libraries than small projects, and a small set of popular libraries are used by most projects
+2. Library migrations are occasional, more common in large projects, and can be grouped into different categories with one migration graph for each category",Cedric Teyton and Jean-Remy Falleri and Marc Palyart and Xavier Blanc
+2013,SANER,Automatic Discovery of Function Mappings between Similar Libraries,"Library Migration, API Mapping",technical,Find semantically similar API mapping between similar libraries,migration data + heuristics,accuracy around 50%,Cedric Teyton and Jean-Remy Falleri and Xavier Blanc
+2012,SANER,Mining Library Migration Graphs,Library Migration,technical + empirical,"Technical: Mine migration instances from open source data
+Empirical: What migrations have been done in the wild and between what libraries?",package manager + heuristics,several real world migration graphs,Cedric Teyton and Jean-Remy Falleri and Xavier Blanc
+2011,FSE,Cross Library API Recommendation with Web Search Engines,"Library Migration, API Mapping",technical,Find semantically similar API mapping between similar libraries (e.g. C#'s equivalent of Java HashMap) ,search google + return highest tf-idf API,work for two cases: Java HashMap and URLConnection,Wujie Zheng and Qirun Zhang and Michael R. Lyu
+2010,ICSME,Swing to SWT and back: Patterns for API migration by wrapping,Library Migration,empirical,"RQ1: What are the challenges for wrapper implementation?
+RQ2: How are design patterns used to address these challenges?","case study: Swing and SWT in Java, and two wrapper libraries SwingWT and SWTSwing","Challenges: non-trival mapping multiplicities, mapping varing type hierarchies, varing creation and wiring protocols, inversion of control, correspondance of object identities, etc.
+Design patterns: Layered Adaptor, Stateful Adaptor, Delayed Instantiation, Inversion Delegation, Wrapping Identity Map",Thiago Tonelli Bartolomei and Krzysztof Czarnecki and Ralf Lammel
+2009,SLE,Study of an API Migration for Two XML APIs,Library Migration,empirical,What are the API differences between similar libraries and can we implement a wrapper between them?,case study: implement wrapper between two Java XML libraries,"1.  Wrappers need to involve a lot of tuning in order to achieve semantical equivalence in terms of pre- and post-conditions.
+2. Full compilance of the wrappers' implementation with the original APIs may be impractical; compilance relevant to some ""application of interest"" is acheiveable.",Thiago Tonelli Bartolomei and Krzysztof Czarnecki and Ralf Lammel and Tijs van der Storm
+2018,EMSE,Do Developers Update their Library Dependencies? - An Empirical Study on the Impact of Security Advisories on Library Migration,Library Upgrade,empirical,"RQ1: To what extent are developers upgrading their library dependencies?
+RQ2: What is the response to important awareness mechanisms such as a new release announcement and a security advisory on library updates?
+RQ3: Why are developers non responsive to a security advisory? ","RQ1: Analyze GitHub Java projects with Maven 
+RQ2: Case study
+RQ3: Developer survey","1. Developers are reluctant to upgrade their libraries 
+2. Projects tend to stick to an old popular version of library
+3. Sometimes they are unaware of security alerts, some think its unnecessary to do the upgrade
+4. Migration decision is a cost-benefit trade-off",Raula Gaikovina Kula and Daniel M. German and Ali Ouni and Takashi Ishio and Katsuro Inoue
+2008,ICSE,Recommending adaptive changes for framework evolution,Library Upgrade,technical,,,,Barth{\'{e}}l{\'{e}}my Dagenais and  Martin P. Robillard
+2005,ICSE,CatchUp!: capturing and replaying refactorings to support API evolution,Library Upgrade,technical,,,,Johannes Henkel and Amer Diwan
+2018,MSR,Exploring the Use of Automated API Migrating Techniques in Practice: An Experience Report on Android,Library Upgrade,empirical,What are the rael migration practice when updating to a newer library version,manual analysis of android documentation and  code changes in Fdroid apps,"1. migration through code changes is hard but documentation is undervalued
+2. challenges of api migrations lies beyond migration suggestions, and includes many aspects",Maxime Lamoth and Weiyi Shang
+2018,ICSME,Towards Smoother Library Migrations: A Look at Vulnerable Dependency Migrations at Function Level for npm JavaScript Packages,Library Upgrade,empirical,Are projects really safe if they do not upgrade their vulnerable dependencies?,case study + manual inspection,73.3% of analyzed projects use vulnerable dependencies but they are actually safe from the vulnerablility.,Rodrigo Elizalde Zapata and Raula Gaikovina Kula and Bodin Chinthanet and Takashi Ishio and Kenichi Matsumoto and Akinori Ihara
+2015,SANER,Trusting a Library: A Study of the Latency to Adopt the Latest Maven Release,Library Upgrade,empirical,,,,
+2014,SANER,APIEvolutionMiner: Keeping API Evolution Under Control,Library Upgrade,technical,,,,
+2012,FSE,Seeking the Ground truth: A Retroactive Study on the Evolution and Migration of Software Libraries,Library Upgrade,empirical,What are the presense and nature of API incompatibilities between different library versions?,case study + sophisticated manual inspection,"1. API incompatibilities can be very complicated
+2. Only a small part of them can be automatically refactored without manual intervention or rule specification",Bradley Cossette and Robert J. Walker
+2010,OOPSLA,Refactoring References for Library Migration,Library Upgrade,technical + empirical,"Empirical: What are the API changes in the wild?
+Techinical: Can we refactor dangling references introduced by library API changes?","Empirical: case study, JDiff + manual inspection
+Techincal: a prototype tool Trident based on heuristics","Empirical: For each version change, there are 13-28 API changes, require significant developer work to upgrade
+Techinical: A qualitative study with developers, they find Trident useful",Puneet Kapur and Bradley Cossette and Robert J. Walker
+2017,SANER,Multi-language Re-documentation to Support a COBOL to Java Migration Project,Language Migration,empirical,,,,
+2017,ICSE,Satistical Migration of API Usages,"Language Migration, API Mapping",tool,,,,
+2017,ICJAI,DeepAM: Migrate APIs with Multi-modal Sequence to Sequence Learning,"Language Migration, API Mapping",technical,,,,
+2016,ICSME,"Do Context Help in Phrase-Based, Statistical Source Code Migration?",Language Migration,empirical,,,,Anh Tuan Nguyen and Zhaopeng Tu and Tien N. Nguyen
+2016,ASE,Mapping API Elements for Code Migration with Vector Representations,"Language Migration, API Mapping",technical,,,,
+2015,ASE,Divide-and-Conquer Approach for Multi-phase Statistical Migration for Source Code,Language Migration,technical,,,,
+2014,ASE,Statistical Learning Approach for Mining API Usage Mappings for Code Migration,"Language Migration, API Mapping",technical,,,,
+2013,FSE,Lexical Statistical Machine Translation for Language Migration,Language Migration,empirical,,,,
+2013,ICSE,Inferring Likely Mappings Between APIs,"Language Migration, API Mapping",technical,,,,
+2019,MSR,Import2Vec: Learning Embeddings for Software Libraries,Library Recommendation,technical,Learning embedding vectors for libraries that are often used together,Mining library usage at file granularity by extracting import statements + using skip-gram model + empirical analysis to clarify parameter and model choices`,The learned embedding can automatically discover contextually similar libraries,Bart Theeten and Frederik Vandeputte and Tom Van Cutsem
+2018,ICSE,Which Library Should I Use? A Metric-based Comparison of Software Libraries,Library Recommendation,empirical,,,,
+2017,JSS,Improving Reusability of Software Libraries through Usage Pattern Mining,Library Recommendation,technical,,,,
+2016,JIST,Search-Based Software Library Recommendation Using Multi-Objective Optimization,Library Recommendation,technical,,,,
+2016,SANER,Mining Analogical Libraries in Q&A Discussions,Library Recommendation,technical,Find analogical libraries,"dataset: stackoverflow tags as sentences
+method: association rule learning to find relationships, nlp to find categories for each tag, then train word embeddings for recommendation
+","Accuracy@1: 80%, Accuracy@5: 60%","Chunyang Chen, Sa Gao, Zhenchang Xing"
+2016,ASE,SimilarTech: Automatically Recommend Analogical Libraries across Different Programming Languages,Library Recommendation,tool,Find functionally similar libraries,Mining from a knowledge base built on Stack Overflow,1k accuracy over 80%,Chunyang Chen
+2013,SANER,Automated Library Recommendation,Library Recommendation,technical,Recommend library based on the library it is already using,,,
+2020,JSEP,Investigating diversity and impact of the popularity metrics for ranking software packages,Dependency Management,empirical,On the relationship between popularity metrics and development activity,195K packages from different repositories,"Popularity metrics of the Github platform are very strongly correlated(R ¡Ý 0.85) for highly popular packages. Popular packages have high-developmentactivity. However, the number of downloads of a package does not associate withdevelopment activity. Not all the metrics are important for determining popularity ofa software package.",
+2020,TSE,A Methodology for Analyzing the Uptake of Software Technologies Among Developers,Dependency Management,empirical,Why developers choose one technology over another,case study on R dataframe packages using social contagoin theory and choice modeling from econometrics,"High exposure of high quality stackoverflow questions, author proximity, package proximity, fast response to issues is related to higher adoption rates","Yuxing Ma, Audris Mockus, Beth Milhollin, Russel Zaretzki, Randy Bradley and Bogdan Bichescu"
+2019,Industry,Software Supply Chain Report 2019,Dependency Management,empirical,"The state of software supply chain, current development practices and exemplary development practices",mining from libraries.io and developer survey,many many results,Sonatype
+2019,MSR,The Emergence of Software Diversity in Maven Central,Dependency Management,empirical,"RQ1: To what extent are the different library versions actively used?
+RQ2: How are the actively used versions distributed along the history of a library?
+RQ3: Among the actively used versions of a library, is there one or several versions that are signi?cantly more popular than the others?
+RQ4: Does the number of actively used versions relate to the popularity of a library? 
+RQ5: How timely are the different library versions in Maven Central?",The Maven dependency graph dataset,"1. More than 40% of libraries have more than one actively used version.
+2. The non-latest actively used versions are evenly distributed over time, and are usually previous major versions
+3. 17% of the libraries have more than one significantly popular version.
+4. Different versions are maintained for different purposes
+5. No correlation between timeliness and popularity","C¨¦sar Soto-Valero, Amine Benelallam, Nicolas Harrand, Olivier Barais, and Benoit Baudry"
+2019,USENIX,Small World with High Risks: A Study of Security Threats in the npm Ecosystem,,,,,,
+2019,EMSE,An Empirical Comparison of Dependency Network Evolution in Seven Software Packaging System,Dependency Management,empirical,,,,
+2019,TSE,What Do Package Dependencies Tell Us About Semantic Versioning?,Dependency Management,empirical,To what extent  are package maintainers following semantic versioning for their dependencies,Data from libraries.io - all major package managers involved,"Maintainers generally trust semantic versioning policy now, but are often more permissive when using pre-1.0.0 libraries",Alexandre Decan and Tom Mens
+2019,MSR,Dependency Versioning In the Wild,Dependency Management,empirical,"RQ1 How do projects declare dependencies? 
+RQ2 Do projects change their approach as they evolve? 
+RQ3 How do projects adapt semantic versioning?",Data from libraries.io - all major package managers involved,"RQ1: All package managers have flexible version declaration syntax, and have different preferences
+RQ2: Fixed and flexible versioning strategies are both used, sometimes changed. One reason for change may be compatibility issues
+RQ3: Semantic versioning is often suggested but not forced",Jens Dietrich and David J. Pearce and Jacob Stringer and  Amjed Tahir and Kelly Blincoe
+2019,SANER,On the Diversity of Software Package Popularity Metrics: An Empirical Study of NPM,Dependency Management,empirical,How are metrics of package popularity related to each other?,correlation analysis of many metrics from different sources,"Popularity can be measured with different metrics, each can be defined with in a specific context",Ahmed Zerouali and Tom Mens and Gregorio Robles and Jesus Gonzalez-Barahona
+2018,PROMISE,Are Software Dependency Supply Chain Metrics Useful in Predicting Changes in Popularity of NPM Packages?,Dependency Management,empirical,Do the number and downloads of upstream and downstream dependencies help predict the downloads for popular JavaScript packages in NPM,time series analysis and linear regression and random forest models based on data from npm.io,The count and downloads of upstream and downstream dependencies have a strong effect on the change in downloads.,Tapajit Dey and Audris Mockus
+2018,FSE,Do the Dependency Conflicts in My Project Matter?,Dependency Management,technical + empirical,,,,
+2018,ICSME,On the Evolution of Technical Lags in the NPM Package Dependency Network,Dependency Management,empirical,,,,
+2018,SANER,"A Generalized Model for Visualizing Library Popularity, Adoption, and Diffusion within a Software Ecosystem",Dependency Management,technical + empirical,,,,
+2017,MSR,Structure and Evolution of Package Dependency Networks,Dependency Management,empirical,"RQ1: What are the static characterisitcs of package dependency networks?
+RQ2: How do package dependency networks evolve?
+RQ3: How vulnerable are package dependency networks to a removal of a random project?","Data: libraries from npm, Cates and RubyGem + applications from GitHub
+Network analysis on the dependency graph of versions","1. these ecosystems are alive and growing
+2. projects have more and more transitive dependencies
+3. there are a subset of popular libraries used in most projects",
+2017,SANER,An Empirical Comparison of Dependency Issues in OSS Packaging Ecosystems,,,,,,
+2016,ECSCW,On the Topology of Package Dependency Network,Dependency Management,empirical,Differences of dependency network,"CRAN, NPM and PyPI","There are important differences in the three networks, thus its hard to generalize findings from one to another",Alexandre Decan and Tom Men and Maelick Claes
+2016,MSR,A Look at the Dynamics of the JavaScript Package Ecosystem,Dependency Management,empirical,"1. the evolution of the npm ecosystem regarding growth and development activities
+2.  assess the notion of package popularity in npm.
+3. the creation of new package versions in npm, and the adoption of package versions by application developers.",Data: Official GitHub API and NPM API,"1. The npm is an active community
+2. Different popularity measures are no substitute to another
+3. package mangers use diversed versioning practices and the versioning itself doesnot indicate package maturity",
+2019,ICSE,Type Migration in Ultra-Large-Scale Code Bases,Type Migration,technical,How to scalably perform refactoring of one type to another,"Three step approach
+1. Collecting type relevant language constructs
+2. Detecting Refactorable Language Constructs 
+3. Generating Refacterables",,
