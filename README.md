@@ -3,7 +3,7 @@
 This is our main repository for the ongoing paper "Recommending Library for Migration". It contains all the necessary 
 code, configuration files, evaluation scripts and documentations to fully replicate this paper on any machine 
 with or without World of Code access. It is also a migration recommendation tool, with command line utilities to 
-recommend migration targets, summarize API diffs across library versions, and making library update suggestions for a Maven 
+recommend migration targets, summarize API diffs across library versions, and (to be done) making library update suggestions for a Maven 
 managed project.
 
 ## Compile
@@ -256,6 +256,7 @@ for everything you need to know.
 analysis module.
 
 6. **(Optional) Knowledge about Git and World of Code**, if you want to modify the repository analysis module.
+I've found a very useful WoC tutorial [here](https://github.com/woc-hack/tutorial).
 
 ### Repository Structure
 
