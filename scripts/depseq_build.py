@@ -115,7 +115,6 @@ def build_depseq(woc_repo):
             change["changes"].extend("-" + lib for lib in old_libs - new_libs)
             dep_seq[path].append(change)
 
-    
     # Save the sequence to database
     for path, seq in dep_seq.items():
         try:
@@ -144,7 +143,7 @@ if __name__ == "__main__":
     #for woc_repo in db.wocRepository.find():
         #build_depseq(woc_repo)
     
-    pool = multiprocessing.Pool(4)
+    pool = multiprocessing.Pool(8)
     results = []
     for woc_repo in db.wocRepository.find():
         results.append(pool.apply_async(build_depseq, (woc_repo,)))
