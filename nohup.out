@@ -1,0 +1,4 @@
+about to fork child process, waiting until server is ready for connections.
+forked process: 9444
+ERROR: child process failed, exited with error number 1
+To see additional information in this output, start without the "--fork" option.

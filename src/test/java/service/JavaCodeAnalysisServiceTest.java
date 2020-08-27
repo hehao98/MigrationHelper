@@ -36,5 +36,10 @@ public class JavaCodeAnalysisServiceTest {
         for (MethodSignatureOld ms : msList) {
             System.out.printf("%s, ss = %d, se = %d\n", ms.toString(), ms.getStartLine(), ms.getEndLine());
         }
+	List<String> sList = jcas.analyzeCodeAPI(content);
+	assertTrue(sList.size() >= 2);
+	for (String s : sList){
+	    System.out.printf("%s\n",s);
+	}
     }
 }
