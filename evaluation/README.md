@@ -21,6 +21,30 @@ It contains 220 libraries from the ground truth migration rules provided by [1].
 
 We also plan to systematically extend the rules from the ground truth rules using our algorithm and compare with [1] to see how many new rules we can discover. THe final result should be in `test-ground-truth.csv`, but we are still working on that.
 
+## RQ1: How many possible ground truth rules exist in data?
+
+We analyze the number of occurrences of each ground truth rule we collected, and exclude those that exist in the data for very few times. 
+For the rest, we manually investigate each rule, and mark a rule as true if we can find a relevant commit that explicitly states it is doing a migration.
+Only those that satisfies the above conditions are kept as evaluation set.
+
+See `depseq.ipynb`.
+
+## RQ2: For those that exist in data, what's the efficiency of each metric?
+
+This step will be similar to the original RQ1.
+See `metrics.ipynb`.
+
+## RQ3: How good is our algorithm in discovering these rules?
+
+This step will be similar to the original RQ2.
+See `evaluation.ipynb`.
+
+## RQ4: How many additional migration rules can we discover, compared with [1]?
+
+To be done.
+
+## Failure case analysis
+
 ## References
 
 1. Teyton, Cédric, et al. "A study of library migrations in java." Journal of Software: Evolution and Process 26.11 (2014): 1030-1052.
