@@ -1,0 +1,3308 @@
+﻿fromLib,toLib,repoName,fileName,startCommit,endCommit,startCommitChanges,endCommitChanges,startCommitMessage,endCommitMessage,startCommitTime,endCommitTime
+asm:asm,org.ow2.asm:asm-commons,hcoles_pitest,pitest/pom.xml,0d638d02c051094ce1e8532e83449735cf6ae2f4,0d638d02c051094ce1e8532e83449735cf6ae2f4,"+org.ow2.asm:asm-commons
++org.ow2.asm:asm-analysis
++org.ow2.asm:asm-util
++org.ow2.asm:asm
+-asm:asm-analysis
+-org.powermock:powermock-api-mockito
+-asm:asm
+-asm:asm-commons
+-org.powermock:powermock-module-junit4-rule-agent
+-org.powermock:powermock-module-junit4
+-asm:asm-util","+org.ow2.asm:asm-commons
++org.ow2.asm:asm-analysis
++org.ow2.asm:asm-util
++org.ow2.asm:asm
+-asm:asm-analysis
+-org.powermock:powermock-api-mockito
+-asm:asm
+-asm:asm-commons
+-org.powermock:powermock-module-junit4-rule-agent
+-org.powermock:powermock-module-junit4
+-asm:asm-util","upgrade asm to 4.0
+","upgrade asm to 4.0
+",2012-09-27 20:21:14+01:00,2012-09-27 20:21:14+01:00
+ch.qos.logback:logback-classic,org.apache.logging.log4j:log4j-slf4j-impl,svenkubiak_mangooio,mangooio-core/pom.xml,1398dd8a550447bc4519669bcc4716284b5f98ff,1398dd8a550447bc4519669bcc4716284b5f98ff,"+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.reflections:reflections
++org.apache.logging.log4j:log4j-core
+-org.slf4j:slf4j-api
+-ch.qos.logback:logback-classic","+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.reflections:reflections
++org.apache.logging.log4j:log4j-core
+-org.slf4j:slf4j-api
+-ch.qos.logback:logback-classic","#64 Moved to log4j2 for logging
+","#64 Moved to log4j2 for logging
+",2015-10-23 15:07:39+02:00,2015-10-23 15:07:39+02:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-jdk14,mock-server_mockserver,mockserver-examples/pom.xml,7af36a5248bda4b0773a4ac7d32ba69a792bfca1,7af36a5248bda4b0773a4ac7d32ba69a792bfca1,"+org.slf4j:slf4j-jdk14
+-ch.qos.logback:logback-classic","+org.slf4j:slf4j-jdk14
+-ch.qos.logback:logback-classic","#659 switch logging framework from logback to Java Logger
+","#659 switch logging framework from logback to Java Logger
+",2019-10-27 15:34:57+00:00,2019-10-27 15:34:57+00:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-jdk14,mock-server_mockserver,pom.xml,7af36a5248bda4b0773a4ac7d32ba69a792bfca1,7af36a5248bda4b0773a4ac7d32ba69a792bfca1,"+org.slf4j:slf4j-jdk14
+-ch.qos.logback:logback-classic","+org.slf4j:slf4j-jdk14
+-ch.qos.logback:logback-classic","#659 switch logging framework from logback to Java Logger
+","#659 switch logging framework from logback to Java Logger
+",2019-10-27 15:34:57+00:00,2019-10-27 15:34:57+00:00
+ch.qos.logback:logback-classic,org.apache.logging.log4j:log4j-slf4j-impl,ronenhamias_scalecube-services,testlib/pom.xml,e70db371e3cf850bbeb7fd4eef3a63ed4d1af288,e70db371e3cf850bbeb7fd4eef3a63ed4d1af288,"+org.slf4j:slf4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic","+org.slf4j:slf4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic","Added log4j2 instead logback (#76)
+
+* Added log4j2 instead logback
+
+* Put log4-test cfg into every module with tests; updated poms
+
+* Put dependency on log4j only in test lib
+","Added log4j2 instead logback (#76)
+
+* Added log4j2 instead logback
+
+* Put log4-test cfg into every module with tests; updated poms
+
+* Put dependency on log4j only in test lib
+",2016-08-21 13:48:23+03:00,2016-08-21 13:48:23+03:00
+ch.qos.logback:logback-classic,org.slf4j:jcl-over-slf4j,RoboZonky_robozonky,robozonky-integration-zonkoid/pom.xml,191b531522dc6e259802dab6d8ca4c0e64d39581,9bf2f39aa5109ab5d0877b923e26a7412b26b8c0,"+com.github.triceo.robozonky:robozonky-api
++org.slf4j:jcl-over-slf4j
++org.assertj:assertj-core
++ch.qos.logback:logback-classic
++org.mock-server:mockserver-netty
++org.mockito:mockito-core
++org.apache.httpcomponents:httpclient
++org.junit.vintage:junit-vintage-engine
++org.slf4j:slf4j-api","+org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-to-slf4j
+-ch.qos.logback:logback-classic","Initial implementation of Zonkoid support (closes #72)
+
+This commit introduces a generic mechanism through which remote services could be asked to provide a final decision on whether or not an investment should be made. There is one implementation of such service, Zonkoid - the support in Zonkoid mobile app is a work in progress.
+
+Furthermore, strategies can now decide whether or not their investments require confirmation using the above mechanism.
+
+And last but not least, because this is a major change, this commit increases mutation coverage to 85 % across al modules.
+","Replace Logback with Log4j 2
+",2016-12-18 00:03:42+01:00,2019-04-14 17:41:53+02:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-simple,smallrye_smallrye-reactive-messaging,smallrye-reactive-messaging-amqp/pom.xml,50073c8d58db3295251a5df0ab0c26636366a912,50073c8d58db3295251a5df0ab0c26636366a912,"+org.slf4j:slf4j-simple
+-org.slf4j:slf4j-api
+-ch.qos.logback:logback-classic","+org.slf4j:slf4j-simple
+-org.slf4j:slf4j-api
+-ch.qos.logback:logback-classic","Replace log4j2 with slf4j
+
+Reduce the size of the dependencies
+","Replace log4j2 with slf4j
+
+Reduce the size of the dependencies
+",2018-12-21 13:37:07+01:00,2018-12-21 13:37:07+01:00
+ch.qos.logback:logback-classic,org.apache.logging.log4j:log4j-core,apache_directmemory,integrations/solr/pom.xml,b08f093a4cea4e0b81abe0bdcfb47f19a67edc9e,b08f093a4cea4e0b81abe0bdcfb47f19a67edc9e,"+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","use log4j2 rather than logback for testing
+
+git-svn-id: https://svn.apache.org/repos/asf/directmemory/trunk@1497328 13f79535-47bb-0310-9956-ffa450edef68
+","use log4j2 rather than logback for testing
+
+git-svn-id: https://svn.apache.org/repos/asf/directmemory/trunk@1497328 13f79535-47bb-0310-9956-ffa450edef68
+",2013-06-27 12:37:26+00:00,2013-06-27 12:37:26+00:00
+ch.qos.logback:logback-classic,org.apache.logging.log4j:log4j-slf4j-impl,apache_directmemory,server/directmemory-server/pom.xml,b08f093a4cea4e0b81abe0bdcfb47f19a67edc9e,b08f093a4cea4e0b81abe0bdcfb47f19a67edc9e,"+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","use log4j2 rather than logback for testing
+
+git-svn-id: https://svn.apache.org/repos/asf/directmemory/trunk@1497328 13f79535-47bb-0310-9956-ffa450edef68
+","use log4j2 rather than logback for testing
+
+git-svn-id: https://svn.apache.org/repos/asf/directmemory/trunk@1497328 13f79535-47bb-0310-9956-ffa450edef68
+",2013-06-27 12:37:26+00:00,2013-06-27 12:37:26+00:00
+ch.qos.logback:logback-classic,org.apache.logging.log4j:log4j-api,hsiafan_requests,pom.xml,22e3f426120edbd8f1b9e1f5b976bcbed5fcb8ed,22e3f426120edbd8f1b9e1f5b976bcbed5fcb8ed,"+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-core
+-org.slf4j:slf4j-api
+-org.eclipse.jetty:jetty-server
+-ch.qos.logback:logback-classic","+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-core
+-org.slf4j:slf4j-api
+-org.eclipse.jetty:jetty-server
+-ch.qos.logback:logback-classic","use log4j2
+","use log4j2
+",2016-11-03 16:24:02+08:00,2016-11-03 16:24:02+08:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-nop,morimekta_providence,providence-thrift/pom.xml,aef9edf8e7da8062bd70cbe2a4b076f1598c4068,aef9edf8e7da8062bd70cbe2a4b076f1598c4068,"+org.slf4j:slf4j-nop
+-ch.qos.logback:logback-classic","+org.slf4j:slf4j-nop
+-ch.qos.logback:logback-classic","Use slf4j-simple instead of logback.
+
+It uses way less class and configuration-space, and we try to avoid
+""logging"" output from the tools anyway.
+","Use slf4j-simple instead of logback.
+
+It uses way less class and configuration-space, and we try to avoid
+""logging"" output from the tools anyway.
+",2016-09-29 16:06:24+02:00,2016-09-29 16:06:24+02:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-log4j12,wosyingjun_beauty_ssm_cluster,pom.xml,3b37226898c259be04ba90577bd5391c70acd306,3b37226898c259be04ba90577bd5391c70acd306,"+log4j:log4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-classic","+log4j:log4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-classic","日志采用log4j
+","日志采用log4j
+",2016-07-17 15:06:51+08:00,2016-07-17 15:06:51+08:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-api,wosyingjun_beauty_ssm_cluster,pom.xml,3b37226898c259be04ba90577bd5391c70acd306,3b37226898c259be04ba90577bd5391c70acd306,"+log4j:log4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-classic","+log4j:log4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-classic","日志采用log4j
+","日志采用log4j
+",2016-07-17 15:06:51+08:00,2016-07-17 15:06:51+08:00
+ch.qos.logback:logback-core,org.apache.logging.log4j:log4j-slf4j-impl,qwazr_QWAZR,qwazr-server/pom.xml,baccf19fc76125b7a728441c7d6ca1740fd645c4,baccf19fc76125b7a728441c7d6ca1740fd645c4,"+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","Merge pull request #569 from emmanuel-keller/master
+
+Switch to log4j2 (server), add access logs","Merge pull request #569 from emmanuel-keller/master
+
+Switch to log4j2 (server), add access logs",2016-06-07 10:33:26+02:00,2016-06-07 10:33:26+02:00
+ch.qos.logback:logback-core,org.apache.logging.log4j:log4j-api,spotify_logging-java,pom.xml,f2376069c351f36914b8fd751fb251063c643402,f2376069c351f36914b8fd751fb251063c643402,"+org.apache.maven.scm:maven-scm-provider-gitexe
++org.apache.logging.log4j:log4j-core
++org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++com.lmax:disruptor
++net.kencochrane.raven:raven-log4j2
+-net.kencochrane.raven:raven-logback
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","+org.apache.maven.scm:maven-scm-provider-gitexe
++org.apache.logging.log4j:log4j-core
++org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++com.lmax:disruptor
++net.kencochrane.raven:raven-log4j2
+-net.kencochrane.raven:raven-logback
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","use log4j2 instead of logback
+
+log4j2 offers robustness and (particularly) performance improvements
+over both log4j and logback.
+
+As this is a potentially breaking change for users, also make a new
+major release version: 3.0.0","use log4j2 instead of logback
+
+log4j2 offers robustness and (particularly) performance improvements
+over both log4j and logback.
+
+As this is a potentially breaking change for users, also make a new
+major release version: 3.0.0",2015-02-08 23:47:57+01:00,2015-02-08 23:47:57+01:00
+ch.qos.logback:logback-core,org.apache.logging.log4j:log4j-slf4j-impl,spotify_logging-java,pom.xml,f2376069c351f36914b8fd751fb251063c643402,f2376069c351f36914b8fd751fb251063c643402,"+org.apache.maven.scm:maven-scm-provider-gitexe
++org.apache.logging.log4j:log4j-core
++org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++com.lmax:disruptor
++net.kencochrane.raven:raven-log4j2
+-net.kencochrane.raven:raven-logback
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","+org.apache.maven.scm:maven-scm-provider-gitexe
++org.apache.logging.log4j:log4j-core
++org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++com.lmax:disruptor
++net.kencochrane.raven:raven-log4j2
+-net.kencochrane.raven:raven-logback
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","use log4j2 instead of logback
+
+log4j2 offers robustness and (particularly) performance improvements
+over both log4j and logback.
+
+As this is a potentially breaking change for users, also make a new
+major release version: 3.0.0","use log4j2 instead of logback
+
+log4j2 offers robustness and (particularly) performance improvements
+over both log4j and logback.
+
+As this is a potentially breaking change for users, also make a new
+major release version: 3.0.0",2015-02-08 23:47:57+01:00,2015-02-08 23:47:57+01:00
+ch.qos.logback:logback-core,org.apache.logging.log4j:log4j-api,semuxproject_semux,pom.xml,e7c0a0f6ca18075ce78971629aa2a33571c4e0d2,e7c0a0f6ca18075ce78971629aa2a33571c4e0d2,"+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","Util: replace logback with log4j2 for higher performance
+","Util: replace logback with log4j2 for higher performance
+",2018-01-13 17:16:50+08:00,2018-01-13 17:16:50+08:00
+ch.qos.logback:logback-core,org.apache.logging.log4j:log4j-slf4j-impl,semuxproject_semux,pom.xml,e7c0a0f6ca18075ce78971629aa2a33571c4e0d2,e7c0a0f6ca18075ce78971629aa2a33571c4e0d2,"+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","+org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-ch.qos.logback:logback-classic
+-ch.qos.logback:logback-core","Util: replace logback with log4j2 for higher performance
+","Util: replace logback with log4j2 for higher performance
+",2018-01-13 17:16:50+08:00,2018-01-13 17:16:50+08:00
+com.alibaba:fastjson,com.fasterxml.jackson.core:jackson-core,a805748009_nafos,core/pom.xml,4dcef8ea4c6d06d630125b5682de0310b24fa94a,4dcef8ea4c6d06d630125b5682de0310b24fa94a,"+net.sf.json-lib:json-lib
++org.codehaus.jackson:jackson-core-asl
++com.fasterxml.jackson.core:jackson-core
++com.fasterxml.jackson.core:jackson-databind
++org.codehaus.jackson:jackson-mapper-asl
++com.fasterxml.jackson.core:jackson-annotations
+-com.google.code.gson:gson
+-com.alibaba:fastjson","+net.sf.json-lib:json-lib
++org.codehaus.jackson:jackson-core-asl
++com.fasterxml.jackson.core:jackson-core
++com.fasterxml.jackson.core:jackson-databind
++org.codehaus.jackson:jackson-mapper-asl
++com.fasterxml.jackson.core:jackson-annotations
+-com.google.code.gson:gson
+-com.alibaba:fastjson","修改JSON为jackson
+","修改JSON为jackson
+",2018-10-16 16:31:01+08:00,2018-10-16 16:31:01+08:00
+com.fasterxml.jackson.core:jackson-databind,org.codehaus.jackson:jackson-mapper-asl,Unicon_cas-addons,pom.xml,dfbb75089f20fcdca66fc52ebbedad8beb04ca7a,dfbb75089f20fcdca66fc52ebbedad8beb04ca7a,"+org.slf4j:jcl-over-slf4j
++org.codehaus.jackson:jackson-core-asl
++org.slf4j:slf4j-log4j12
++org.slf4j:slf4j-api
++org.apache.httpcomponents:httpclient
++org.codehaus.jackson:jackson-mapper-asl
++org.springframework:spring-web
+-com.fasterxml.jackson.core:jackson-databind","+org.slf4j:jcl-over-slf4j
++org.codehaus.jackson:jackson-core-asl
++org.slf4j:slf4j-log4j12
++org.slf4j:slf4j-api
++org.apache.httpcomponents:httpclient
++org.codehaus.jackson:jackson-mapper-asl
++org.springframework:spring-web
+-com.fasterxml.jackson.core:jackson-databind","Added support for Stormpath AuthN handler. Switched Jackson library to provide support for Spring REST Json calls. Switched ObjectMapper for all all classes to match the new reference.
+","Added support for Stormpath AuthN handler. Switched Jackson library to provide support for Spring REST Json calls. Switched ObjectMapper for all all classes to match the new reference.
+",2012-07-21 17:29:52-07:00,2012-07-21 17:29:52-07:00
+com.fasterxml.jackson.core:jackson-databind,org.codehaus.jackson:jackson-mapper-asl,bjornharrtell_jts2geojson,pom.xml,408cc5e1761256a5871029a64b0d91024adb5039,408cc5e1761256a5871029a64b0d91024adb5039,"+org.codehaus.jackson:jackson-mapper-asl
++org.codehaus.jackson:jackson-core-asl
+-com.fasterxml.jackson.core:jackson-databind","+org.codehaus.jackson:jackson-mapper-asl
++org.codehaus.jackson:jackson-core-asl
+-com.fasterxml.jackson.core:jackson-databind",Depend on older jackson version for compatibility reasons,Depend on older jackson version for compatibility reasons,2013-10-16 14:10:04+02:00,2013-10-16 14:10:04+02:00
+com.google.code.gson:gson,com.fasterxml.jackson.core:jackson-core,a805748009_nafos,core/pom.xml,4dcef8ea4c6d06d630125b5682de0310b24fa94a,4dcef8ea4c6d06d630125b5682de0310b24fa94a,"+net.sf.json-lib:json-lib
++org.codehaus.jackson:jackson-core-asl
++com.fasterxml.jackson.core:jackson-core
++com.fasterxml.jackson.core:jackson-databind
++org.codehaus.jackson:jackson-mapper-asl
++com.fasterxml.jackson.core:jackson-annotations
+-com.google.code.gson:gson
+-com.alibaba:fastjson","+net.sf.json-lib:json-lib
++org.codehaus.jackson:jackson-core-asl
++com.fasterxml.jackson.core:jackson-core
++com.fasterxml.jackson.core:jackson-databind
++org.codehaus.jackson:jackson-mapper-asl
++com.fasterxml.jackson.core:jackson-annotations
+-com.google.code.gson:gson
+-com.alibaba:fastjson","修改JSON为jackson
+","修改JSON为jackson
+",2018-10-16 16:31:01+08:00,2018-10-16 16:31:01+08:00
+com.google.collections:google-collections,com.google.guava:guava,apache_shindig,java/social-api/pom.xml,039941211740f7adeedc9c7549ebc0855e728fca,039941211740f7adeedc9c7549ebc0855e728fca,"+com.google.guava:guava
+-com.google.collections:google-collections","+com.google.guava:guava
+-com.google.collections:google-collections","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+",2010-08-10 08:45:27+00:00,2010-08-10 08:45:27+00:00
+com.googlecode.jmockit:jmockit,org.mockito:mockito-core,qos-ch_logback-extensions,pom.xml,cf44d61d5dbcfddf4dadd1599d56c9502fd42bb8,cf44d61d5dbcfddf4dadd1599d56c9502fd42bb8,"+org.mockito:mockito-core
+-com.googlecode.jmockit:jmockit
+-org.easymock:easymock","+org.mockito:mockito-core
+-com.googlecode.jmockit:jmockit
+-org.easymock:easymock","Replace jmockit and easymock with mockito
+
+jmockit and easymock weren't actually used. And jmockit has an
+unfriendly dependency on some JAR/DLL. I prefer Mockito anyway :)
+
+Fixes #19
+","Replace jmockit and easymock with mockito
+
+jmockit and easymock weren't actually used. And jmockit has an
+unfriendly dependency on some JAR/DLL. I prefer Mockito anyway :)
+
+Fixes #19
+",2014-02-27 00:09:36-06:00,2014-02-27 00:09:36-06:00
+com.googlecode.json-simple:json-simple,com.fasterxml.jackson.core:jackson-core,carlosCharz_fcmxmppserverv2,pom.xml,f970ee6d494cd4cb7652712ef4e4bef5b967cd76,f970ee6d494cd4cb7652712ef4e4bef5b967cd76,"+com.fasterxml.jackson.core:jackson-databind
++com.fasterxml.jackson.core:jackson-core
+-com.googlecode.json-simple:json-simple","+com.fasterxml.jackson.core:jackson-databind
++com.fasterxml.jackson.core:jackson-core
+-com.googlecode.json-simple:json-simple","change json library + java 8 optional
+","change json library + java 8 optional
+",2018-04-24 11:27:39-05:00,2018-04-24 11:27:39-05:00
+com.googlecode.json-simple:json-simple,com.google.code.gson:gson,vt-middleware_ldaptive,json/pom.xml,2889f3e2599f110994c1b5e53649ecb001fb348f,2889f3e2599f110994c1b5e53649ecb001fb348f,"+com.google.code.gson:gson
++javax.servlet:javax.servlet-api
+-com.googlecode.json-simple:json-simple","+com.google.code.gson:gson
++javax.servlet:javax.servlet-api
+-com.googlecode.json-simple:json-simple","Switch from json-simple to gson.
+
+Add JsonServletSearchExecutor.
+Fixes #61.
+","Switch from json-simple to gson.
+
+Add JsonServletSearchExecutor.
+Fixes #61.
+",2015-12-08 11:29:46-05:00,2015-12-08 11:29:46-05:00
+com.googlecode.json-simple:json-simple,com.thoughtworks.xstream:xstream,citrusframework_citrus,pom.xml,b4b35997de7f97ef63bae145a663659d1ea0fa0e,b4b35997de7f97ef63bae145a663659d1ea0fa0e,"+net.minidev:json-smart
+-com.googlecode.json-simple:json-simple","+net.minidev:json-smart
+-com.googlecode.json-simple:json-simple","Use minidev.json-smart library instead of googlcode.json-simple
+","Use minidev.json-smart library instead of googlcode.json-simple
+",2015-07-21 16:34:05+02:00,2015-07-21 16:34:05+02:00
+com.googlecode.json-simple:json-simple,net.minidev:json-smart,citrusframework_citrus,modules/citrus-core/pom.xml,b4b35997de7f97ef63bae145a663659d1ea0fa0e,b4b35997de7f97ef63bae145a663659d1ea0fa0e,"+net.minidev:json-smart
++com.jayway.jsonpath:json-path
+-com.googlecode.json-simple:json-simple","+net.minidev:json-smart
++com.jayway.jsonpath:json-path
+-com.googlecode.json-simple:json-simple","Use minidev.json-smart library instead of googlcode.json-simple
+","Use minidev.json-smart library instead of googlcode.json-simple
+",2015-07-21 16:34:05+02:00,2015-07-21 16:34:05+02:00
+com.h2database:h2,hsqldb:hsqldb,azagniotov_stubby4j,pom.xml,ce45e043dbccaecf70e28b80a73a597e06177078,ce45e043dbccaecf70e28b80a73a597e06177078,"+hsqldb:hsqldb
+-com.h2database:h2","+hsqldb:hsqldb
+-com.h2database:h2","1. Swapped H2 database to Hypersonic SQL to make stubby4j JAR smaller
+2. More unit tests around HnadlerUtils
+3. Changes to POM and DB queries as a result of changing the DB engine
+","1. Swapped H2 database to Hypersonic SQL to make stubby4j JAR smaller
+2. More unit tests around HnadlerUtils
+3. Changes to POM and DB queries as a result of changing the DB engine
+",2012-06-27 20:52:21-07:00,2012-06-27 20:52:21-07:00
+commons-cli:commons-cli,com.beust:jcommander,Mercateo_factcast,factcast-client-grpc-cli/pom.xml,ea22151cc955485605d45ec6cccbf34965342bd3,ff6f170d1243122164f9ee7b96f79166d343c6dc,"+args4j:args4j
++com.beust:jcommander
+-commons-io:commons-io
+-org.projectlombok:lombok","-args4j:args4j
+-commons-cli:commons-cli
+-commons-lang:commons-lang","#152: introduced JCommand to parse commandline
+","added CLI (#156)
+
+* ITD-55540: Added cli (#148)
+* #152: minor cleanup
+* #152: introduced JCommand to parse commandline
+
+closes #155 
+closes #154 
+",2018-10-20 20:25:03+02:00,2018-10-20 21:30:03+02:00
+commons-httpclient:commons-httpclient,org.apache.httpcomponents:httpclient,Consonance_consonance,consonance-arch/pom.xml,f4d2644d0d1c17a33398ddbf39e5a32e9491d4be,f4d2644d0d1c17a33398ddbf39e5a32e9491d4be,"+org.apache.httpcomponents:httpcore
++org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","+org.apache.httpcomponents:httpcore
++org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","Feature/ga4gh mockups (#115)
+
+* Update youxia version for Liberty OpenStack
+* Fix dependencies
+* Implementation of workflow-execution-schema
+Implements https://github.com/ga4gh/workflow-execution-schemas/blob/8c6c55f7160593cd1a957aaea6d549be02d92104/src/main/resources/swagger/ga4gh-tool-discovery.yaml
+Outstanding issues:
+* schema lacks concept of authentication, this ends up creating jobs with no owner
+* testing
+* Update task-execution-schema-endpoints
+Updated to https://github.com/ga4gh/task-execution-schemas/commit/5c81d2543f85e7bda62d06f66650459db2bc96d1
+* Update to Dockstore 0.9.2
+Also modify Authentication/Authorization for GA4GH resources to be a bit
+more correct
+* Strip out vulnerable httpclient (security warnings)
+","Feature/ga4gh mockups (#115)
+
+* Update youxia version for Liberty OpenStack
+* Fix dependencies
+* Implementation of workflow-execution-schema
+Implements https://github.com/ga4gh/workflow-execution-schemas/blob/8c6c55f7160593cd1a957aaea6d549be02d92104/src/main/resources/swagger/ga4gh-tool-discovery.yaml
+Outstanding issues:
+* schema lacks concept of authentication, this ends up creating jobs with no owner
+* testing
+* Update task-execution-schema-endpoints
+Updated to https://github.com/ga4gh/task-execution-schemas/commit/5c81d2543f85e7bda62d06f66650459db2bc96d1
+* Update to Dockstore 0.9.2
+Also modify Authentication/Authorization for GA4GH resources to be a bit
+more correct
+* Strip out vulnerable httpclient (security warnings)
+",2016-07-19 17:10:57-04:00,2016-07-19 17:10:57-04:00
+commons-httpclient:commons-httpclient,org.apache.httpcomponents:httpclient,Norconex_importer,norconex-collector-http/pom.xml,77b5951030e016cec44ba8268cc2f69289abfe4c,77b5951030e016cec44ba8268cc2f69289abfe4c,"+org.apache.maven.doxia:doxia-module-markdown
++org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","+org.apache.maven.doxia:doxia-module-markdown
++org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient",Upgraded to HttpClient 4.x.,Upgraded to HttpClient 4.x.,2013-04-26 00:01:32-04:00,2013-04-26 00:01:32-04:00
+commons-httpclient:commons-httpclient,org.apache.httpcomponents:httpclient,PeteGoo_tcSlackBuildNotifier,tcslackbuildnotifier-core/pom.xml,518c51773a2fb172f11e1a8d6416bf658fac4351,518c51773a2fb172f11e1a8d6416bf658fac4351,"+com.google.code.gson:gson
++org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","+com.google.code.gson:gson
++org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","Updated to modern httpclient implementation
+","Updated to modern httpclient implementation
+",2014-08-31 16:33:39+12:00,2014-08-31 16:33:39+12:00
+commons-httpclient:commons-httpclient,org.apache.httpcomponents:httpclient,apache_asterixdb,hyracks-fullstack/hyracks/hyracks-server/pom.xml,e97dbe5be9c6f409e7157e6bf732d5d34f17c045,e97dbe5be9c6f409e7157e6bf732d5d34f17c045,"+org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","+org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","Update Commons-Httpclient Dep, Misc Cleanup
+
+Change-Id: Iaab8930ddf69a3202a6e7efff3533bfec8cff6c5
+Reviewed-on: https://asterix-gerrit.ics.uci.edu/1053
+Sonar-Qube: Jenkins <jenkins@fulliautomatix.ics.uci.edu>
+Tested-by: Jenkins <jenkins@fulliautomatix.ics.uci.edu>
+Integration-Tests: Jenkins <jenkins@fulliautomatix.ics.uci.edu>
+Reviewed-by: Till Westmann <tillw@apache.org>
+","Update Commons-Httpclient Dep, Misc Cleanup
+
+Change-Id: Iaab8930ddf69a3202a6e7efff3533bfec8cff6c5
+Reviewed-on: https://asterix-gerrit.ics.uci.edu/1053
+Sonar-Qube: Jenkins <jenkins@fulliautomatix.ics.uci.edu>
+Tested-by: Jenkins <jenkins@fulliautomatix.ics.uci.edu>
+Integration-Tests: Jenkins <jenkins@fulliautomatix.ics.uci.edu>
+Reviewed-by: Till Westmann <tillw@apache.org>
+",2016-08-06 12:24:21-07:00,2016-08-06 12:24:21-07:00
+commons-httpclient:commons-httpclient,org.apache.httpcomponents:httpclient,uwolfer_gerrit-rest-java-client,pom.xml,51c0b010f2e87c719055e527d741877ae260121f,51c0b010f2e87c719055e527d741877ae260121f,"+org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","+org.apache.httpcomponents:httpclient
+-commons-httpclient:commons-httpclient","port from commons-httpclient v3 to apache.httpcomponents v4
+
+- fixes at least some ssl issues (certificates with broken chain)
+
+Resolves #26
+Related to #43
+","port from commons-httpclient v3 to apache.httpcomponents v4
+
+- fixes at least some ssl issues (certificates with broken chain)
+
+Resolves #26
+Related to #43
+",2013-12-26 22:02:02+01:00,2013-12-26 22:02:02+01:00
+commons-lang:commons-lang,org.apache.commons:commons-collections4,apache_directory-server,interceptors/authn/pom.xml,d5e8015727c8b3b1aac0197cb879207534ee466c,d5e8015727c8b3b1aac0197cb879207534ee466c,"+org.apache.commons:commons-collections4
+-commons-lang:commons-lang
+-commons-collections:commons-collections","+org.apache.commons:commons-collections4
+-commons-lang:commons-lang
+-commons-collections:commons-collections","Bumped up commons-collections and commons-lang to version 4 and 3,
+respectively","Bumped up commons-collections and commons-lang to version 4 and 3,
+respectively",2018-11-16 00:02:27+01:00,2018-11-16 00:02:27+01:00
+commons-logging:commons-logging,org.slf4j:jcl-over-slf4j,spring-projects_spring-vault,spring-vault-core/pom.xml,b5e09f2d53195c29f6667058845ac0b15978da80,c586583b1e0a8ca6dfeec649e67b9016611a1304,"+io.netty:netty-all
++org.springframework:spring-test
++org.slf4j:jcl-over-slf4j
++org.assertj:assertj-core
++com.squareup.okhttp:okhttp
++org.springframework:spring-core
++ch.qos.logback:logback-classic
++junit:junit
++com.jayway.jsonpath:json-path
++com.fasterxml.jackson.core:jackson-databind
++org.apache.httpcomponents:httpcore
++org.slf4j:slf4j-api
++org.apache.httpcomponents:httpclient
++org.springframework:spring-beans
++org.springframework:spring-web
++org.projectlombok:lombok","-org.slf4j:jcl-over-slf4j
+-org.slf4j:slf4j-api
+-ch.qos.logback:logback-classic","Initial import.
+","Use commons-logging to log messages.
+
+Switch from SLF4J to commons-logging to align with Spring Framework.
+
+Fixes #24.
+",2016-09-14 08:51:14+02:00,2016-10-27 13:24:26+02:00
+commons-logging:commons-logging,ch.qos.logback:logback-core,sebastiangraf_treetank,parent/pom.xml,38d19ae48f6dc19a6a83cf8b28913861a4317a53,38d19ae48f6dc19a6a83cf8b28913861a4317a53,"+org.slf4j:slf4j-log4j12
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-log4j:log4j","+org.slf4j:slf4j-log4j12
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-log4j:log4j","removed commons logging
+
+git-svn-id: https://svn.uni-konstanz.de/disy/Treetank/trunk/treetank@5520 e3ddb328-5bfe-0310-b762-aafcbcbd2528
+","removed commons logging
+
+git-svn-id: https://svn.uni-konstanz.de/disy/Treetank/trunk/treetank@5520 e3ddb328-5bfe-0310-b762-aafcbcbd2528
+",2010-07-27 14:41:11+00:00,2010-07-27 14:41:11+00:00
+commons-logging:commons-logging,org.slf4j:slf4j-api,att_XACML,pom.xml,5a76897b0ec179f10362b4b0de447b7c48bfc989,5a76897b0ec179f10362b4b0de447b7c48bfc989,"+org.slf4j:slf4j-api
+-commons-logging:commons-logging
+-org.apache.logging.log4j:log4j-core","+org.slf4j:slf4j-api
+-commons-logging:commons-logging
+-org.apache.logging.log4j:log4j-core","Change to slf4j logging, remove std/err calls
+","Change to slf4j logging, remove std/err calls
+",2019-03-07 09:36:50-05:00,2019-03-07 09:36:50-05:00
+commons-logging:commons-logging,org.apache.logging.log4j:log4j-core,ksfzhaohui_shadowsocks-netty,pom.xml,78d99d2776b3f301a8a30e9e91d376d592e2fa31,78d99d2776b3f301a8a30e9e91d376d592e2fa31,"+org.apache.logging.log4j:log4j-slf4j-impl
++com.lmax:disruptor
++org.apache.logging.log4j:log4j-core
+-log4j:log4j
+-commons-logging:commons-logging","+org.apache.logging.log4j:log4j-slf4j-impl
++com.lmax:disruptor
++org.apache.logging.log4j:log4j-core
+-log4j:log4j
+-commons-logging:commons-logging",升级log4j1->log4j2,升级log4j1->log4j2,2017-09-20 10:57:11+08:00,2017-09-20 10:57:11+08:00
+commons-logging:commons-logging,org.slf4j:jcl-over-slf4j,apache_lens,lens-client/pom.xml,e6f585b73733e67ed0fddaa1cb6586ba527bc515,e6f585b73733e67ed0fddaa1cb6586ba527bc515,"+org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","LENS-666 : Move logging to logback
+","LENS-666 : Move logging to logback
+",2015-08-06 13:45:41+05:03,2015-08-06 13:45:41+05:03
+commons-logging:commons-logging,org.slf4j:jcl-over-slf4j,fcrepo3_fcrepo,fcrepo-installer/pom.xml,1dd11c2fc12e5d18369d059d801b2c4b7b3bbf75,1dd11c2fc12e5d18369d059d801b2c4b7b3bbf75,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-log4j:log4j","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-log4j:log4j","Addresses FCREPO-630 by sending all log requests to slf4j at runtime, using logback as the underlying implementation.  This changeset does not (yet) modify any Fedora classes to use the slf4j api; it just redirects everything (log4j, commons-logging, and java.util.logging) to slf4j, which is configured to use logback.
+As per FCREPO-639, the logback configuration for the Fedora webapp is set to allow changes to be made to log configuration without restarting.
+
+
+","Addresses FCREPO-630 by sending all log requests to slf4j at runtime, using logback as the underlying implementation.  This changeset does not (yet) modify any Fedora classes to use the slf4j api; it just redirects everything (log4j, commons-logging, and java.util.logging) to slf4j, which is configured to use logback.
+As per FCREPO-639, the logback configuration for the Fedora webapp is set to allow changes to be made to log configuration without restarting.
+
+
+",2010-02-18 13:36:06+00:00,2010-02-18 13:36:06+00:00
+commons-logging:commons-logging,org.slf4j:slf4j-api,apache_tapestry-5,tapestry-ioc/pom.xml,cce2b56935bb66532418ecc05a3696c3720fcc33,cce2b56935bb66532418ecc05a3696c3720fcc33,"+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-commons-logging:commons-logging","TAPESTRY-1704: Convert dependencies from commons-logging to SLF4J
+
+git-svn-id: https://svn.eu.apache.org/repos/asf/tapestry/tapestry5/trunk@569893 13f79535-47bb-0310-9956-ffa450edef68
+","TAPESTRY-1704: Convert dependencies from commons-logging to SLF4J
+
+git-svn-id: https://svn.eu.apache.org/repos/asf/tapestry/tapestry5/trunk@569893 13f79535-47bb-0310-9956-ffa450edef68
+",2007-08-26 22:23:55+00:00,2007-08-26 22:23:55+00:00
+commons-logging:commons-logging,org.slf4j:slf4j-api,apereo_java-cas-client,pom.xml,92db0adf6ba1c88034306eec6270b035567bc45d,92db0adf6ba1c88034306eec6270b035567bc45d,"+org.slf4j:slf4j-api
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
+-commons-logging:commons-logging","CASC-202
+
+migrated some to SLF4J
+","CASC-202
+
+migrated some to SLF4J
+",2013-01-08 23:32:35-05:00,2013-01-08 23:32:35-05:00
+commons-logging:commons-logging,org.slf4j:slf4j-api,quartz-scheduler_quartz,quartz/pom.xml,4c09378f3f88fa6d5ae98575499f208fe30d5cef,ba5235ed92fac0b276d4fe2f124cc4b1fa136a4c,"+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12","-commons-logging:commons-logging
+-commons-digester:commons-digester
+-commons-beanutils:commons-beanutils
+-commons-validator:commons-validator
+-commons-modeler:commons-modeler","QTZ-13: discontinue usage of commons-logging, utilize SLF4J.","tag of quartz-1.8.0
+",2010-02-16 04:21:57+00:00,2010-04-23 04:37:50+00:00
+log4j:log4j,ch.qos.logback:logback-classic,psi-probe_psi-probe,pom.xml,1df26cb1f4c834055374ef50ad78f33a612b6347,1df26cb1f4c834055374ef50ad78f33a612b6347,"+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","Convert to using logback natively instead of log4j
+","Convert to using logback natively instead of log4j
+",2016-01-24 01:48:27-05:00,2016-01-24 01:48:27-05:00
+log4j:log4j,ch.qos.logback:logback-classic,flyway_flyway,pom.xml,5c2de10c63972e87905b79ec3e5fe1f4c6593fca,5c2de10c63972e87905b79ec3e5fe1f4c6593fca,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-nop
++org.slf4j:slf4j-jdk14
++ch.qos.logback:logback-classic
+-log4j:log4j","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-nop
++org.slf4j:slf4j-jdk14
++ch.qos.logback:logback-classic
+-log4j:log4j","Migrated to logback
+","Migrated to logback
+",2015-01-12 10:56:48-05:00,2015-01-12 10:56:48-05:00
+log4j:log4j,org.slf4j:slf4j-api,xjdr_xio,pom.xml,b9cdf140b79a8a560fd78069b4310ca162ac4423,b9cdf140b79a8a560fd78069b4310ca162ac4423,"+io.netty:netty-tcnative-boringssl-static
++org.apache.curator:curator-test
++org.codehaus.groovy:groovy-all
++org.eclipse.jdt.core.compiler:ecj
++com.puppycrawl.tools:checkstyle
++ch.qos.logback:logback-core
++org.apache.thrift:libthrift
++org.projectlombok:lombok
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++com.typesafe:config
+-io.netty:netty-tcnative
+-log4j:log4j","+io.netty:netty-tcnative-boringssl-static
++org.apache.curator:curator-test
++org.codehaus.groovy:groovy-all
++org.eclipse.jdt.core.compiler:ecj
++com.puppycrawl.tools:checkstyle
++ch.qos.logback:logback-core
++org.apache.thrift:libthrift
++org.projectlombok:lombok
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++com.typesafe:config
+-io.netty:netty-tcnative
+-log4j:log4j","Move from log4j to slf4j
+","Move from log4j to slf4j
+",2016-08-04 19:06:16-05:00,2016-08-04 19:06:16-05:00
+log4j:log4j,org.slf4j:log4j-over-slf4j,protegeproject_protege,protege-common/pom.xml,04cce4549f6340ab0afee0893d4c588f13f12d3e,04cce4549f6340ab0afee0893d4c588f13f12d3e,"+org.slf4j:jul-to-slf4j
++org.slf4j:log4j-over-slf4j
+-log4j:log4j","+org.slf4j:jul-to-slf4j
++org.slf4j:log4j-over-slf4j
+-log4j:log4j","Change log4j to log4j-over-slf.  Use aopalliance and java-inject bundles.
+","Change log4j to log4j-over-slf.  Use aopalliance and java-inject bundles.
+",2015-11-08 13:55:26-08:00,2015-11-08 13:55:26-08:00
+log4j:log4j,org.apache.logging.log4j:log4j-core,webanno_webanno,webanno-webapp/pom.xml,def2a3f80902704c5f97a8ae9f89cab336b32fe4,def2a3f80902704c5f97a8ae9f89cab336b32fe4,"+org.slf4j:jcl-over-slf4j
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
++org.slf4j:log4j-over-slf4j
++commons-logging:commons-logging
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","+org.slf4j:jcl-over-slf4j
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
++org.slf4j:log4j-over-slf4j
++commons-logging:commons-logging
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","#430 - Refactoring project structure
+- Switch to log4j2
+- Create the project logs properly through routing via slf4j and log4j2 instead of manually setting up and tearing down appenders
+","#430 - Refactoring project structure
+- Switch to log4j2
+- Create the project logs properly through routing via slf4j and log4j2 instead of manually setting up and tearing down appenders
+",2017-03-12 01:31:34+01:00,2017-03-12 01:31:34+01:00
+org.slf4j:slf4j-log4j12,ch.qos.logback:logback-core,Jnoee_coo,pom.xml,06e27d5ad2c22b666f592fe842c94b8e45422e88,06e27d5ad2c22b666f592fe842c94b8e45422e88,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-access
++ch.qos.logback:logback-classic
++ch.qos.logback:logback-core
+-org.slf4j:slf4j-log4j12","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-access
++ch.qos.logback:logback-classic
++ch.qos.logback:logback-core
+-org.slf4j:slf4j-log4j12",logback替换log4j。,logback替换log4j。,2014-11-05 10:57:19+08:00,2014-11-05 10:57:19+08:00
+org.testng:testng,junit:junit,seam_rest,pom.xml,004c611f3da06c04d01148247f5b57d24ebf6765,004c611f3da06c04d01148247f5b57d24ebf6765,"+junit:junit
++org.jboss.arquillian:arquillian-junit
+-org.jboss.arquillian:arquillian-testng
+-org.testng:testng","+junit:junit
++org.jboss.arquillian:arquillian-junit
+-org.jboss.arquillian:arquillian-testng
+-org.testng:testng","Switch to JUnit.
+Got all tests running on GF3 remote.
+","Switch to JUnit.
+Got all tests running on GF3 remote.
+",2010-10-25 13:36:26+02:00,2010-10-25 13:36:26+02:00
+org.testng:testng,junit:junit,seam_rest,impl/pom.xml,004c611f3da06c04d01148247f5b57d24ebf6765,004c611f3da06c04d01148247f5b57d24ebf6765,"+org.jboss.logging:jboss-logging
++javax.el:el-api
++junit:junit
++org.jboss.arquillian:arquillian-junit
+-org.jboss.arquillian:arquillian-testng
+-org.testng:testng","+org.jboss.logging:jboss-logging
++javax.el:el-api
++junit:junit
++org.jboss.arquillian:arquillian-junit
+-org.jboss.arquillian:arquillian-testng
+-org.testng:testng","Switch to JUnit.
+Got all tests running on GF3 remote.
+","Switch to JUnit.
+Got all tests running on GF3 remote.
+",2010-10-25 13:36:26+02:00,2010-10-25 13:36:26+02:00
+log4j:log4j,org.slf4j:slf4j-api,umlet_umlet,umlet-swing/pom.xml,017a222d89d312f0575c72131a4b8969f54caa58,017a222d89d312f0575c72131a4b8969f54caa58,"+org.slf4j:slf4j-api
+-log4j:log4j","+org.slf4j:slf4j-api
+-log4j:log4j",#340: switch from log4j to slf4j,#340: switch from log4j to slf4j,2016-01-01 15:48:36+01:00,2016-01-01 15:48:36+01:00
+log4j:log4j,org.slf4j:slf4j-api,umlet_umlet,umlet-elements/pom.xml,017a222d89d312f0575c72131a4b8969f54caa58,017a222d89d312f0575c72131a4b8969f54caa58,"+org.slf4j:slf4j-api
+-log4j:log4j","+org.slf4j:slf4j-api
+-log4j:log4j",#340: switch from log4j to slf4j,#340: switch from log4j to slf4j,2016-01-01 15:48:36+01:00,2016-01-01 15:48:36+01:00
+org.mockito:mockito-all,org.hamcrest:hamcrest-all,atlanmod_NeoEMF,graph/blueprints/pom.xml,0188e9aa280b800710848d68a93af4cb28b050da,0188e9aa280b800710848d68a93af4cb28b050da,"+org.hamcrest:hamcrest-all
+-org.mockito:mockito-all
+-org.hamcrest:hamcrest-integration","+org.hamcrest:hamcrest-all
+-org.mockito:mockito-all
+-org.hamcrest:hamcrest-integration","Improve tests.
+
+- Replace JUnit assertions by Hamcrest matchers for a better readability of result and code.
+- _pox.xml_ : Remove the useless `class/target` path for OSGi bundle.
+- _pox.xml_ : Sort dependencies for tests, add a scope `test`, and excluding `hamcrest-core` of JUnit and Mockito dependencies.
+- Reformat test and clean unused imports.
+- Comment assertions in production code.
+","Improve tests.
+
+- Replace JUnit assertions by Hamcrest matchers for a better readability of result and code.
+- _pox.xml_ : Remove the useless `class/target` path for OSGi bundle.
+- _pox.xml_ : Sort dependencies for tests, add a scope `test`, and excluding `hamcrest-core` of JUnit and Mockito dependencies.
+- Reformat test and clean unused imports.
+- Comment assertions in production code.
+",2016-05-05 14:13:31+02:00,2016-05-05 14:13:31+02:00
+log4j:log4j,org.slf4j:slf4j-api,apache_chemistry-opencmis,pom.xml,019fb4b46f3930bce36fa0270baa9e8a67e97d32,019fb4b46f3930bce36fa0270baa9e8a67e97d32,"+org.slf4j:slf4j-api
+-commons-codec:commons-codec
+-log4j:log4j
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
+-commons-codec:commons-codec
+-log4j:log4j
+-commons-logging:commons-logging","CMIS-525: replaced Commons Logging with SLF4J
+
+git-svn-id: https://svn.apache.org/repos/asf/chemistry/opencmis/trunk@1331791 13f79535-47bb-0310-9956-ffa450edef68
+","CMIS-525: replaced Commons Logging with SLF4J
+
+git-svn-id: https://svn.apache.org/repos/asf/chemistry/opencmis/trunk@1331791 13f79535-47bb-0310-9956-ffa450edef68
+",2012-04-28 16:33:35+00:00,2012-04-28 16:33:35+00:00
+commons-logging:commons-logging,org.slf4j:slf4j-api,apache_chemistry-opencmis,pom.xml,019fb4b46f3930bce36fa0270baa9e8a67e97d32,019fb4b46f3930bce36fa0270baa9e8a67e97d32,"+org.slf4j:slf4j-api
+-commons-codec:commons-codec
+-log4j:log4j
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
+-commons-codec:commons-codec
+-log4j:log4j
+-commons-logging:commons-logging","CMIS-525: replaced Commons Logging with SLF4J
+
+git-svn-id: https://svn.apache.org/repos/asf/chemistry/opencmis/trunk@1331791 13f79535-47bb-0310-9956-ffa450edef68
+","CMIS-525: replaced Commons Logging with SLF4J
+
+git-svn-id: https://svn.apache.org/repos/asf/chemistry/opencmis/trunk@1331791 13f79535-47bb-0310-9956-ffa450edef68
+",2012-04-28 16:33:35+00:00,2012-04-28 16:33:35+00:00
+log4j:log4j,org.slf4j:jcl-over-slf4j,Jasig_uPortal,uportal-war/pom.xml,01c701923193f485bdd01ea4cb79b88723ca01fe,01c701923193f485bdd01ea4cb79b88723ca01fe,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","UP-3531 Switch to slf4j + logback
+","UP-3531 Switch to slf4j + logback
+",2012-08-01 13:15:18-05:00,2012-08-01 13:15:18-05:00
+log4j:log4j,org.slf4j:log4j-over-slf4j,Jasig_uPortal,uportal-war/pom.xml,01c701923193f485bdd01ea4cb79b88723ca01fe,01c701923193f485bdd01ea4cb79b88723ca01fe,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","UP-3531 Switch to slf4j + logback
+","UP-3531 Switch to slf4j + logback
+",2012-08-01 13:15:18-05:00,2012-08-01 13:15:18-05:00
+log4j:log4j,ch.qos.logback:logback-classic,Jasig_uPortal,uportal-war/pom.xml,01c701923193f485bdd01ea4cb79b88723ca01fe,01c701923193f485bdd01ea4cb79b88723ca01fe,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","UP-3531 Switch to slf4j + logback
+","UP-3531 Switch to slf4j + logback
+",2012-08-01 13:15:18-05:00,2012-08-01 13:15:18-05:00
+commons-logging:commons-logging,org.slf4j:jcl-over-slf4j,Jasig_uPortal,uportal-war/pom.xml,01c701923193f485bdd01ea4cb79b88723ca01fe,01c701923193f485bdd01ea4cb79b88723ca01fe,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","UP-3531 Switch to slf4j + logback
+","UP-3531 Switch to slf4j + logback
+",2012-08-01 13:15:18-05:00,2012-08-01 13:15:18-05:00
+commons-logging:commons-logging,org.slf4j:log4j-over-slf4j,Jasig_uPortal,uportal-war/pom.xml,01c701923193f485bdd01ea4cb79b88723ca01fe,01c701923193f485bdd01ea4cb79b88723ca01fe,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","UP-3531 Switch to slf4j + logback
+","UP-3531 Switch to slf4j + logback
+",2012-08-01 13:15:18-05:00,2012-08-01 13:15:18-05:00
+commons-logging:commons-logging,ch.qos.logback:logback-classic,Jasig_uPortal,uportal-war/pom.xml,01c701923193f485bdd01ea4cb79b88723ca01fe,01c701923193f485bdd01ea4cb79b88723ca01fe,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-org.slf4j:slf4j-jcl
+-log4j:log4j
+-commons-logging:commons-logging-api
+-commons-logging:commons-logging","UP-3531 Switch to slf4j + logback
+","UP-3531 Switch to slf4j + logback
+",2012-08-01 13:15:18-05:00,2012-08-01 13:15:18-05:00
+commons-httpclient:commons-httpclient,org.apache.httpcomponents:httpclient,jenkinsci_swarm-plugin,client/pom.xml,02890f24425b26e1312d82490d9c1b277c64b0f8,02890f24425b26e1312d82490d9c1b277c64b0f8,"+org.kohsuke:access-modifier-annotation
++org.apache.httpcomponents:httpclient
++org.slf4j:slf4j-jdk14
+-commons-httpclient:commons-httpclient","+org.kohsuke:access-modifier-annotation
++org.apache.httpcomponents:httpclient
++org.slf4j:slf4j-jdk14
+-commons-httpclient:commons-httpclient","Migrate from Commons HttpClient 3.x to HttpComponents Client 4.x
+","Migrate from Commons HttpClient 3.x to HttpComponents Client 4.x
+",2019-06-02 08:39:32-07:00,2019-06-02 08:39:32-07:00
+commons-logging:commons-logging,org.slf4j:slf4j-api,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+commons-logging:commons-logging,org.slf4j:jcl-over-slf4j,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+commons-logging:commons-logging,org.slf4j:log4j-over-slf4j,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+commons-logging:commons-logging,ch.qos.logback:logback-classic,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+log4j:log4j,org.slf4j:slf4j-api,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+log4j:log4j,org.slf4j:jcl-over-slf4j,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+log4j:log4j,org.slf4j:log4j-over-slf4j,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+log4j:log4j,ch.qos.logback:logback-classic,ZyorTaelon_eveapi,trunk/pom.xml,028c96326a871871e65a4f51ad8bc5c21ef20fcc,028c96326a871871e65a4f51ad8bc5c21ef20fcc,"+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+commons-beanutils:commons-beanutils
++org.freemarker:freemarker
++org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.slf4j:log4j-over-slf4j
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum","- switched to SLF4J logger
+- cleaned up dependencies
+- Made JournalParser use RefType enum",2010-12-05 20:53:12+00:00,2010-12-05 20:53:12+00:00
+commons-logging:commons-logging,org.slf4j:slf4j-api,hibernate_hibernate-validator,pom.xml,02f014021e3274b9e965a1fb5b108195c4d38787,02f014021e3274b9e965a1fb5b108195c4d38787,"+org.slf4j:slf4j-api
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
+-commons-logging:commons-logging","HV-57 move to slf4j
+
+git-svn-id: https://svn.jboss.org/repos/hibernate/validator/trunk@14673 1b8cb986-b30d-0410-93ca-fae66ebed9b2
+","HV-57 move to slf4j
+
+git-svn-id: https://svn.jboss.org/repos/hibernate/validator/trunk@14673 1b8cb986-b30d-0410-93ca-fae66ebed9b2
+",2008-05-17 12:52:14+00:00,2008-05-17 12:52:14+00:00
+ch.qos.logback:logback-core,org.slf4j:slf4j-log4j12,alexo_wro4j,wro4j-maven-plugin/pom.xml,03133f87f061da3686c4ae87c006df7e46c79e6e,03133f87f061da3686c4ae87c006df7e46c79e6e,"+org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-core","+org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-core","use slf4j-log4j12 instead of logback
+","use slf4j-log4j12 instead of logback
+",2013-01-22 23:47:23+02:00,2013-01-22 23:47:23+02:00
+ch.qos.logback:logback-core,org.slf4j:slf4j-log4j12,alexo_wro4j,wro4j-runner/pom.xml,03133f87f061da3686c4ae87c006df7e46c79e6e,03133f87f061da3686c4ae87c006df7e46c79e6e,"+org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-core","+org.slf4j:slf4j-log4j12
+-ch.qos.logback:logback-core","use slf4j-log4j12 instead of logback
+","use slf4j-log4j12 instead of logback
+",2013-01-22 23:47:23+02:00,2013-01-22 23:47:23+02:00
+org.testng:testng,junit:junit,alexruiz_fest-swing-1.x,fest-reflect/pom.xml,033bdd7832ca9a9647c8f7b7ecaa985d3115b206,033bdd7832ca9a9647c8f7b7ecaa985d3115b206,"+junit:junit
+-org.testng:testng","+junit:junit
+-org.testng:testng","IN PROGRESS - issue FEST-235: Add API to reflect bean properties 
+http://jira.codehaus.org/browse/FEST-235
+
+* Updated dependencies to latest versions (FEST-Util, FEST-Assert and FEST-Test.)
+* Migrated tests to JUnit.
+* Reorganized tests into smaller units.
+","IN PROGRESS - issue FEST-235: Add API to reflect bean properties 
+http://jira.codehaus.org/browse/FEST-235
+
+* Updated dependencies to latest versions (FEST-Util, FEST-Assert and FEST-Test.)
+* Migrated tests to JUnit.
+* Reorganized tests into smaller units.
+",2009-11-23 21:09:21+00:00,2009-11-23 21:09:21+00:00
+org.testng:testng,junit:junit,joel-costigliola_assertj-swing,fest-reflect/pom.xml,033bdd7832ca9a9647c8f7b7ecaa985d3115b206,033bdd7832ca9a9647c8f7b7ecaa985d3115b206,"+junit:junit
+-org.testng:testng","+junit:junit
+-org.testng:testng","IN PROGRESS - issue FEST-235: Add API to reflect bean properties 
+http://jira.codehaus.org/browse/FEST-235
+
+* Updated dependencies to latest versions (FEST-Util, FEST-Assert and FEST-Test.)
+* Migrated tests to JUnit.
+* Reorganized tests into smaller units.
+","IN PROGRESS - issue FEST-235: Add API to reflect bean properties 
+http://jira.codehaus.org/browse/FEST-235
+
+* Updated dependencies to latest versions (FEST-Util, FEST-Assert and FEST-Test.)
+* Migrated tests to JUnit.
+* Reorganized tests into smaller units.
+",2009-11-23 21:09:21+00:00,2009-11-23 21:09:21+00:00
+com.google.collections:google-collections,com.google.guava:guava,apache_shindig,java/samples/pom.xml,039941211740f7adeedc9c7549ebc0855e728fca,039941211740f7adeedc9c7549ebc0855e728fca,"+com.google.guava:guava
+-commons-collections:commons-collections
+-com.google.collections:google-collections","+com.google.guava:guava
+-commons-collections:commons-collections
+-com.google.collections:google-collections","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+",2010-08-10 08:45:27+00:00,2010-08-10 08:45:27+00:00
+com.google.collections:google-collections,com.google.guava:guava,apache_shindig,java/gadgets/pom.xml,039941211740f7adeedc9c7549ebc0855e728fca,039941211740f7adeedc9c7549ebc0855e728fca,"+com.google.guava:guava
+-com.google.collections:google-collections","+com.google.guava:guava
+-com.google.collections:google-collections","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+",2010-08-10 08:45:27+00:00,2010-08-10 08:45:27+00:00
+com.google.collections:google-collections,com.google.guava:guava,apache_shindig,pom.xml,039941211740f7adeedc9c7549ebc0855e728fca,039941211740f7adeedc9c7549ebc0855e728fca,"+com.google.guava:guava
+-com.google.collections:google-collections","+com.google.guava:guava
+-com.google.collections:google-collections","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+",2010-08-10 08:45:27+00:00,2010-08-10 08:45:27+00:00
+com.google.collections:google-collections,com.google.guava:guava,apache_shindig,java/social-api/pom.xml,039941211740f7adeedc9c7549ebc0855e728fca,039941211740f7adeedc9c7549ebc0855e728fca,"+com.google.guava:guava
+-com.google.collections:google-collections","+com.google.guava:guava
+-com.google.collections:google-collections","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+",2010-08-10 08:45:27+00:00,2010-08-10 08:45:27+00:00
+com.google.collections:google-collections,com.google.guava:guava,apache_shindig,java/common/pom.xml,039941211740f7adeedc9c7549ebc0855e728fca,039941211740f7adeedc9c7549ebc0855e728fca,"+org.apache.tomcat:el-api
++com.google.guava:guava
++com.google.code.findbugs:jsr305
++org.apache.tomcat:jasper-el
+-com.google.collections:google-collections
+-de.odysseus.juel:juel-api","+org.apache.tomcat:el-api
++com.google.guava:guava
++com.google.code.findbugs:jsr305
++org.apache.tomcat:jasper-el
+-com.google.collections:google-collections
+-de.odysseus.juel:juel-api","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+","SHINDIG-1406 | replace google-collections with guava
+
+git-svn-id: https://svn.apache.org/repos/asf/shindig/trunk@983884 13f79535-47bb-0310-9956-ffa450edef68
+",2010-08-10 08:45:27+00:00,2010-08-10 08:45:27+00:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-api,moodysalem_java-phantomjs-wrapper,pom.xml,039cbf9e9b6bc5cfa0c16f66325019694f5d5b73,5b34b6cb152bd727946437232f3acd72e0e453e6,"+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic",-ch.qos.logback:logback-classic,"Changed logger to SLF4J
+
++ Added test-output from testng to .gitignore
++ Replaced java.util.logging with SLF4J
+  see: ttps://www.slf4j.org/apidocs/org/slf4j/bridge/SLF4JBridgeHandler.html
++ Used logback as SLF4J implementation
+","[maven-release-plugin] prepare release phantomjs-wrapper-parent-3.1.2
+",2017-03-17 23:45:41+01:00,2017-08-14 08:43:42-04:00
+ch.qos.logback:logback-classic,org.slf4j:slf4j-api,moodysalem_java-phantomjs-wrapper,wrapper/pom.xml,039cbf9e9b6bc5cfa0c16f66325019694f5d5b73,1c0e8e4018636c6dd878d103b49cbfe3e5133b14,"+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic",-ch.qos.logback:logback-classic,"Changed logger to SLF4J
+
++ Added test-output from testng to .gitignore
++ Replaced java.util.logging with SLF4J
+  see: ttps://www.slf4j.org/apidocs/org/slf4j/bridge/SLF4JBridgeHandler.html
++ Used logback as SLF4J implementation
+","Removed SLF4J implementation
+",2017-03-17 23:45:41+01:00,2017-06-24 18:03:08+02:00
+org.mockito:mockito-all,org.hamcrest:hamcrest-core,infinispan_infinispan,core/pom.xml,04c699ac2ac2e8b615a1314bacdc624a90e9774d,04c699ac2ac2e8b615a1314bacdc624a90e9774d,"+org.mockito:mockito-core
++org.hamcrest:hamcrest-core
+-org.mockito:mockito-all
+-org.apache.karaf.features:framework","+org.mockito:mockito-core
++org.hamcrest:hamcrest-core
+-org.mockito:mockito-all
+-org.apache.karaf.features:framework","ISPN-7808 Upgrade to mockito-core 2.7.21
+
+* Fix JpaStoreIT failures
+* Replace usages of deprecated mockito API
+* Replace any(Class) with any() or isNull() where necessary
+* Add a Mocks utility class to help when delegation is needed
+  but Mockito.spy() doesn't work
+","ISPN-7808 Upgrade to mockito-core 2.7.21
+
+* Fix JpaStoreIT failures
+* Replace usages of deprecated mockito API
+* Replace any(Class) with any() or isNull() where necessary
+* Add a Mocks utility class to help when delegation is needed
+  but Mockito.spy() doesn't work
+",2017-05-08 18:04:51+03:00,2017-05-08 18:04:51+03:00
+org.easymock:easymock,org.mockito:mockito-all,johncarl81_transfuse,transfuse/pom.xml,0583be33a5096ca9362b048cad416e4977b4b4d5,0583be33a5096ca9362b048cad416e4977b4b4d5,"+commons-collections:commons-collections
++org.mockito:mockito-all
++org.powermock:powermock-api-mockito
+-org.powermock:powermock-api-easymock
+-org.easymock:easymock","+commons-collections:commons-collections
++org.mockito:mockito-all
++org.powermock:powermock-api-mockito
+-org.powermock:powermock-api-easymock
+-org.easymock:easymock","Switched from easymock to mockito
+","Switched from easymock to mockito
+",2012-06-17 20:37:19-06:00,2012-06-17 20:37:19-06:00
+org.easymock:easymock,org.powermock:powermock-api-mockito,johncarl81_transfuse,transfuse/pom.xml,0583be33a5096ca9362b048cad416e4977b4b4d5,0583be33a5096ca9362b048cad416e4977b4b4d5,"+commons-collections:commons-collections
++org.mockito:mockito-all
++org.powermock:powermock-api-mockito
+-org.powermock:powermock-api-easymock
+-org.easymock:easymock","+commons-collections:commons-collections
++org.mockito:mockito-all
++org.powermock:powermock-api-mockito
+-org.powermock:powermock-api-easymock
+-org.easymock:easymock","Switched from easymock to mockito
+","Switched from easymock to mockito
+",2012-06-17 20:37:19-06:00,2012-06-17 20:37:19-06:00
+org.easymock:easymock,org.mockito:mockito-all,mdeinum_spring-utils,pom.xml,e33a299663c574d8da68aaa82f132904a670c0db,e33a299663c574d8da68aaa82f132904a670c0db,"+com.google.guava:guava
++org.springframework.batch:spring-batch-infrastructure
++net.sourceforge.jexcelapi:jxl
++org.springframework.batch:spring-batch-core
++org.mockito:mockito-all
++org.slf4j:jcl-over-slf4j
+-org.springframework:spring-webflow
+-org.easymock:easymock","+com.google.guava:guava
++org.springframework.batch:spring-batch-infrastructure
++net.sourceforge.jexcelapi:jxl
++org.springframework.batch:spring-batch-core
++org.mockito:mockito-all
++org.slf4j:jcl-over-slf4j
+-org.springframework:spring-webflow
+-org.easymock:easymock","Moved to Spring 3.0.5.
+Moved from EasyMock to Mockito.
+Moved to JUnit 4.8.2.
+Added ExcelItemReader for Spring Batch.
+Added copyright notices to files.
+","Moved to Spring 3.0.5.
+Moved from EasyMock to Mockito.
+Moved to JUnit 4.8.2.
+Added ExcelItemReader for Spring Batch.
+Added copyright notices to files.
+",2011-07-15 09:51:45+02:00,2011-07-15 09:51:45+02:00
+org.easymock:easymock,org.mockito:mockito-core,qos-ch_logback-extensions,pom.xml,cf44d61d5dbcfddf4dadd1599d56c9502fd42bb8,cf44d61d5dbcfddf4dadd1599d56c9502fd42bb8,"+org.mockito:mockito-core
+-com.googlecode.jmockit:jmockit
+-org.easymock:easymock","+org.mockito:mockito-core
+-com.googlecode.jmockit:jmockit
+-org.easymock:easymock","Replace jmockit and easymock with mockito
+
+jmockit and easymock weren't actually used. And jmockit has an
+unfriendly dependency on some JAR/DLL. I prefer Mockito anyway :)
+
+Fixes #19
+","Replace jmockit and easymock with mockito
+
+jmockit and easymock weren't actually used. And jmockit has an
+unfriendly dependency on some JAR/DLL. I prefer Mockito anyway :)
+
+Fixes #19
+",2014-02-27 00:09:36-06:00,2014-02-27 00:09:36-06:00
+org.hamcrest:hamcrest-core,org.easytesting:fest-assert-core,glowroot_glowroot,plugin-testkit/pom.xml,05263e72192e1c3a75f1971dfaf4bd5eac3886e6,05263e72192e1c3a75f1971dfaf4bd5eac3886e6,"+org.easytesting:fest-assert-core
+-org.hamcrest:hamcrest-core","+org.easytesting:fest-assert-core
+-org.hamcrest:hamcrest-core","Convert from hamcrest to fest
+
+Fest is awesome. The tests read better, and fest's fluent matchers are
+way easier to find (via auto-complete) than the static imported hamcrest
+matchers.
+","Convert from hamcrest to fest
+
+Fest is awesome. The tests read better, and fest's fluent matchers are
+way easier to find (via auto-complete) than the static imported hamcrest
+matchers.
+",2012-07-23 02:14:13-07:00,2012-07-23 02:14:13-07:00
+org.hamcrest:hamcrest-core,org.easytesting:fest-assert-core,resthub_resthub-spring-stack,resthub-test/pom.xml,69c826361589331a645de44966500986cb853d82,69c826361589331a645de44966500986cb853d82,"+org.easytesting:fest-assert-core
+-org.hamcrest:hamcrest-core","+org.easytesting:fest-assert-core
+-org.hamcrest:hamcrest-core","Switch from Hamcrest to Fest Assert
+","Switch from Hamcrest to Fest Assert
+",2012-04-22 23:55:57+02:00,2012-04-22 23:55:57+02:00
+org.hamcrest:hamcrest-library,org.easytesting:fest-assert,ralscha_extdirectspring,pom.xml,10c34da524200b23886dfafcd4465a685f96ed69,10c34da524200b23886dfafcd4465a685f96ed69,"+org.easytesting:fest-assert
+-org.hamcrest:hamcrest-library","+org.easytesting:fest-assert
+-org.hamcrest:hamcrest-library","switch from hamcrest to fest
+","switch from hamcrest to fest
+",2011-07-27 14:07:49+00:00,2011-07-27 14:07:49+00:00
+org.hamcrest:hamcrest-library,org.easytesting:fest-assert-core,glowroot_glowroot,jdbc-plugin/pom.xml,05263e72192e1c3a75f1971dfaf4bd5eac3886e6,05263e72192e1c3a75f1971dfaf4bd5eac3886e6,"+org.easytesting:fest-assert-core
+-org.hamcrest:hamcrest-library
+-org.hamcrest:hamcrest-core","+org.easytesting:fest-assert-core
+-org.hamcrest:hamcrest-library
+-org.hamcrest:hamcrest-core","Convert from hamcrest to fest
+
+Fest is awesome. The tests read better, and fest's fluent matchers are
+way easier to find (via auto-complete) than the static imported hamcrest
+matchers.
+","Convert from hamcrest to fest
+
+Fest is awesome. The tests read better, and fest's fluent matchers are
+way easier to find (via auto-complete) than the static imported hamcrest
+matchers.
+",2012-07-23 02:14:13-07:00,2012-07-23 02:14:13-07:00
+org.jmock:jmock,org.mockito:mockito-all,bobmcwhirter_drools,pom.xml,92384035a8651b675c82689b24837eb8adb81d66,0df25aead759b3b542a685ac21a3a009bcd22fe9,+org.mockito:mockito-all,"-org.jmock:jmock
+-org.jmock:jmock-legacy","JBRULES-2339: JBRULES-2340: merging true modify into trunk
+
+git-svn-id: http://anonsvn.jboss.org/repos/labs/labs/jbossrules/trunk@31876 c60d74c8-e8f6-0310-9e8f-d4a2fc68ab70
+","Replacing jmock by mockito. Upgrading to junit 4.8.1.
+
+git-svn-id: http://anonsvn.jboss.org/repos/labs/labs/jbossrules/trunk@31915 c60d74c8-e8f6-0310-9e8f-d4a2fc68ab70
+",2010-02-28 23:53:10+00:00,2010-03-03 15:28:38+00:00
+org.jmock:jmock-junit4,org.mockito:mockito-core,appfuse_appfuse-light,struts/pom.xml,224dc7d75fa74d969370256dbded032e9b02f7df,f0a4ec56af1a8c26ccd41a99d22e57a3d9f0b160,+org.mockito:mockito-core,"-org.jmock:jmock
+-junit:junit-dep
+-org.jmock:jmock-junit4","EQX-231: Add Mockito as a dependency so appfuse:gen works.
+","EQX-231: Migrated to Mockito from JMock.
+",2013-01-26 15:29:13-07:00,2014-11-07 10:54:24-07:00
+org.json:json,com.googlecode.json-simple:json-simple,apache_hive,common/pom.xml,8528ba8ff15b424865478f1da6575250f35dbd7e,8528ba8ff15b424865478f1da6575250f35dbd7e,"+commons-logging:commons-logging
++log4j:log4j
++log4j:apache-log4j-extras
++org.apache.hadoop:hadoop-core
++com.googlecode.json-simple:json-simple
+-org.apache.logging.log4j:log4j-web
+-org.apache.logging.log4j:log4j-1.2-api
+-org.eclipse.jetty.orbit:javax.servlet
+-org.apache.orc:orc-core
+-com.github.joshelser:dropwizard-metrics-hadoop-metrics2-reporter
+-org.apache.commons:commons-lang3
+-org.json:json
+-jline:jline
+-org.eclipse.jetty.aggregate:jetty-all
+-org.apache.logging.log4j:log4j-slf4j-impl
+-com.lmax:disruptor
+-org.apache.hive:hive-storage-api","+commons-logging:commons-logging
++log4j:log4j
++log4j:apache-log4j-extras
++org.apache.hadoop:hadoop-core
++com.googlecode.json-simple:json-simple
+-org.apache.logging.log4j:log4j-web
+-org.apache.logging.log4j:log4j-1.2-api
+-org.eclipse.jetty.orbit:javax.servlet
+-org.apache.orc:orc-core
+-com.github.joshelser:dropwizard-metrics-hadoop-metrics2-reporter
+-org.apache.commons:commons-lang3
+-org.json:json
+-jline:jline
+-org.eclipse.jetty.aggregate:jetty-all
+-org.apache.logging.log4j:log4j-slf4j-impl
+-com.lmax:disruptor
+-org.apache.hive:hive-storage-api","HIVE-15224: replace org.json usage in branch-1 with as minor changes as possible (Daniel Voros via Zoltan Haindrich)
+
+Signed-off-by: Zoltan Haindrich <kirk@rxd.hu>
+","HIVE-15224: replace org.json usage in branch-1 with as minor changes as possible (Daniel Voros via Zoltan Haindrich)
+
+Signed-off-by: Zoltan Haindrich <kirk@rxd.hu>
+",2017-05-08 08:32:39+02:00,2017-05-08 08:32:39+02:00
+org.json:json,org.codehaus.jackson:jackson-mapper-asl,apache_incubator-pinot,pinot-broker/pom.xml,7c90c763c069f6f7b8db1756158805eb8e7655d5,21da994b910eb857c8e9c47078987cb7aee9c945,+org.codehaus.jackson:jackson-mapper-asl,"+com.linkedin.pinot:pinot-controller
++com.linkedin.pinot:pinot-common
++com.linkedin.pinot:pinot-transport
++com.linkedin.pinot:pinot-server
++com.linkedin.pinot:pinot-core
+-org.apache.pinot:pinot-core
+-org.apache.pinot:pinot-common
+-org.apache.pinot:pinot-controller
+-org.apache.pinot:pinot-transport
+-org.json:json
+-com.alibaba:fastjson
+-org.codehaus.jackson:jackson-mapper-asl
+-org.apache.pinot:pinot-server","Update license year to 2014-2016 (#193)
+
+Reviewer: Joe
+","Unify all JSON usage to fasterxml.jackson package
+
+Remove the usage of json package from org.json, org.codehaus.jackson, com.google.code.gson, com.alibaba
+Add JsonUtils class to reuse ObjectMapper and provide util methods
+",2016-06-13 14:41:18-07:00,2019-01-10 18:52:26-08:00
+org.json:json,org.codehaus.jackson:jackson-xc,apache_incubator-pinot,pom.xml,58791127a539c0b8db19c871ceacde5792f6f615,21da994b910eb857c8e9c47078987cb7aee9c945,"+org.apache.hadoop:hadoop-mapreduce-client-core
++org.codehaus.jackson:jackson-core-asl
++org.apache.hadoop:hadoop-common
++org.codehaus.jackson:jackson-jaxrs
++org.apache.hadoop:hadoop-hdfs
++org.codehaus.jackson:jackson-xc","+com.linkedin.pinot:pinot-azure-filesystem
++com.fasterxml.jackson.dataformat:jackson-dataformat-yaml
++com.linkedin.pinot:pinot-hadoop
++com.linkedin.pinot:pinot-server
++com.linkedin.pinot:pinot-broker
++com.linkedin.pinot:pinot-common
++com.linkedin.pinot:pinot-filesystem
++com.linkedin.pinot:pinot-hadoop-filesystem
++com.linkedin.pinot:pinot-controller
++com.fasterxml.jackson.dataformat:jackson-dataformat-xml
++com.linkedin.pinot:pinot-tools
++com.linkedin.pinot:pinot-perf
++com.fasterxml.jackson.datatype:jackson-datatype-joda
++com.fasterxml.jackson.jaxrs:jackson-jaxrs-base
++com.linkedin.pinot:pinot-transport
++com.linkedin.pinot:pinot-core
++com.linkedin.pinot:pinot-api
++com.linkedin.pinot:pinot-minion
+-com.google.code.gson:gson
+-org.apache.pinot:pinot-common
+-org.apache.pinot:pinot-hadoop-filesystem
+-org.apache.pinot:pinot-api
+-org.apache.pinot:pinot-controller
+-org.json:json
+-org.apache.pinot:pinot-minion
+-org.apache.pinot:pinot-hadoop
+-org.apache.pinot:pinot-tools
+-org.apache.pinot:pinot-perf
+-org.apache.pinot:pinot-azure-filesystem
+-org.apache.pinot:pinot-transport
+-org.apache.pinot:pinot-filesystem
+-com.alibaba:fastjson
+-org.apache.pinot:pinot-server
+-org.apache.pinot:pinot-broker
+-org.apache.pinot:pinot-core","Pinot hadoop job
+
+RB=496430
+R=xiafu
+A=kgopalak
+","Unify all JSON usage to fasterxml.jackson package
+
+Remove the usage of json package from org.json, org.codehaus.jackson, com.google.code.gson, com.alibaba
+Add JsonUtils class to reuse ObjectMapper and provide util methods
+",2015-06-07 02:45:44-07:00,2019-01-10 18:52:26-08:00
+org.slf4j:slf4j-api,org.apache.logging.log4j:log4j-api,LSIR_gsn,pom.xml,13e2c4b44bb71458c6bbca993b94f2cad30d24c2,13e2c4b44bb71458c6bbca993b94f2cad30d24c2,"+org.fusesource.jansi:jansi
++org.apache.logging.log4j:log4j-core
++org.zeromq:jeromq
++xerces:xercesImpl
++org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
+-log4j:log4j
+-org.slf4j:slf4j-api
+-jeromq:jeromq
+-org.slf4j:slf4j-log4j12
+-org.bytedeco.javacpp-presets:gsl","+org.fusesource.jansi:jansi
++org.apache.logging.log4j:log4j-core
++org.zeromq:jeromq
++xerces:xercesImpl
++org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
+-log4j:log4j
+-org.slf4j:slf4j-api
+-jeromq:jeromq
+-org.slf4j:slf4j-log4j12
+-org.bytedeco.javacpp-presets:gsl","switch log4j to slf4j (and adding log4j2 in dependencies for easy deployment)
+","switch log4j to slf4j (and adding log4j2 in dependencies for easy deployment)
+",2015-09-03 09:49:47+02:00,2015-09-03 09:49:47+02:00
+org.slf4j:slf4j-api,org.apache.logging.log4j:log4j-core,littlefishercoder_littlefisher-system,code/core-base/pom.xml,993d4f61fa66e1a48e23b6a6c8ca13df9c669aee,993d4f61fa66e1a48e23b6a6c8ca13df9c669aee,"+org.apache.logging.log4j:log4j-core
+-log4j:log4j
+-org.slf4j:slf4j-api
+-org.slf4j:slf4j-log4j12","+org.apache.logging.log4j:log4j-core
+-log4j:log4j
+-org.slf4j:slf4j-api
+-org.slf4j:slf4j-log4j12","#44 使用log4j2进行改造
+","#44 使用log4j2进行改造
+",2017-11-01 17:37:19+08:00,2017-11-01 17:37:19+08:00
+org.sonatype.jline:jline,org.fusesource.jansi:jansi,jdillon_gossip,gossip-core/pom.xml,448616313a1e7e354503a897f81473990a1fa0b3,448616313a1e7e354503a897f81473990a1fa0b3,"+org.fusesource.jansi:jansi
+-org.codehaus.groovy:groovy
+-org.sonatype.jline:jline","+org.fusesource.jansi:jansi
+-org.codehaus.groovy:groovy
+-org.sonatype.jline:jline","Replace jline dep with jansi
+","Replace jline dep with jansi
+",2011-02-23 16:48:38-08:00,2011-02-23 16:48:38-08:00
+org.testng:testng,org.jboss.arquillian.junit:arquillian-junit-container,fakereplace_fakereplace,pom.xml,8748fb56532c5f6dabe5457333506e891a386623,8748fb56532c5f6dabe5457333506e891a386623,"+org.jboss.arquillian.junit:arquillian-junit-container
++org.jboss.as:jboss-as-arquillian-container-managed
++junit:junit
+-org.jboss.arquillian.testng:arquillian-testng-container
+-org.testng:testng","+org.jboss.arquillian.junit:arquillian-junit-container
++org.jboss.as:jboss-as-arquillian-container-managed
++junit:junit
+-org.jboss.arquillian.testng:arquillian-testng-container
+-org.testng:testng","Change to JUnit and add beginings of AS7 tests
+","Change to JUnit and add beginings of AS7 tests
+",2012-04-04 08:22:04+10:00,2012-04-04 08:22:04+10:00
+org.testng:testng,org.junit.jupiter:junit-jupiter-api,OpenGamma_Strata,modules/loader/pom.xml,e007f826c49075500def8638de8367960c054c19,e007f826c49075500def8638de8367960c054c19,"+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","Move from TestNG to JUnit 5: strata-market/loader
+
+Mostly created by the conversion tool
+","Move from TestNG to JUnit 5: strata-market/loader
+
+Mostly created by the conversion tool
+",2019-09-03 12:51:01+01:00,2019-09-03 12:51:01+01:00
+org.testng:testng,org.junit.jupiter:junit-jupiter-api,apache_plc4x,plc4j/pom.xml,4312eb178b6cb000ea8a3c78df70567182341331,4312eb178b6cb000ea8a3c78df70567182341331,"+org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","+org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","Use JUnit 5 instead of TestNG
+","Use JUnit 5 instead of TestNG
+",2017-11-17 13:14:31+01:00,2017-11-17 13:14:31+01:00
+org.testng:testng,org.junit.jupiter:junit-jupiter-engine,OpenGamma_Strata,modules/basics/pom.xml,b2b9b629685ebc7e89e9a1667de88f2e878d5fc4,b2b9b629685ebc7e89e9a1667de88f2e878d5fc4,"+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","Move from TestNG to JUnit 5 (#2059)
+
+","Move from TestNG to JUnit 5 (#2059)
+
+",2019-08-13 17:30:18+01:00,2019-08-13 17:30:18+01:00
+org.testng:testng,org.junit.jupiter:junit-jupiter-engine,yahoojapan_multiple-dimension-spread,pom.xml,2550263e5f67e56b040f725a318bb357ed4cc1b2,2550263e5f67e56b040f725a318bb357ed4cc1b2,"+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.testng:testng","MDS-27 Change from TestNG to JUnit
+","MDS-27 Change from TestNG to JUnit
+",2018-12-21 16:35:17+09:00,2018-12-21 16:35:17+09:00
+commons-logging:commons-logging,org.slf4j:slf4j-jdk14,ikasanEIP_ikasan,ikasaneip/exclusion/pom.xml,3a0116562e1b09d7bd803c8b6e0e773f7e04d37b,3a0116562e1b09d7bd803c8b6e0e773f7e04d37b,"+org.slf4j:slf4j-simple
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+org.slf4j:slf4j-simple
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","IKASAN-1225 move to slf4j, cleanup enforcer errors on commons logging
+","IKASAN-1225 move to slf4j, cleanup enforcer errors on commons logging
+",2017-09-07 22:29:38+01:00,2017-09-07 22:29:38+01:00
+commons-logging:commons-logging,org.slf4j:slf4j-log4j12,JWebUnit_jwebunit,pom.xml,f07c16c99003916b3915510556c6ba5ef0895669,f07c16c99003916b3915510556c6ba5ef0895669,"+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
++junitperf:junitperf
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
++junitperf:junitperf
+-commons-logging:commons-logging","Replace commons-logging by slf4j.
+","Replace commons-logging by slf4j.
+",2007-04-01 16:30:24+00:00,2007-04-01 16:30:24+00:00
+commons-logging:commons-logging,org.slf4j:slf4j-log4j12,MoriTanosuke_glacieruploader,glacieruploader-impl/pom.xml,66a9e96130a5c2640022300b0ad21b24845deabe,66a9e96130a5c2640022300b0ad21b24845deabe,"+org.slf4j:slf4j-log4j12
+-org.slf4j:slf4j-jcl
+-commons-logging:commons-logging
+-log4j:log4j","+org.slf4j:slf4j-log4j12
+-org.slf4j:slf4j-jcl
+-commons-logging:commons-logging
+-log4j:log4j","Refactor commands to inject AWS clients and add unit tests
+
+Also use DefaultAWSCredentialsProviderChain instead of own credentials file. This will also support more ways to provide credentials.
+Regions are now used instead of endpoints, but --endpoint is still supported and will be used to parse the region from if --region is not used.
+Logging is switched to SLF4J.
+","Refactor commands to inject AWS clients and add unit tests
+
+Also use DefaultAWSCredentialsProviderChain instead of own credentials file. This will also support more ways to provide credentials.
+Regions are now used instead of endpoints, but --endpoint is still supported and will be used to parse the region from if --region is not used.
+Logging is switched to SLF4J.
+",2017-04-13 11:51:31+02:00,2017-04-13 11:51:31+02:00
+commons-logging:commons-logging,org.slf4j:slf4j-log4j12,apache_calcite-avatica,pom.xml,05a57992a45f9aa66db31355aa7733cfadafa1e1,05a57992a45f9aa66db31355aa7733cfadafa1e1,"+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-commons-logging:commons-logging","[CALCITE-669] Mass removal of Java Logging for SLF4J
+
+Replace FINE with DEBUG, FINER and FINEST with TRACE.
+Includes the slf4j-log4j12 binding for test-time. Attempts
+remove all conditional logging blocks unless there is
+a reason to keep them. Adds forward-looking documentation
+for log-level changes.
+
+Closes apache/calcite#186
+","[CALCITE-669] Mass removal of Java Logging for SLF4J
+
+Replace FINE with DEBUG, FINER and FINEST with TRACE.
+Includes the slf4j-log4j12 binding for test-time. Attempts
+remove all conditional logging blocks unless there is
+a reason to keep them. Adds forward-looking documentation
+for log-level changes.
+
+Closes apache/calcite#186
+",2016-01-27 18:59:10-05:00,2016-01-27 18:59:10-05:00
+commons-logging:commons-logging,org.slf4j:slf4j-log4j12,cloudera_crunch,crunch-core/pom.xml,890e0086a12df5006a23cfdd86f3703f929cb147,6ac770f4ecfff07ddcb7fc341747e0be3f0ad9a0,"+commons-logging:commons-logging
++org.mockito:mockito-all
++org.codehaus.jackson:jackson-core-asl
++com.google.protobuf:protobuf-java
++org.javassist:javassist
++commons-httpclient:commons-httpclient
++com.google.guava:guava
++org.apache.avro:avro-mapred
++org.apache.thrift:libthrift
++commons-codec:commons-codec
++org.slf4j:slf4j-log4j12
++junit:junit
++org.apache.hadoop:hadoop-client
++org.apache.crunch:crunch-test
++org.slf4j:slf4j-api
++org.hamcrest:hamcrest-all
++org.codehaus.jackson:jackson-mapper-asl
++org.apache.avro:avro",-commons-logging:commons-logging,"CRUNCH-196: crunch -> crunch-core rename to fix build issues
+","CRUNCH-476: Consolidated use of logging in projects to us SLF4J, dependency cleanup, and a few javadoc fixes.
+
+CRUNCH-476: Uplifted logging to use slf4j formatting vs pre-formatting messages, also removed dependency on commons-logging.
+(cherry picked from commit 82cecc0cea64cb3cd47d6bc0c9562e49509b34ca)
+",2013-04-23 13:39:00-07:00,2017-01-27 17:04:11+01:00
+commons-logging:commons-logging,org.slf4j:slf4j-log4j12,mindwind_craft-atom,pom.xml,06331d762a5bcef25230003a3e5f23b7afb12e9b,06331d762a5bcef25230003a3e5f23b7afb12e9b,"+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-commons-logging:commons-logging","+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
+-commons-logging:commons-logging","improve - use slf4j replace commons-logging as default log api
+","improve - use slf4j replace commons-logging as default log api
+",2013-12-21 17:13:38+08:00,2013-12-21 17:13:38+08:00
+commons-logging:commons-logging,org.slf4j:slf4j-log4j12,spring-projects_spring-security,core/pom.xml,96196bd637c7719561cf556e2fd7cfe47e0bca78,27faad3402a7650e352cb680fab2c121dce47d8f,"+org.apache.directory.server:org.apache.ldap.server.core
++org.slf4j:slf4j-log4j12
+-directory:apacheds-core","+org.springframework:spring-test
++org.springframework:spring-expression
++org.springframework:spring-tx
++javax.annotation:jsr250-api
+-commons-logging:commons-logging
+-org.springframework:spring-support
+-org.springframework.ldap:spring-ldap
+-org.apache.directory.server:apacheds-server-jndi
+-javax.servlet:servlet-api
+-jaxen:jaxen
+-org.apache.directory.server:apacheds-core
+-commons-codec:commons-codec
+-org.slf4j:slf4j-log4j12
+-org.springframework:spring-remoting
+-org.apache.mina:mina-core
+-jmock:jmock
+-org.springframework:spring-mock","SEC-179: Upgrade to Spring 2.0-M2.
+
+",SEC-1488: Remove commons-logging dependencies from maven poms and use slf4j in all samples.,2006-02-09 05:36:06+00:00,2010-05-28 13:10:08+01:00
+commons-logging:commons-logging,org.slf4j:slf4j-nop,apache_karaf,pom.xml,f415670afede5d8b831ab2a79244767301d92727,9e03d03da7bf2bcc7c8723101bdb50ae4a96aad7,"+org.apache.felix.karaf.deployer:org.apache.felix.karaf.deployer.blueprint
++org.fusesource.jansi:jansi
++org.springframework.osgi:spring-osgi-annotation
++org.apache.maven.artifact:maven-artifact
++ant:ant-optional
++org.apache.servicemix.bundles:org.apache.servicemix.bundles.junit
++org.apache.felix:org.apache.felix.framework
++org.apache.felix.karaf.demos:demos
++org.apache.servicemix.bundles:org.apache.servicemix.bundles.jetty-bundle
++org.apache.felix.karaf.deployer:org.apache.felix.karaf.deployer.spring
++org.ops4j.pax.web:pax-web-runtime
++org.ops4j.pax.exam:pax-exam
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.config
++org.ops4j.pax.logging:pax-logging-api
++org.apache.aries.jmx:org.apache.aries.jmx.blueprint
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.log
++org.apache.felix:org.apache.felix.webconsole
++org.apache.felix.karaf:org.apache.felix.karaf.exception
++org.springframework:spring-test
++javax.servlet:servlet-api
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.console
++org.springframework.osgi:spring-osgi-io
++org.ops4j.pax.exam:pax-exam-junit
++org.ops4j.pax.web:pax-web-extender-whiteboard
++org.slf4j:slf4j-simple
++org.eclipse:osgi
++org.slf4j:slf4j-nop
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.osgi
++org.apache.sshd:sshd-core
++ant-contrib:ant-contrib
++org.ops4j.pax.exam:pax-exam-junit-extender-impl
++org.ops4j.pax.url:pax-url-mvn
++org.apache.felix:org.apache.felix.prefs
++org.apache.felix:org.apache.felix.metatype
++org.apache.felix.karaf.admin:org.apache.felix.karaf.admin.core
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.ssh
++org.ccil.cowan.tagsoup:tagsoup
++log4j:log4j
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.commands
++org.apache.felix.gogo:org.apache.felix.gogo.runtime
++org.apache.felix.karaf:org.apache.felix.karaf.main
++org.apache.felix.karaf.features:org.apache.felix.karaf.features.management
++org.apache.felix:org.osgi.compendium
++org.apache.felix.karaf.features:org.apache.felix.karaf.features.command
++org.ops4j.pax.url:pax-url-wrap
++org.springframework:spring-beans
++org.ops4j.pax.runner:pax-runner-no-jcl
++org.apache.felix:org.apache.felix.bundlerepository
++org.slf4j:slf4j-jdk14
++org.apache.felix.karaf.jaas:org.apache.felix.karaf.jaas.config
++org.apache.felix.karaf:apache-felix-karaf
++org.apache.aries.blueprint:org.apache.aries.blueprint
++org.apache.maven:maven-project
++org.apache.felix:org.apache.felix.configadmin
++org.apache.felix.karaf.deployer:org.apache.felix.karaf.deployer.war
++org.ops4j.pax.web:pax-web-jetty
++org.springframework.osgi:spring-osgi-extender
++org.springframework:spring-core
++org.apache.felix:org.apache.felix.fileinstall
++org.springframework:spring-aop
++org.apache.felix.karaf.demos:web
++org.ops4j.pax.url:pax-url-war
++commons-logging:commons-logging
++org.apache.felix:org.apache.felix.utils
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.dev
++org.apache.mina:mina-core
++org.ops4j.pax.web:pax-web-jsp
++org.apache.felix.karaf.deployer:org.apache.felix.karaf.deployer.features
++org.springframework:spring-context
++org.apache.felix.karaf.jaas:org.apache.felix.karaf.jaas.boot
++org.ops4j.pax.exam:pax-exam-container-default
++org.apache.felix.karaf:org.apache.felix.karaf.management
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.obr
++org.slf4j:slf4j-api
++org.ops4j.pax.logging:pax-logging-service
++org.ops4j.pax.web:pax-web-spi
++org.easymock:easymock
++org.apache.maven:maven-plugin-api
++org.apache.felix.karaf.shell:org.apache.felix.karaf.shell.packages
++org.apache.felix.karaf:manual
++org.apache.felix.gogo:org.apache.felix.gogo.commands
++org.ops4j.pax.web:pax-web-extender-war
++org.ops4j.pax.web:pax-web-api
++org.apache.felix:maven-bundle-plugin
++org.apache.felix.karaf.features:org.apache.felix.karaf.features.core
++jline:jline
++org.apache.felix.karaf.tooling:org.apache.felix.karaf.tooling.testing
++org.springframework.osgi:spring-osgi-core
++org.apache.felix:org.osgi.core
++org.apache.aries.jmx:org.apache.aries.jmx
++org.springframework.osgi:spring-osgi-test
++org.apache.felix.karaf.admin:org.apache.felix.karaf.admin.management
++org.apache.felix.karaf.jaas:org.apache.felix.karaf.jaas.modules
++org.apache.felix.karaf.admin:org.apache.felix.karaf.admin.command
++org.apache.geronimo.specs:geronimo-servlet_2.5_spec
++org.apache.felix.karaf:org.apache.felix.karaf.client","+org.apache.servicemix.bundles:org.apache.servicemix.bundles.ant
++org.apache.servicemix.bundles:org.apache.servicemix.bundles.commons-collections
+-commons-logging:commons-logging","FELIX-2404: Use felix utils instead of various classes from karaf
+
+git-svn-id: https://svn.apache.org/repos/asf/felix/trunk/karaf@953588 13f79535-47bb-0310-9956-ffa450edef68
+","[KARAF-427] Use SLF4J as default logger.
+
+git-svn-id: https://svn.apache.org/repos/asf/karaf/trunk@1065702 13f79535-47bb-0310-9956-ffa450edef68
+",2010-06-11 07:20:32+00:00,2011-01-31 18:23:41+00:00
+commons-logging:commons-logging,org.slf4j:slf4j-nop,esigate_esigate,webassembletool-core/pom.xml,f842af43e00e552a35e11d1b25491f5e6d83a70b,f842af43e00e552a35e11d1b25491f5e6d83a70b,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-nop
+-commons-logging:commons-logging","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-nop
+-commons-logging:commons-logging","#33: move to slf4j from commons-logging
+","#33: move to slf4j from commons-logging
+",2011-02-17 15:36:39+00:00,2011-02-17 15:36:39+00:00
+dom4j:dom4j,org.jdom:jdom2,MyCoRe-Org_mycore,pom.xml,0c9c6f0873a16419465ab35f5f361bf29e2a4e4c,30fbe394fa7cdf3e6de7375985a5fad5654f6ef5,"+org.mycore:oaipmh
++org.mycore:oaipmh-dataprovider
++org.jdom:jdom2
+-org.jdom:jdom",-dom4j:dom4j,"update to JDOM2
+
+git-svn-id: https://server.mycore.de/svn/mycore/trunk@25895 7089d063-bc14-496d-ac90-53de1872eb6c
+","removed dom4j dependency
+
+git-svn-id: https://server.mycore.de/svn/mycore/trunk@27249 7089d063-bc14-496d-ac90-53de1872eb6c
+",2013-01-23 13:55:57+00:00,2013-06-27 08:04:55+00:00
+hsqldb:hsqldb,org.apache.derby:derbyclient,mulesoft_mule,tests/integration/pom.xml,cac0f385ca2eb51b91b2be5a515890e9839fe443,b8cb8c4aa26d3ccbdf1a95b8421877c29beb6b39,"+org.apache.derby:derbyclient
++org.apache.derby:derby","+org.mule.modules:mule-modules-all
++org.mule.transports:mule-transports-all
++org.mule:mule-core
+-xmlunit:xmlunit
+-commons-httpclient:commons-httpclient
+-hsqldb:hsqldb
+-cglib:cglib-nodep
+-org.mule.transports:mule-transport-jms
+-org.mule.modules:mule-module-client
+-org.hibernate:hibernate
+-org.mule.transports:mule-transport-file
+-org.mule.modules:mule-module-scripting
+-org.mule.modules:mule-module-pgp
+-org.mule.transports:mule-transport-rmi
+-org.mule.modules:mule-module-spring-extras
+-org.mule.transports:mule-transport-ejb
+-org.mule.transports:mule-transport-ssl
+-org.mule.modules:mule-module-ognl
+-org.mule.transports:mule-transport-axis
+-org.mule.transports:mule-transport-xmpp
+-org.mule.modules:mule-module-acegi
+-org.mule.transports:mule-transport-email
+-org.mule.transports:mule-transport-tcp
+-org.mule.transports:mule-transport-xfire
+-org.mule.transports:mule-transport-ftp
+-org.mule.transports:mule-transport-soap
+-org.mule.transports:mule-transport-multicast
+-org.mule.transports:mule-transport-udp
+-org.mule.transports:mule-transport-jdbc
+-org.mule.transports:mule-transport-http
+-org.mule.transports:mule-transport-vm
+-org.mule.transports:mule-transport-quartz
+-org.apache.derby:derby
+-org.mule.transports:mule-transport-stdio
+-org.mule.modules:mule-module-jbossts","Merged revisions 8257-8295 via svnmerge from 
+https://svn.codehaus.org/mule/trunk/mule
+
+........
+  r8257 | alan.cassar | 2007-09-07 09:38:32 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  Migrating to embedded Derby DB MULE-2271 (more to come)
+........
+  r8258 | alan.cassar | 2007-09-07 09:39:21 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  Migrating to embedded Derby DB MULE-2271 (more to come)
+........
+  r8259 | holger | 2007-09-07 09:55:33 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  yay, fixed :)
+........
+  r8260 | alan.cassar | 2007-09-07 09:58:13 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  Migrating to embedded Derby DB MULE-2271 (more to come)
+........
+  r8261 | holger | 2007-09-07 09:58:21 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  no need for empty excludes
+........
+  r8262 | holger | 2007-09-07 09:58:27 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  no need for empty excludes
+........
+  r8263 | alan.cassar | 2007-09-07 10:00:39 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  Migrating to embedded Derby DB MULE-2271 (more to come) -- JdbcTransactionalXaFuncationalTestCase is not converted yet
+........
+  r8264 | holger | 2007-09-07 10:01:56 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8265 | holger | 2007-09-07 10:02:02 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8266 | holger | 2007-09-07 10:02:14 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8267 | holger | 2007-09-07 10:02:23 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8268 | holger | 2007-09-07 10:02:32 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8269 | alan.cassar | 2007-09-07 10:02:39 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  Migrating to embedded Derby DB MULE-2271 (should be the end)
+........
+  r8270 | holger | 2007-09-07 10:02:41 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8271 | holger | 2007-09-07 10:02:50 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8272 | holger | 2007-09-07 10:02:59 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8273 | holger | 2007-09-07 10:03:08 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8274 | alan.cassar | 2007-09-07 10:09:17 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  Migrating to embedded Derby DB MULE-2271
+........
+  r8276 | holger | 2007-09-07 10:24:24 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  exclude tests not via pom but rather programmatically
+........
+  r8277 | holger | 2007-09-07 10:41:24 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  can we please just use AspectJ? f*** please?
+........
+  r8288 | aperepel | 2007-09-07 15:56:42 -0400 (Fri, 07 Sep 2007) | 1 line
+  
+  Tabs -> spaces. Dan D., check your settings.
+........
+  r8295 | dirk.olmes | 2007-09-07 19:58:08 -0400 (Fri, 07 Sep 2007) | 2 lines
+  
+  added groovy eclipse plugin's output path to ignores
+........
+
+
+git-svn-id: https://svn.codehaus.org/mule/branches/mule-2.x@8519 bf997673-6b11-0410-b953-e057580c5b09
+","* Any dependency which is to be deployed to OSGi as a bundle should have scope=""provided"" 
+* General rearrangement of POM dependencies needed for deploying Mule modules to an OSGi Framework
+* Start converting a few transports/modules to bundles
+
+
+git-svn-id: https://svn.codehaus.org/mule/branches/mule-2.x@10828 bf997673-6b11-0410-b953-e057580c5b09
+",2007-09-20 18:20:52+00:00,2008-02-15 19:08:01+00:00
+jaxen:jaxen,jdom:jdom,apache_jspwiki,pom.xml,28e74acfcb8922031b0ece071e22d91dc3375e44,a668a6cefd27dd16e070c03ca2d8fa44725b6421,"+org.seleniumhq.selenium.client-drivers:selenium-java-client-driver
++org.freshcookies:freshcookies-security
++commons-httpclient:commons-httpclient
++javax.mail:mail
++tomcat:jasper-runtime
++com.metaparadigm:json-rpc
++nekohtml:nekohtml
++jaxen:jaxen
++org.seleniumhq.selenium:selenium-chrome-driver
++org.apache.lucene:lucene-highlighter
++taglibs:standard
++org.hsqldb:hsqldb
++log4j:log4j
++org.seleniumhq.selenium:selenium-ie-driver
++opensymphony:oscache
++javax.servlet:jstl
++commons-fileupload:commons-fileupload
++org.seleniumhq.selenium:selenium-firefox-driver
++net.sourceforge:akismet-java
++commons-lang:commons-lang
++junit:junit
++jdom:jdom
++org.jvnet.hudson:org.suigeneris.jrcs.diff
++net.sourceforge.stripes:stripes
++oro:oro
++commons-io:commons-io
++org.eclipse.jetty.aggregate:jetty-all
++org.seleniumhq.selenium:selenium-java
++net.sourceforge:sandler
++javax.servlet.jsp:jsp-api
++ecs:ecs
++xmlrpc:xmlrpc
++javax.servlet:servlet-api","+org.jdom:jdom
+-jaxen:jaxen
+-jdom:jdom","JSPWIKI-771: added <dependencyManagement/> section to parent pom
+
+git-svn-id: https://svn.apache.org/repos/asf/incubator/jspwiki/branches/MVN3_BRANCH@1470352 13f79535-47bb-0310-9956-ffa450edef68
+","Got rid of explicit jaxen dependency, now relying on the dep from the jdom dependency instead.
+
+git-svn-id: https://svn.apache.org/repos/asf/incubator/jspwiki/trunk@1498692 13f79535-47bb-0310-9956-ffa450edef68
+",2013-04-21 21:42:58+00:00,2013-07-01 21:17:29+00:00
+jmock:jmock,org.mockito:mockito-core,apache_maven-release,pom.xml,7a10db38b229a430dfd10d106964b434cbd8e563,04323b8f2f2940ee60229363a8b258a49f36270b,+org.mockito:mockito-core,-jmock:jmock,"MRELEASE-741: add mockito dependency and confirm all tests still succeed
+ 
+
+git-svn-id: https://svn.apache.org/repos/asf/maven/release/trunk@1291034 13f79535-47bb-0310-9956-ffa450edef68
+","MRELEASE-741: migrate to mockito
+remove jmock dependencies
+
+git-svn-id: https://svn.apache.org/repos/asf/maven/release/trunk@1293696 13f79535-47bb-0310-9956-ffa450edef68
+",2012-02-19 18:32:31+00:00,2012-02-25 21:20:29+00:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,KengoTODA_findbugs-slf4j,pom.xml,5675c0250ac48b14a554f787af2e5aff2bd41a86,5675c0250ac48b14a554f787af2e5aff2bd41a86,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-surefire-provider
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-surefire-provider
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","introduce JUnit5 to bug-pattern module
+","introduce JUnit5 to bug-pattern module
+",2017-09-13 19:34:32+08:00,2017-09-13 19:34:32+08:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,Norconex_importer,norconex-importer/pom.xml,ff037fb64c232c951f58c31e68fbbe71050747e5,ff037fb64c232c951f58c31e68fbbe71050747e5,"+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.apache.maven.doxia:doxia-site-renderer
+-org.apache.maven.doxia:doxia-module-markdown
+-commons-jxpath:commons-jxpath
+-org.apache.pdfbox:xmpbox
+-junit:junit
+-org.apache.velocity:velocity","+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-org.apache.maven.doxia:doxia-site-renderer
+-org.apache.maven.doxia:doxia-module-markdown
+-commons-jxpath:commons-jxpath
+-org.apache.pdfbox:xmpbox
+-junit:junit
+-org.apache.velocity:velocity",Now using Junit 5.,Now using Junit 5.,2019-05-01 01:37:23-04:00,2019-05-01 01:37:23-04:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,RohanNagar_thunder,pom.xml,b212ef0d8509aa988bf998a8868ecabb789046b7,b212ef0d8509aa988bf998a8868ecabb789046b7,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-surefire-provider
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-surefire-provider
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","Added JUnit5 Dependency
+","Added JUnit5 Dependency
+",2018-05-06 19:28:33-05:00,2018-05-06 19:28:33-05:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,Terracotta-OSS_terracotta-core,test-common/pom.xml,d76b9a33bf98970dfb63bdf987256085b6e9ac6f,d76b9a33bf98970dfb63bdf987256085b6e9ac6f,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","Migrated the tests (except integration tests which depend on Galvan, Angela or Passthrough frameworks) to Junit 5.
+","Migrated the tests (except integration tests which depend on Galvan, Angela or Passthrough frameworks) to Junit 5.
+",2018-07-03 10:07:46+05:03,2018-07-03 10:07:46+05:03
+junit:junit,org.junit.jupiter:junit-jupiter-api,barancev_webdriver-factory,pom.xml,32432564aa49f61856324aa7c046a27f859e6df8,32432564aa49f61856324aa7c046a27f859e6df8,"+org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-api
+-junit:junit","Migrating to junit5
+","Migrating to junit5
+",2017-06-13 15:58:06+03:00,2017-06-13 15:58:06+03:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,mitre_rhapsode,rhapsode-parent/pom.xml,914594dbee69e2c7c8b47c755804733fe7709c20,914594dbee69e2c7c8b47c755804733fe7709c20,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","upgrade to junit 5
+add versions plugin and make updates
+","upgrade to junit 5
+add versions plugin and make updates
+",2019-02-11 21:03:24-05:00,2019-02-11 21:03:24-05:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,neo4j_neo4j-java-driver,pom.xml,678adce221d02e240212b122d0ff21f47e457232,ecb0f7e3f97b0db2d1a30e34eec343a025d505fe,"+org.junit.platform:junit-platform-surefire-provider
++org.junit.jupiter:junit-jupiter-engine
++org.junit.vintage:junit-vintage-engine
++org.junit.jupiter:junit-jupiter-api","-org.junit.platform:junit-platform-surefire-provider
+-junit:junit
+-org.junit.jupiter:junit-jupiter-api","Enable JUnit5 tests
+
+This commit makes it possible to write JUnit 5 tests. Both JUnit 4
+and 5 tests can live side-by-side. Cucumber does not support
+JUnit 5 so JUnit 4 has to stay. Tests will be migrated gradually.
+","Cleanup JUnit 5 dependencies
+
+Version 2.22.0 of the surefire and failsafe plugins do not require
+dedicated JUnit platform and engine dependencies.
+",2018-05-22 00:42:43+02:00,2018-07-09 12:18:11+02:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,oci-pronghorn_Pronghorn,src/main/resources/archetype-resources/pom.xml,3bb51985e204d97e56592bb72e53e4dcaff27093,3bb51985e204d97e56592bb72e53e4dcaff27093,"+org.junit.platform:junit-platform-surefire-provider
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.platform:junit-platform-surefire-provider
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","added schema test (needs to be revised and checked); added sample image; added documentation and comments; updated to JUnit 5; made Graphmanager final and accessible
+","added schema test (needs to be revised and checked); added sample image; added documentation and comments; updated to JUnit 5; made Graphmanager final and accessible
+",2018-05-16 17:18:23-05:00,2018-05-16 17:18:23-05:00
+junit:junit,org.junit.jupiter:junit-jupiter-api,opengeospatial_geoapi,geoapi-conformance/pom.xml,ba75e89e90f9e0ce5958cc1732d08d5cf4a2bad8,ba75e89e90f9e0ce5958cc1732d08d5cf4a2bad8,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-suite-api
++org.junit.platform:junit-platform-launcher
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-suite-api
++org.junit.platform:junit-platform-launcher
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","Upgrade tests to JUnit 5 (a.k.a. Jupiter).
+https://github.com/opengeospatial/geoapi/issues/58
+
+In this first commit, the Swing application may lost some information (e.g. developer tip given when a test fail).
+Other regressions map happen; they will be fixed as we discover them in the next months.
+","Upgrade tests to JUnit 5 (a.k.a. Jupiter).
+https://github.com/opengeospatial/geoapi/issues/58
+
+In this first commit, the Swing application may lost some information (e.g. developer tip given when a test fail).
+Other regressions map happen; they will be fixed as we discover them in the next months.
+",2019-12-13 19:53:57+01:00,2019-12-13 19:53:57+01:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,AlmasB_FXGL,pom.xml,510903ca0a595dd8272aecb84caf0543f924c0ef,510903ca0a595dd8272aecb84caf0543f924c0ef,"+org.junit.jupiter:junit-jupiter-engine
++org.hamcrest:hamcrest-core
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.hamcrest:hamcrest-core
+-junit:junit","migrate to junit 5
+","migrate to junit 5
+",2017-09-21 17:07:16+01:00,2017-09-21 17:07:16+01:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,Atrox_haikunatorjava,pom.xml,42679988419b68dd51f0a7b3c045536b3c5ef37b,42679988419b68dd51f0a7b3c045536b3c5ef37b,"+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
+-org.apache.commons:commons-lang3
+-junit:junit","+org.junit.jupiter:junit-jupiter-params
++org.junit.jupiter:junit-jupiter-engine
+-org.apache.commons:commons-lang3
+-junit:junit","improve tests and use junit 5
+","improve tests and use junit 5
+",2018-10-18 14:04:27+02:00,2018-10-18 14:04:27+02:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,eclipse_jnosql-artemis,pom.xml,627fa491184cc2d2eb07acd9bf2570bb23fdc836,627fa491184cc2d2eb07acd9bf2570bb23fdc836,"+org.junit.jupiter:junit-jupiter-engine
++org.mockito:mockito-core
++org.junit.platform:junit-platform-surefire-provider
+-org.mockito:mockito-all
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.mockito:mockito-core
++org.junit.platform:junit-platform-surefire-provider
+-org.mockito:mockito-all
+-junit:junit","Merge pull request #40 from eclipse/junit_5_upgrade
+
+Updates Junit 5 upgrade","Merge pull request #40 from eclipse/junit_5_upgrade
+
+Updates Junit 5 upgrade",2018-01-19 20:16:25-02:00,2018-01-19 20:16:25-02:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,etcd-io_jetcd,jetcd-resolver/pom.xml,f961e96b87562a9ec51afff224b58f2e49cc84a4,f961e96b87562a9ec51afff224b58f2e49cc84a4,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","all: move to JUnit5
+
+Move tests to JUnit5
+
+Fixes #545
+","all: move to JUnit5
+
+Move tests to JUnit5
+
+Fixes #545
+",2019-03-25 01:14:32-07:00,2019-03-25 01:14:32-07:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,kbss-cvut_jopa,pom.xml,e5b037806506b51da5b2d86d5d56a090f7579eed,e5b037806506b51da5b2d86d5d56a090f7579eed,"+org.junit.vintage:junit-vintage-engine
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.vintage:junit-vintage-engine
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","[Task #42][Upd] Added JUnit 5 dependencies to the project (using Jupiter vintage to run all the JUnit 4 tests). Updated some build plugins. Migrated to Mockito 2.23.0.
+","[Task #42][Upd] Added JUnit 5 dependencies to the project (using Jupiter vintage to run all the JUnit 4 tests). Updated some build plugins. Migrated to Mockito 2.23.0.
+",2018-11-03 16:05:23+01:00,2018-11-03 16:05:23+01:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,mybatis_velocity-scripting,pom.xml,b7e9332b320ebbc1165ebc90e4475cb663ec5563,b7e9332b320ebbc1165ebc90e4475cb663ec5563,"+org.apache.velocity:velocity-engine-core
++org.apache.commons:commons-lang3
++org.junit.jupiter:junit-jupiter-engine
++org.slf4j:slf4j-simple
+-log4j:log4j
+-commons-collections:commons-collections
+-org.apache.velocity:velocity
+-junit:junit
+-commons-lang:commons-lang","+org.apache.velocity:velocity-engine-core
++org.apache.commons:commons-lang3
++org.junit.jupiter:junit-jupiter-engine
++org.slf4j:slf4j-simple
+-log4j:log4j
+-commons-collections:commons-collections
+-org.apache.velocity:velocity
+-junit:junit
+-commons-lang:commons-lang","Merge pull request #60 from hazendaz/master
+
+Junit 5, update dependencies, support through jdk11","Merge pull request #60 from hazendaz/master
+
+Junit 5, update dependencies, support through jdk11",2018-10-15 18:20:46-04:00,2018-10-15 18:20:46-04:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,opengeospatial_geoapi,geoapi-conformance/pom.xml,ba75e89e90f9e0ce5958cc1732d08d5cf4a2bad8,ba75e89e90f9e0ce5958cc1732d08d5cf4a2bad8,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-suite-api
++org.junit.platform:junit-platform-launcher
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-suite-api
++org.junit.platform:junit-platform-launcher
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","Upgrade tests to JUnit 5 (a.k.a. Jupiter).
+https://github.com/opengeospatial/geoapi/issues/58
+
+In this first commit, the Swing application may lost some information (e.g. developer tip given when a test fail).
+Other regressions map happen; they will be fixed as we discover them in the next months.
+","Upgrade tests to JUnit 5 (a.k.a. Jupiter).
+https://github.com/opengeospatial/geoapi/issues/58
+
+In this first commit, the Swing application may lost some information (e.g. developer tip given when a test fail).
+Other regressions map happen; they will be fixed as we discover them in the next months.
+",2019-12-13 19:53:57+01:00,2019-12-13 19:53:57+01:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,scalecube_scalecube-config,config/pom.xml,7f63f23001e270efe3682f2c54bd37c33b1e4a7f,7f63f23001e270efe3682f2c54bd37c33b1e4a7f,"+org.mockito:mockito-junit-jupiter
++org.junit.jupiter:junit-jupiter-engine
+-org.mockito:mockito-core
+-junit:junit","+org.mockito:mockito-junit-jupiter
++org.junit.jupiter:junit-jupiter-engine
+-org.mockito:mockito-core
+-junit:junit","Migrate to JUnit 5
+","Migrate to JUnit 5
+",2018-07-18 17:35:40+03:00,2018-07-18 17:35:40+03:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,spotify_apollo,pom.xml,0971ad8198f606e9a1e6b98973dbbdd594a7451c,0971ad8198f606e9a1e6b98973dbbdd594a7451c,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.vintage:junit-vintage-engine
+-com.google.protobuf:protobuf-java
+-junit:junit
+-com.spotify:proto2json","+org.junit.jupiter:junit-jupiter-engine
++org.junit.vintage:junit-vintage-engine
+-com.google.protobuf:protobuf-java
+-junit:junit
+-com.spotify:proto2json","Use JUnit 5 with vintage and jupiter engines
+
+Migrate from JUnit 4 to JUnit 5 with backward-compatible test engine.
+This allows writing both JUnit 4 and 5 tests. It also makes it possible
+to add a JUnit 5 ServiceHelper extension.
+","Use JUnit 5 with vintage and jupiter engines
+
+Migrate from JUnit 4 to JUnit 5 with backward-compatible test engine.
+This allows writing both JUnit 4 and 5 tests. It also makes it possible
+to add a JUnit 5 ServiceHelper extension.
+",2019-12-19 13:55:23+01:00,2019-12-19 13:55:23+01:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,stevespringett_Alpine,pom.xml,337723a038b9634fa46e7bbb59d80cfc405b068e,337723a038b9634fa46e7bbb59d80cfc405b068e,"+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","+org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-junit:junit","junit5
+","junit5
+",2018-11-10 21:02:23-06:00,2018-11-10 21:02:23-06:00
+junit:junit,org.junit.jupiter:junit-jupiter-engine,wcm-io_wcm-io-wcm,ui/granite/pom.xml,67618970b965442ca84bb14991e5afab71a2199b,67618970b965442ca84bb14991e5afab71a2199b,"+org.junit.jupiter:junit-jupiter-params
++org.mockito:mockito-junit-jupiter
++io.wcm:io.wcm.testing.aem-mock.junit5
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-io.wcm:io.wcm.testing.aem-mock.junit4
+-junit:junit","+org.junit.jupiter:junit-jupiter-params
++org.mockito:mockito-junit-jupiter
++io.wcm:io.wcm.testing.aem-mock.junit5
++org.junit.jupiter:junit-jupiter-engine
++org.junit.jupiter:junit-jupiter-api
+-io.wcm:io.wcm.testing.aem-mock.junit4
+-junit:junit","Merge branch 'feature/junit5' into develop
+","Merge branch 'feature/junit5' into develop
+",2019-03-27 20:14:50+01:00,2019-03-27 20:14:50+01:00
+junit:junit,org.junit.vintage:junit-vintage-engine,DbMaintain_dbmaintain,pom.xml,7ec4447d7b2ea31c9d6cf8468cf3ad49bc316cf9,7ec4447d7b2ea31c9d6cf8468cf3ad49bc316cf9,"+org.junit.vintage:junit-vintage-engine
+-junit:junit","+org.junit.vintage:junit-vintage-engine
+-junit:junit","Run tests with junit5 vintage
+","Run tests with junit5 vintage
+",2018-06-22 15:12:52+02:00,2018-06-22 15:12:52+02:00
+junit:junit,org.junit.vintage:junit-vintage-engine,EnMasseProject_enmasse,discovery-lib/pom.xml,64302f223c6df0731730162b3f87c6cf2eec5156,3c04c0ee881aa9122bab97326acdd68758c31346,"+org.junit.vintage:junit-vintage-engine
++org.junit.jupiter:junit-jupiter-engine
++org.junit.platform:junit-platform-launcher
++org.junit.jupiter:junit-jupiter-api","-org.junit.vintage:junit-vintage-engine
+-junit:junit","Add support for junit5 tests
+","Merge fb013ea688ead73053af1cbeb1c8dbac24f9f127 into 0c4d2f9f4ee40fc29a33866b178ce06f6373257e
+",2018-04-13 14:34:03+02:00,2018-04-16 16:42:23+00:00
+junit:junit,org.junit.vintage:junit-vintage-engine,mybatis_generator,core/mybatis-generator-systests-ibatis2-java2/pom.xml,c1335c703296d4ba8eaf942225c34ab2289933a6,c1335c703296d4ba8eaf942225c34ab2289933a6,"+org.junit.vintage:junit-vintage-engine
+-junit:junit","+org.junit.vintage:junit-vintage-engine
+-junit:junit","[pom] Update to junit vintage 4.12.2
+","[pom] Update to junit vintage 4.12.2
+",2017-12-27 01:43:22-05:00,2017-12-27 01:43:22-05:00
+junit:junit,org.testng:testng,alphazero_jredis,core/ri/pom.xml,f094c0302f79745669ecc09ecfdad689f1315d6d,e166cc74998886d43c89bd44eaf3d9a6ae011439,+org.testng:testng,-junit:junit,"Fairly substantial update.  Current with latest Redis server commands (SUNION, SUNIONSTORE, etc.)
+and a completely re-written and comprehensive tests using TestNG.
+","Source update only: Major changes + Asynch and Pipeline additions. Tests for asynch and pipeline are fairly thin but this is almost there.  Note that QUIT is not yet implemented for asynch impls so this is wip but enough to get you to play with the asynch and pipeline.
+",2009-04-21 19:49:30-04:00,2009-10-17 21:43:45-04:00
+junit:junit,org.testng:testng,brooklyncentral_brooklyn,parent/root/pom.xml,a115665b3fe866a9cc2a61041f6f8a6d617cd723,48ee6c4a237804666e285590092caa8a6ebfc022,+org.testng:testng,-junit:junit,"Updating Maven configuration to use TestNG
+","get groups working with TestNG
+",2011-06-29 11:10:23+01:00,2011-06-29 11:13:09+01:00
+junit:junit,org.testng:testng,dbs-leipzig_gradoop,gradoop-store/gradoop-hbase/pom.xml,7f3aea2be682b694d9dd216b9c53e7603429095a,7f3aea2be682b694d9dd216b9c53e7603429095a,"+org.testng:testng
+-junit:junit","+org.testng:testng
+-junit:junit","[#1331] Refactor HBase tests to use TestNG
+","[#1331] Refactor HBase tests to use TestNG
+",2019-07-09 12:59:06+02:00,2019-07-09 12:59:06+02:00
+junit:junit,org.testng:testng,jsimone_webapp-runner,pom.xml,8a6352c8ecb7491a8f0ae7b9f9ef8a78e87ae5d7,8a6352c8ecb7491a8f0ae7b9f9ef8a78e87ae5d7,"+org.testng:testng
+-junit:junit","+org.testng:testng
+-junit:junit","switch to testNG, improve error handling, change package structure and group id
+","switch to testNG, improve error handling, change package structure and group id
+",2012-01-12 10:07:22-08:00,2012-01-12 10:07:22-08:00
+junit:junit,org.testng:testng,nathanmarz_dfs-datastores,pom.xml,aa1d6b0a6f5051b4cb9b11b8f08953208db265c9,aa1d6b0a6f5051b4cb9b11b8f08953208db265c9,"+org.slf4j:slf4j-log4j12
++org.testng:testng
+-junit:junit","+org.slf4j:slf4j-log4j12
++org.testng:testng
+-junit:junit",Updated from Junit to TestNG,Updated from Junit to TestNG,2013-08-09 14:26:54-07:00,2013-08-09 14:26:54-07:00
+log4j:log4j,ch.qos.logback:logback-classic,Jasig_WebproxyPortlet,pom.xml,589a99aa7a6477c693f4088e86a5181b9afb45a1,589a99aa7a6477c693f4088e86a5181b9afb45a1,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:log4j-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.springframework:spring-context
+-commons-logging:commons-logging
+-log4j:log4j","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:log4j-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.springframework:spring-context
+-commons-logging:commons-logging
+-log4j:log4j","WPP-57: v2 bug fixes and improvements.
+
+The following changes are proposed for the WPP v2:
+1. CAS proxy bug fixes (serviceUrl, final proxy URL creation)
+2. Switched the logging framework to just logback/slf4j
+3. Fixed formatting issues in a number of Java classes
+4. Added CAS proxy attribute
+5. Fixed a bug in whitelist regex matching (blank regex forces the filter to rewrite everything)
+","WPP-57: v2 bug fixes and improvements.
+
+The following changes are proposed for the WPP v2:
+1. CAS proxy bug fixes (serviceUrl, final proxy URL creation)
+2. Switched the logging framework to just logback/slf4j
+3. Fixed formatting issues in a number of Java classes
+4. Added CAS proxy attribute
+5. Fixed a bug in whitelist regex matching (blank regex forces the filter to rewrite everything)
+",2013-01-18 14:05:13-07:00,2013-01-18 14:05:13-07:00
+log4j:log4j,ch.qos.logback:logback-classic,Terracotta-OSS_terracotta-core,dso-l2/pom.xml,35f534241e99d82f181f7aaf63d3a7d8b00c0f42,35f534241e99d82f181f7aaf63d3a7d8b00c0f42,"+ch.qos.logback:logback-classic
+-log4j:log4j","+ch.qos.logback:logback-classic
+-log4j:log4j","Replace log4j logging with logback
+","Replace log4j logging with logback
+",2017-06-29 19:28:29+05:03,2017-06-29 19:28:29+05:03
+log4j:log4j,ch.qos.logback:logback-classic,flink-tpc-ds_flink,pom.xml,08188508d528c1072a746aacbf2a5c712d4f8467,08188508d528c1072a746aacbf2a5c712d4f8467,"+ch.qos.logback:logback-classic
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","+ch.qos.logback:logback-classic
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","[FLINK-1086] Replace JCL with SLF4J and Log4j with LOGBack
+
+- Excluded Kafka's transitive dependencies: jmxtools and jmxri
+- Corrected encoder pattern in logback.xml
+- Removed explicit logging access. Loggers are now configured by
+  configuration files. Fixed Yarn issue with multiple logging
+  bindings.
+
+This closes #111.
+","[FLINK-1086] Replace JCL with SLF4J and Log4j with LOGBack
+
+- Excluded Kafka's transitive dependencies: jmxtools and jmxri
+- Corrected encoder pattern in logback.xml
+- Removed explicit logging access. Loggers are now configured by
+  configuration files. Fixed Yarn issue with multiple logging
+  bindings.
+
+This closes #111.
+",2014-09-05 11:57:02+02:00,2014-09-05 11:57:02+02:00
+log4j:log4j,ch.qos.logback:logback-classic,membrane_service-proxy,pom.xml,0728e270660b8020dbcfa2a49cbd8d16fd70ff2b,0728e270660b8020dbcfa2a49cbd8d16fd70ff2b,"+com.google.http-client:google-http-client-jackson2
++org.powermock:powermock-api-mockito
++org.slf4j:jcl-over-slf4j
++org.membrane-soa:service-proxy-core
++org.powermock:powermock-module-junit4
++org.membrane-soa:service-proxy-annot
++com.fasterxml.jackson.core:jackson-core
++com.fasterxml.jackson.core:jackson-databind
++org.membrane-soa:membrane-service-proxy
++org.mockito:mockito-core
++org.membrane-soa:service-proxy-test
++ch.qos.logback:logback-classic
++com.fasterxml.jackson.core:jackson-annotations
+-com.google.http-client:google-http-client-jackson
+-org.membrane-soa.service-proxy:membrane-service-proxy
+-commons-logging:commons-logging
+-log4j:log4j
+-org.membrane-soa.service-proxy:service-proxy-annot
+-org.codehaus.jackson:jackson-core-asl
+-org.slf4j:slf4j-log4j12
+-org.membrane-soa.service-proxy:service-proxy-core
+-org.codehaus.jackson:jackson-mapper-asl
+-org.membrane-soa.service-proxy:service-proxy-test","+com.google.http-client:google-http-client-jackson2
++org.powermock:powermock-api-mockito
++org.slf4j:jcl-over-slf4j
++org.membrane-soa:service-proxy-core
++org.powermock:powermock-module-junit4
++org.membrane-soa:service-proxy-annot
++com.fasterxml.jackson.core:jackson-core
++com.fasterxml.jackson.core:jackson-databind
++org.membrane-soa:membrane-service-proxy
++org.mockito:mockito-core
++org.membrane-soa:service-proxy-test
++ch.qos.logback:logback-classic
++com.fasterxml.jackson.core:jackson-annotations
+-com.google.http-client:google-http-client-jackson
+-org.membrane-soa.service-proxy:membrane-service-proxy
+-commons-logging:commons-logging
+-log4j:log4j
+-org.membrane-soa.service-proxy:service-proxy-annot
+-org.codehaus.jackson:jackson-core-asl
+-org.slf4j:slf4j-log4j12
+-org.membrane-soa.service-proxy:service-proxy-core
+-org.codehaus.jackson:jackson-mapper-asl
+-org.membrane-soa.service-proxy:service-proxy-test","Moving from log4j to slf4j + logback
+","Moving from log4j to slf4j + logback
+",2015-10-14 16:29:10+02:00,2015-10-14 16:29:10+02:00
+log4j:log4j,ch.qos.logback:logback-classic,opensecuritycontroller_osc-core,osc-server/pom.xml,192f74fb040aacbff7c4d949b778d1eb888356b0,192f74fb040aacbff7c4d949b778d1eb888356b0,"+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-log4j:log4j","+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-log4j:log4j","Replace log4j with slf4j backed by logback
+
+* Modify log util. Get rid of property watcher
+
+* Replace log4j.Logger import with slf4j one
+
+* Remove all mention of log4j
+
+* Add static LogUtil
+
+* Add LogProvider classes in os-ui and osc-rest-server
+
+* Add import static getLogger, fix PKIUTilTest and use getValue with
+Vaadin label
+
+* Set slf4j verison to 1.7.25
+
+* Using LogUtil.getLogger instead LoggerFactory.getLogger
+","Replace log4j with slf4j backed by logback
+
+* Modify log util. Get rid of property watcher
+
+* Replace log4j.Logger import with slf4j one
+
+* Remove all mention of log4j
+
+* Add static LogUtil
+
+* Add LogProvider classes in os-ui and osc-rest-server
+
+* Add import static getLogger, fix PKIUTilTest and use getValue with
+Vaadin label
+
+* Set slf4j verison to 1.7.25
+
+* Using LogUtil.getLogger instead LoggerFactory.getLogger
+",2017-10-05 18:40:41-07:00,2017-10-05 18:40:41-07:00
+log4j:log4j,ch.qos.logback:logback-classic,platonai_pulsar,platon/pom.xml,4295b60af88dbbde8a9831eeb2266136b6714f1d,4295b60af88dbbde8a9831eeb2266136b6714f1d,"+org.springframework.boot:spring-boot
++org.springframework.boot:spring-boot-starter-test
++ch.qos.logback:logback-classic
++org.springframework.boot:spring-boot-starter
+-log4j:log4j
+-org.slf4j:slf4j-log4j12
+-org.slf4j:log4j-over-slf4j","+org.springframework.boot:spring-boot
++org.springframework.boot:spring-boot-starter-test
++ch.qos.logback:logback-classic
++org.springframework.boot:spring-boot-starter
+-log4j:log4j
+-org.slf4j:slf4j-log4j12
+-org.slf4j:log4j-over-slf4j","Use logback for logging; use spring boot.
+","Use logback for logging; use spring boot.
+",2019-07-08 17:54:34+08:00,2019-07-08 17:54:34+08:00
+log4j:log4j,ch.qos.logback:logback-core,apache_syncope,core/pom.xml,31d3a0e6b95e039056a7a3bbdfabd730d3bfc50b,31d3a0e6b95e039056a7a3bbdfabd730d3bfc50b,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-core
++ch.qos.logback:logback-classic
++commons-logging:commons-logging
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-core
++ch.qos.logback:logback-classic
++commons-logging:commons-logging
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","Switching from log4j to logback
+
+git-svn-id: https://svn.apache.org/repos/asf/incubator/syncope/trunk@1246603 13f79535-47bb-0310-9956-ffa450edef68
+","Switching from log4j to logback
+
+git-svn-id: https://svn.apache.org/repos/asf/incubator/syncope/trunk@1246603 13f79535-47bb-0310-9956-ffa450edef68
+",2010-10-21 13:33:53+00:00,2010-10-21 13:33:53+00:00
+log4j:log4j,ch.qos.logback:logback-core,boundlessgeo_GeoGig,src/core/pom.xml,c13d2b61206ce15cf6bd64a62a29cc07f2a8ddf9,c13d2b61206ce15cf6bd64a62a29cc07f2a8ddf9,"+com.tinkerpop.blueprints:blueprints-neo4j-graph
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++com.tinkerpop.gremlin:gremlin-java
++ch.qos.logback:logback-core
+-log4j:log4j
+-org.perf4j:perf4j","+com.tinkerpop.blueprints:blueprints-neo4j-graph
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++com.tinkerpop.gremlin:gremlin-java
++ch.qos.logback:logback-core
+-log4j:log4j
+-org.perf4j:perf4j","Use SLF4J with Logback backend as the logging framework.
+
+The core module depends only on the slf4j API.
+The cli app adds logback as a dependency specific to cli
+and logs to the .geogit/log/geogit.log file.
+The logback configuration file is loaded from .geogit/log/logback.xml
+and a default one is created if it doesn't exist.
+The location of the log file is specified in logback.xml
+using the ${geogitdir} variable whose value is set to the logback
+context with the result of the resolve-geogit-dir command. This way
+the log file location doesn't need to be an absolute path in logback.xml
+and can resolve to the correct location regardless of being at the
+repository's top level directory or not.
+The org.slf4j.jul-to-slf4j library is used to redirect java.util.logging
+loggers (e.g. used by geotools) to logback and hence to geogit.log
+","Use SLF4J with Logback backend as the logging framework.
+
+The core module depends only on the slf4j API.
+The cli app adds logback as a dependency specific to cli
+and logs to the .geogit/log/geogit.log file.
+The logback configuration file is loaded from .geogit/log/logback.xml
+and a default one is created if it doesn't exist.
+The location of the log file is specified in logback.xml
+using the ${geogitdir} variable whose value is set to the logback
+context with the result of the resolve-geogit-dir command. This way
+the log file location doesn't need to be an absolute path in logback.xml
+and can resolve to the correct location regardless of being at the
+repository's top level directory or not.
+The org.slf4j.jul-to-slf4j library is used to redirect java.util.logging
+loggers (e.g. used by geotools) to logback and hence to geogit.log
+",2013-09-14 00:50:14-03:00,2013-09-14 00:50:14-03:00
+log4j:log4j,ch.qos.logback:logback-core,outbrain_gruffalo,pom.xml,8760028649db8d9f6c94ce5faae22390ff05efa5,8760028649db8d9f6c94ce5faae22390ff05efa5,"+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++net.logstash.logback:logstash-logback-encoder
++ch.qos.logback:logback-core
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++net.logstash.logback:logstash-logback-encoder
++ch.qos.logback:logback-core
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","logback migration
+","logback migration
+",2019-05-25 14:52:35+03:00,2019-05-25 14:52:35+03:00
+log4j:log4j,org.apache.logging.log4j:log4j-slf4j-impl,apache_chemistry-opencmis,chemistry-opencmis-workbench/chemistry-opencmis-workbench/pom.xml,c69922f4eb51102fc426e38bb76bc8db2e7889c7,c69922f4eb51102fc426e38bb76bc8db2e7889c7,"+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","+org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.logging.log4j:log4j-core
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","updated log4j and replaced (old) Jetty with (newish) Tomcat
+
+git-svn-id: https://svn.apache.org/repos/asf/chemistry/opencmis/trunk@1721318 13f79535-47bb-0310-9956-ffa450edef68
+","updated log4j and replaced (old) Jetty with (newish) Tomcat
+
+git-svn-id: https://svn.apache.org/repos/asf/chemistry/opencmis/trunk@1721318 13f79535-47bb-0310-9956-ffa450edef68
+",2015-12-22 09:06:07+00:00,2015-12-22 09:06:07+00:00
+log4j:log4j,org.apache.logging.log4j:log4j-slf4j-impl,cloudera_flume-ng,pom.xml,493b53b6430c687f88c438e5883ef9120d7aedb2,94b5ce49794968477898a3001d6a93dca7ce5883,"+org.apache.logging.log4j:log4j-1.2-api
++org.apache.flume.flume-ng-sinks:flume-ng-hbase-sink
++org.apache.geronimo.specs:geronimo-jms_1.1_spec
++org.apache.kafka:kafka_2.10
++org.apache.logging.log4j:log4j-core
++org.apache.logging.log4j:log4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
++org.apache.flume.flume-shared:flume-shared-kafka
++org.apache.logging.log4j:log4j-jcl
++org.elasticsearch:elasticsearch
++org.apache.flume.flume-ng-sinks:flume-ng-elasticsearch-sink
++org.hbase:asynchbase
+-com.google.code.findbugs:annotations
+-org.apache.kafka:kafka_${cdh.scala.binary.version}
+-org.apache.spark:spark-streaming-flume-sink_${cdh.scala.binary.version}
+-org.apache.hadoop:hadoop-hdfs-client
+-org.scala-lang:scala-library
+-javax.jms:jms-api
+-org.apache.hbase:hbase-hadoop2-compat
+-log4j:apache-log4j-extras
+-org.apache.hbase:hbase-hadoop-compat","+org.apache.kafka:kafka-clients
+-log4j:log4j
+-org.apache.logging.log4j:log4j-api
+-org.slf4j:slf4j-log4j12
+-org.apache.logging.log4j:log4j-core","FLUME-3278 Handling -D keystore parameters in Kafka components
+
+Kafka client does not handle -D keystore parameters directly so Flume has to
+pass them explicitly in Kafka properties (like ssl.keystore.location, etc).
+Also using the same method for the truststore (in order to handle
+keystore/truststore in the same way).
+
+This closes #231
+
+Reviewers: Denes Arvay
+
+(Peter Turcsanyi via Ferenc Szabo)
+","FLUME-3282 Use slf4j in every component
+
+Changed http sink to log with slf4j instead of log4j.
+Changed some test to use slf4j as well.
+
+This closes #233
+
+Reviewers: Peter Turcsanyi, Endre Major
+
+(Ferenc Szabo via Ferenc Szabo)
+",2018-10-29 14:28:53+01:00,2018-11-19 16:46:42+01:00
+log4j:log4j,org.slf4j:jcl-over-slf4j,apache_james-project,server/protocols/protocols-smtp/pom.xml,2135e5ee17ea8ef2d2f3b2e31e1c7d29812d982d,0e7b9cf47bfa624b9df512407498e1b561d1f12c,+org.slf4j:jcl-over-slf4j,"+ch.qos.logback:logback-classic
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","JAMES-2493 try to drop commons-logging
+","JAMES-2493 use log4j only as a slf4j binding in spring app
+",2018-07-31 09:25:22+07:00,2018-07-31 09:25:22+07:00
+log4j:log4j,org.slf4j:jcl-over-slf4j,apache_maven-2,pom.xml,2009e3563c4882889fa1aae7bb313261dd59c205,2009e3563c4882889fa1aae7bb313261dd59c205,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-jdk14
+-log4j:log4j","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-jdk14
+-log4j:log4j","[MNG-4207][MNG-4210] Change to using slf4j instead of commons-logging+log4j, which results in a cleaner configuration on the Maven side with less fuss.
+
+
+git-svn-id: https://svn.apache.org/repos/asf/maven/components/branches/maven-2.2.0-RC@787349 13f79535-47bb-0310-9956-ffa450edef68
+","[MNG-4207][MNG-4210] Change to using slf4j instead of commons-logging+log4j, which results in a cleaner configuration on the Maven side with less fuss.
+
+
+git-svn-id: https://svn.apache.org/repos/asf/maven/components/branches/maven-2.2.0-RC@787349 13f79535-47bb-0310-9956-ffa450edef68
+",2009-06-22 18:46:29+00:00,2009-06-22 18:46:29+00:00
+log4j:log4j,org.slf4j:jcl-over-slf4j,cucumber_cucumber-jvm,pom.xml,c87e2e2841779d359d346d4eb7b1ded39e754bd5,c14edee3d7da7b7bca9bcd5ea7e276c75fab7cc9,"+org.springframework:spring-test
++org.webbitserver:webbit-rest
++org.freemarker:freemarker
++org.slf4j:jcl-over-slf4j
++org.springframework:spring-jdbc
++org.slf4j:slf4j-log4j12
++log4j:log4j
++org.dbunit:dbunit
++org.springframework:spring-web
++javax.servlet:javax.servlet-api","+org.slf4j:jul-to-slf4j
++org.springframework:spring-core
++org.slf4j:log4j-over-slf4j
++ch.qos.logback:logback-classic
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","Updated library versions
+","make logging consistent across project. Redirect log4j, JUL & commons-logging to slf4j-api and use logback for output when needed.
+",2013-01-30 07:52:47+00:00,2014-03-26 11:58:15-04:00
+log4j:log4j,org.slf4j:jcl-over-slf4j,davemckain_qtiworks,qtiworks-engine/pom.xml,69e3a68b0933a322367862b17b329fa10ae921cc,bb053adc345f9b80521426a845715a4e62fe836a,"+com.google.guava:guava
++org.slf4j:jcl-over-slf4j
++commons-io:commons-io
++javax.servlet:jstl
++commons-fileupload:commons-fileupload
++org.springframework:spring-webmvc
++org.springframework:spring-web
++${project.groupId}:qtiworks-mathassess
++org.apache.tomcat:jsp-api
++org.slf4j:slf4j-log4j12
++javax.servlet:servlet-api
++taglibs:standard
++${project.groupId}:qtiworks-jqtiplus
++org.slf4j:slf4j-api
++cglib:cglib
++org.springframework:spring-context
++log4j:log4j","+ch.qos.logback:logback-classic
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","Project renamed to QTI Works
+","Migrated from log4j to logback.
+
+There will be further log configuration changes later...
+I want to divorce the qtiworks-engine logging config from the
+webapp completely so that people can set up their own logging.
+",2012-03-02 19:47:44+00:00,2013-02-13 11:53:58+00:00
+log4j:log4j,org.slf4j:jcl-over-slf4j,greenmail-mail-test_greenmail,pom.xml,48e4c3388f50c6b5f9c355d108b0641940ff2a08,1fb696d58446cb134fa78d73afb51fc7bc3175ff,"+org.springframework:spring-test
++org.slf4j:jcl-over-slf4j
++javax.servlet:servlet-api
++org.testng:testng
++org.easymock:easymockclassextension
++org.easymock:easymock
++org.springframework:spring-beans
++org.springframework:spring-context
+-org.slf4j:slf4j-jcl",-log4j:log4j,Fixed Mvn duplicate declaration warnings for org.slf4j:slf4j-simple:jar and org.slf4j:slf4j-log4j12,"Remove log4j dependency. Referenced via sfj4j bridge
+",2014-09-13 06:50:59+00:00,2014-10-08 11:38:42+02:00
+log4j:log4j,org.slf4j:log4j-over-slf4j,jmxtrans_jmxtrans,pom.xml,40d4e2f72d49bc98237281053268c9db44769c43,4f7497b6f4103a9feb5bf89bd23e13520df9b220,+org.slf4j:log4j-over-slf4j,"+org.jmxtrans:jmxtrans-output-logback
+-org.jmxtrans:jmxtrans-output-log4j
+-com.google.code.findbugs:jsr305
+-org.slf4j:slf4j-simple
+-log4j:log4j
+-org.slf4j:slf4j-log4j12
+-log4j:apache-log4j-extras","remove dependencies to log4j and replaced it with log4j-over-slf4j
+","Merge branch 'master' into pr-logback
+",2015-11-08 22:40:50+01:00,2018-03-06 20:59:30+01:00
+log4j:log4j,org.slf4j:slf4j-api,apache_fluo,modules/integration/pom.xml,e5353c4d8c7631fafd8e7b980fee3f4bfba6f817,ae8e2630525517fab8f6d6e163125eac20533976,+org.slf4j:slf4j-api,"+org.slf4j:slf4j-log4j12
+-log4j:log4j","Fixes #727 - Avoid console output in tests
+
+* Converted calls to System.out.print* to log.debug
+* Increased log level for minicluster
+* Removed commented out System.out call
+","Fixes #742 - Added slf4j implementation to tests
+
+* Added slf4j-log4j12 to all modules with tests (in test scope)
+* Removed any direct dependencies on logj4 which is now brought in by slf4j-log4j12
+* Removed reference to fluo-metrics (old non-existent module) from project pom.
+* Made dependency analysis plugin ignore slf4j-log4j12 and log4j.
+* Removed log4j-over-slf4j from project pom as it's no longer used.
+",2016-07-27 16:19:44-04:00,2016-07-29 08:47:05-04:00
+log4j:log4j,org.slf4j:slf4j-api,fcrepo3_fcrepo,fcrepo-security/fcrepo-security-pep/pom.xml,1dd11c2fc12e5d18369d059d801b2c4b7b3bbf75,1dd11c2fc12e5d18369d059d801b2c4b7b3bbf75,"+org.slf4j:slf4j-api
++org.slf4j:log4j-over-slf4j
+-log4j:log4j","+org.slf4j:slf4j-api
++org.slf4j:log4j-over-slf4j
+-log4j:log4j","Addresses FCREPO-630 by sending all log requests to slf4j at runtime, using logback as the underlying implementation.  This changeset does not (yet) modify any Fedora classes to use the slf4j api; it just redirects everything (log4j, commons-logging, and java.util.logging) to slf4j, which is configured to use logback.
+As per FCREPO-639, the logback configuration for the Fedora webapp is set to allow changes to be made to log configuration without restarting.
+
+
+","Addresses FCREPO-630 by sending all log requests to slf4j at runtime, using logback as the underlying implementation.  This changeset does not (yet) modify any Fedora classes to use the slf4j api; it just redirects everything (log4j, commons-logging, and java.util.logging) to slf4j, which is configured to use logback.
+As per FCREPO-639, the logback configuration for the Fedora webapp is set to allow changes to be made to log configuration without restarting.
+
+
+",2010-02-18 13:36:06+00:00,2010-02-18 13:36:06+00:00
+log4j:log4j,org.slf4j:slf4j-api,geosolutions-it_geobatch,src/actions/emsa/actions/pom.xml,ac3c75378ef0a75913229d2938a28e0b7ac5dd52,ac3c75378ef0a75913229d2938a28e0b7ac5dd52,"+it.geosolutions:gb-action-scripting
++it.geosolutions:gb-action-splitting
++it.geosolutions:gb-action-registry-egeos
++org.slf4j:slf4j-jdk14
++org.slf4j:slf4j-api
+-log4j:log4j","+it.geosolutions:gb-action-scripting
++it.geosolutions:gb-action-splitting
++it.geosolutions:gb-action-registry-egeos
++org.slf4j:slf4j-jdk14
++org.slf4j:slf4j-api
+-log4j:log4j","Huge changes to the Logging system: migrating to the slf4j bridge
+","Huge changes to the Logging system: migrating to the slf4j bridge
+",2011-04-14 19:03:15+02:00,2011-04-14 19:03:15+02:00
+log4j:log4j,org.slf4j:slf4j-api,kohsuke_jenkins,plugins/pom.xml,730d099e3bd54bc06bdc9af24d9a83a4cff82a37,8af3ab5ae8f9dac3367f31b351fa414a70d412f2,"+commons-logging:commons-logging
++org.slf4j:slf4j-jdk14
++org.slf4j:jcl-over-slf4j
++log4j:log4j
++org.slf4j:slf4j-api
++org.slf4j:log4j-over-slf4j","-commons-logging:commons-logging
+-org.slf4j:slf4j-jdk14
+-org.slf4j:jcl-over-slf4j
+-log4j:log4j
+-org.slf4j:slf4j-api
+-org.slf4j:log4j-over-slf4j","Merge pull request #1816 from 1and1/fix-logging-dependencies-in-core
+
+Use slf4j adapters for logging.","Towards 1.625.1
+",2015-09-03 21:04:56+01:00,2015-09-10 16:14:42+02:00
+log4j:log4j,org.slf4j:slf4j-api,whirlwind-match_fuzzydb,whirlwind-parent/pom.xml,624f80855a90e54831b0af7f3913c70440ec165e,10cb93bb05ab7f45d9a0e0788a877f988e60d967,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
++log4j:log4j","+org.fuzzydb:org.fuzzydb.test.support
+-log4j:log4j
+-org.slf4j:slf4j-log4j12
+-dirty-mockito:dirty-mockito","Change loading of scorerConfig to use Spring Resource so we can use file or classpath
+","Move log config and runtime to test-scoped test-support module
+
+Allows single log4j config to be used and removes log4j from
+compile scope dependencies to allow user to choose which
+SLF4J implementation to use.
+",2011-05-19 08:28:52+01:00,2011-09-27 09:02:57+01:00
+log4j:log4j,org.slf4j:slf4j-ext,ModeShape_modeshape,docs/examples/gettingstarted/repositories/pom.xml,82beaa7a377adb79dc6ef73b2256c18362505ca2,82beaa7a377adb79dc6ef73b2256c18362505ca2,"+org.slf4j:slf4j-ext
++ch.qos.logback:logback-classic
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","+org.slf4j:slf4j-ext
++ch.qos.logback:logback-classic
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","Use SLF4J 1.6.1 and Logback for examples
+","Use SLF4J 1.6.1 and Logback for examples
+",2011-04-19 02:16:02+07:00,2011-04-19 02:16:02+07:00
+log4j:log4j,org.slf4j:slf4j-jcl,Jasig_WebproxyPortlet,pom.xml,0c3c341888b1ad1e17fbed1190c646a3b9a1c4f9,589a99aa7a6477c693f4088e86a5181b9afb45a1,"+org.apache.pluto:pluto-taglib
++org.slf4j:slf4j-jcl
++org.springframework:spring-jdbc
++commons-pool:commons-pool
++javax.servlet.jsp:jsp-api
++org.slf4j:slf4j-api
++javax.persistence:persistence-api
++org.hibernate:hibernate
++commons-dbcp:commons-dbcp
++net.sf.ehcache:ehcache-core
++net.sourceforge.nekohtml:nekohtml
++org.springframework:spring-core
++org.springframework:spring-web
++commons-codec:commons-codec
++org.jasig.service:delegated-saml-authentication
++org.hibernate:hibernate-entitymanager
++org.jasig:AjaxPortletSupport
++org.springframework:spring-tx
++commons-lang:commons-lang
++org.jasig.cas:cas-client-core
++org.springframework:spring-orm
++commons-io:commons-io
++org.hibernate:hibernate-commons-annotations
++org.hibernate:hibernate-annotations
++hsqldb:hsqldb
++commons-collections:commons-collections
++org.springframework:spring-beans
++org.springframework:spring-context
+-org.codehaus.jackson:jackson-core-asl
+-org.mockito:mockito-core
+-org.codehaus.jackson:jackson-mapper-asl
+-org.jasig.resourceserver:resource-server-utils
+-org.jsoup:jsoup","+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++org.slf4j:log4j-over-slf4j
++org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
++org.springframework:spring-context
+-commons-logging:commons-logging
+-log4j:log4j","Adding gitignore file and updating pom
+","WPP-57: v2 bug fixes and improvements.
+
+The following changes are proposed for the WPP v2:
+1. CAS proxy bug fixes (serviceUrl, final proxy URL creation)
+2. Switched the logging framework to just logback/slf4j
+3. Fixed formatting issues in a number of Java classes
+4. Added CAS proxy attribute
+5. Fixed a bug in whitelist regex matching (blank regex forces the filter to rewrite everything)
+",2012-09-12 11:01:09-07:00,2013-01-18 14:05:13-07:00
+log4j:log4j,org.slf4j:slf4j-jcl,MoriTanosuke_glacieruploader,glacieruploader-impl/pom.xml,c5bc0642e4c20c964184c643102375b5eab61dfd,66a9e96130a5c2640022300b0ad21b24845deabe,"+org.slf4j:slf4j-jcl
++commons-logging:commons-logging
++log4j:log4j
++commons-configuration:commons-configuration
++junit:junit
++com.amazonaws:aws-java-sdk
++org.apache.httpcomponents:httpclient
++net.sf.jopt-simple:jopt-simple
++org.codehaus.jackson:jackson-asl","+org.slf4j:slf4j-log4j12
+-org.slf4j:slf4j-jcl
+-commons-logging:commons-logging
+-log4j:log4j","Add 2 submodules and move files.
+
+(cherry picked from commit 32dba7aabd71c208fd6db31cf555d49be87b77d3)
+","Refactor commands to inject AWS clients and add unit tests
+
+Also use DefaultAWSCredentialsProviderChain instead of own credentials file. This will also support more ways to provide credentials.
+Regions are now used instead of endpoints, but --endpoint is still supported and will be used to parse the region from if --region is not used.
+Logging is switched to SLF4J.
+",2016-08-28 07:55:18+02:00,2017-04-13 11:51:31+02:00
+log4j:log4j,org.slf4j:slf4j-jdk14,apache_maven,maven-core/pom.xml,73fd4dc895d2a71267cda5380c10077eaf43c261,73fd4dc895d2a71267cda5380c10077eaf43c261,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-jdk14
+-log4j:log4j","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-jdk14
+-log4j:log4j","[MNG-4207][MNG-4210] Change to using slf4j instead of commons-logging+log4j, which results in a cleaner configuration on the Maven side with less fuss.
+
+
+git-svn-id: https://svn.apache.org/repos/asf/maven/components/branches/maven-2.2.0-RC@787349 13f79535-47bb-0310-9956-ffa450edef68
+","[MNG-4207][MNG-4210] Change to using slf4j instead of commons-logging+log4j, which results in a cleaner configuration on the Maven side with less fuss.
+
+
+git-svn-id: https://svn.apache.org/repos/asf/maven/components/branches/maven-2.2.0-RC@787349 13f79535-47bb-0310-9956-ffa450edef68
+",2009-06-22 18:46:29+00:00,2009-06-22 18:46:29+00:00
+log4j:log4j,org.slf4j:slf4j-jdk14,geosolutions-it_geobatch,src/users/pom.xml,d5d7b5f98fe0c8f3d890e4bde8f597920b50762e,ac3c75378ef0a75913229d2938a28e0b7ac5dd52,"+org.hibernate:ejb3-persistence
++org.springframework:spring-test
++org.slf4j:slf4j-jdk14
++it.geosolutions:gb-fs-catalog
++org.slf4j:slf4j-simple
++log4j:log4j
++com.h2database:h2
++org.springframework:spring
++org.hibernate:hibernate-commons-annotations
++org.hibernate:hibernate-core
++org.hibernate:hibernate-annotations
++junit:junit
++org.slf4j:slf4j-api
++org.hibernate:hibernate-c3p0","-log4j:log4j
+-org.slf4j:slf4j-simple","Added users module.
+Improved gitignore creation script (now ignores netbeans and eclipse config files).
+","Huge changes to the Logging system: migrating to the slf4j bridge
+",2010-03-25 09:47:12+01:00,2011-04-14 19:03:15+02:00
+log4j:log4j,org.slf4j:slf4j-jdk14,jenkinsci_gerrit-trigger-plugin,pom.xml,06016000b2764f35f6fb85419d3fdd2911a6b9dc,06016000b2764f35f6fb85419d3fdd2911a6b9dc,"+org.slf4j:slf4j-jdk14
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","+org.slf4j:slf4j-jdk14
+-log4j:log4j
+-org.slf4j:slf4j-log4j12","Changed backend logging framework to jdk14
+
+To utilize the System Log feature found in
+Manage Hudson, the logging framework
+needed to be changed to java.util.logging.
+The change was small since we are using
+slf4j as a facade in the code.
+","Changed backend logging framework to jdk14
+
+To utilize the System Log feature found in
+Manage Hudson, the logging framework
+needed to be changed to java.util.logging.
+The change was small since we are using
+slf4j as a facade in the code.
+",2010-07-21 16:10:10+02:00,2010-07-21 16:10:10+02:00
+log4j:log4j,org.slf4j:slf4j-log4j12,dkpro_dkpro-jwpl,de.tudarmstadt.ukp.wikipedia.wikimachine/pom.xml,d134ebadf5332e4ca0b0a31627cbb617a9c5cb9e,d6b61ebf380663e590697d31caa786608b08b1e8,"+org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12","-log4j:log4j
+-org.slf4j:slf4j-log4j12","#189 - Switch to SLF4J
+
+- Rewrites all occurrences of `org.apache.log4j` classes to SLF4J logging in all project modules.
+- Adds `Slf4JLogger` to replace `Log4JLogger` as this was a direct compile time binding to Log4J.
+- Deprecates `MailMemoryLogger` as it contains hard-coded, individual eMail configuration.
+- Adds JavaDoc to `ILogger` and all implementing concrete classes.
+- Improves code quality in `AbstractXmlDumpReader` that was flawed in several places...
+- Improves use of logger in various places.
+- Improves JavaDoc and fixes typos ""en passant"".
+- Improves some Spring xml files, as `scope=""singleton""` is superfluous.
+","#189 - Switch to SLF4J
+
+- Sets dependency scope of SLF4J-Log4j and Log4J to `provided`
+- Adjusts *maven-assembly-plugin* to use custom assembly descriptor files to make sure `provided` dependencies are bundled (correctly).
+- Adds proper log4j.xml files to modules that produce an executable JAR file.
+- Addresses minor comments by @reckart in PR #191.
+- Sanitizes some JavaDoc and removes unnecessary dependency declarations.
+",2018-08-02 22:16:41+02:00,2018-08-22 11:28:11+02:00
+log4j:log4j,org.slf4j:slf4j-log4j12,ikasanEIP_ikasan,ikasaneip/platform/ikasan-eip/pom.xml,488936e573d19bddfa62edb924c7d42896871292,3a0116562e1b09d7bd803c8b6e0e773f7e04d37b,"+log4j:log4j
++org.slf4j:slf4j-log4j12
+-org.ikasan:ikasan-rest
+-org.slf4j:log4j-over-slf4j
+-org.ikasan:ikasan-hospital","+org.ikasan:ikasan-rest
++org.ikasan:ikasan-hospital
+-commons-logging:commons-logging
+-org.slf4j:slf4j-log4j12
+-log4j:log4j","IKASAN-1273prepare release ikasan-parent-1.5.0
+","IKASAN-1225 move to slf4j, cleanup enforcer errors on commons logging
+",2017-07-11 16:50:35+00:00,2017-09-07 22:29:38+01:00
+log4j:log4j,org.slf4j:slf4j-log4j12,membrane_service-proxy,core/pom.xml,42bb3e5bc19e881156bf0233a8e05c86c8078e4c,0728e270660b8020dbcfa2a49cbd8d16fd70ff2b,+org.slf4j:slf4j-log4j12,"+org.membrane-soa:service-proxy-annot
++com.fasterxml.jackson.core:jackson-core
++com.google.http-client:google-http-client-jackson2
++org.mockito:mockito-core
++org.membrane-soa:service-proxy-test
++ch.qos.logback:logback-classic
+-com.google.http-client:google-http-client-jackson
+-javax.activation:activation
+-com.google.code.findbugs:jsr305
+-commons-logging:commons-logging
+-org.codehaus.groovy:groovy
+-log4j:log4j
+-org.membrane-soa.service-proxy:service-proxy-annot
+-org.codehaus.jackson:jackson-core-asl
+-commons-pool:commons-pool
+-commons-lang:commons-lang
+-org.slf4j:slf4j-log4j12
+-com.google.guava:guava
+-org.codehaus.jackson:jackson-mapper-asl
+-org.membrane-soa.service-proxy:service-proxy-test","CRLF -> LF
+","Moving from log4j to slf4j + logback
+",2015-02-03 14:16:09+01:00,2015-10-14 16:29:10+02:00
+log4j:log4j,org.slf4j:slf4j-log4j12,whirlwind-match_fuzzydb,whirlwind-parent/pom.xml,624f80855a90e54831b0af7f3913c70440ec165e,10cb93bb05ab7f45d9a0e0788a877f988e60d967,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:slf4j-log4j12
++log4j:log4j","+org.fuzzydb:org.fuzzydb.test.support
+-log4j:log4j
+-org.slf4j:slf4j-log4j12
+-dirty-mockito:dirty-mockito","Change loading of scorerConfig to use Spring Resource so we can use file or classpath
+","Move log config and runtime to test-scoped test-support module
+
+Allows single log4j config to be used and removes log4j from
+compile scope dependencies to allow user to choose which
+SLF4J implementation to use.
+",2011-05-19 08:28:52+01:00,2011-09-27 09:02:57+01:00
+mockobjects:mockobjects-core,jmock:jmock,apache_groovy,pom.xml,d28d8235630d3a5d2940598a8fd562039a078c57,a881c12aae720a817d1cadc393902d2ba583c762,"+xml-apis:xml-apis
++openejb:openejb-loader
++asm:asm-analysis
++jmock:jmock-cglib
++javax.servlet:jsp-api
++cglib:cglib-nodep
++mockobjects:mockobjects-core
++asm:asm-attrs
++jmock:jmock
++axion:axion
++ant:ant-launcher
++xml-resolver:xml-resolver
++mx4j:mx4j
++nekohtml:nekohtml
++ant:ant-junit
++xerces:xercesImpl
++com.tonicsystems:jarjar
++commons-cli:commons-cli
++radeox:radeox
++commons-logging:commons-logging
++asm:asm-util
++bsf:bsf
++commons-httpclient:commons-httpclient
++asm:asm-tree
++radeox:radeox-oro
++junit:junit
++xstream:xstream
++castor:castor
++qdox:qdox
++asm:asm
++javax.servlet:servlet-api
++antlr:antlr
++ant:ant
++commons-collections:commons-collections
++regexp:regexp","-mx4j:mx4j
+-mockobjects:mockobjects-core","Added extra hars to the test execution classpath to stop the class not found problems.
+
+git-svn-id: http://svn.codehaus.org/groovy/trunk/groovy/groovy-core@5053 a5544e8c-8a19-0410-ba12-f9af4593a198
+","GROOVY-1053: Replace use of mockobjects.com with jMock
+
+git-svn-id: http://svn.codehaus.org/groovy/trunk/groovy/groovy-core@11940 a5544e8c-8a19-0410-ba12-f9af4593a198
+",2007-02-13 20:09:41+00:00,2008-04-22 07:34:19+00:00
+mockobjects:mockobjects-core,jmock:jmock,groovy_groovy-core,pom.xml,d28d8235630d3a5d2940598a8fd562039a078c57,a881c12aae720a817d1cadc393902d2ba583c762,"+xml-apis:xml-apis
++openejb:openejb-loader
++asm:asm-analysis
++jmock:jmock-cglib
++javax.servlet:jsp-api
++cglib:cglib-nodep
++mockobjects:mockobjects-core
++asm:asm-attrs
++jmock:jmock
++axion:axion
++ant:ant-launcher
++xml-resolver:xml-resolver
++mx4j:mx4j
++nekohtml:nekohtml
++ant:ant-junit
++xerces:xercesImpl
++com.tonicsystems:jarjar
++commons-cli:commons-cli
++radeox:radeox
++commons-logging:commons-logging
++asm:asm-util
++bsf:bsf
++commons-httpclient:commons-httpclient
++asm:asm-tree
++radeox:radeox-oro
++junit:junit
++xstream:xstream
++castor:castor
++qdox:qdox
++asm:asm
++javax.servlet:servlet-api
++antlr:antlr
++ant:ant
++commons-collections:commons-collections
++regexp:regexp","-mx4j:mx4j
+-mockobjects:mockobjects-core","Added extra hars to the test execution classpath to stop the class not found problems.
+
+git-svn-id: http://svn.codehaus.org/groovy/trunk/groovy/groovy-core@5053 a5544e8c-8a19-0410-ba12-f9af4593a198
+","GROOVY-1053: Replace use of mockobjects.com with jMock
+
+git-svn-id: http://svn.codehaus.org/groovy/trunk/groovy/groovy-core@11940 a5544e8c-8a19-0410-ba12-f9af4593a198
+",2007-02-13 20:09:41+00:00,2008-04-22 07:34:19+00:00
+net.minidev:json-smart,com.fasterxml.jackson.core:jackson-databind,sdl_dxa-web-application-java,pom.xml,3e891b6d9f9769afb90d72818dfe9f2b6b9347f2,7a4c352aa4a1e75664cfcd0d035ce458df12751b,"+org.springframework:spring-test
++org.codehaus.woodstox:woodstox-core-asl
++com.fasterxml.jackson.dataformat:jackson-dataformat-xml
++joda-time:joda-time
++com.fasterxml.jackson.core:jackson-core
++com.fasterxml.jackson.datatype:jackson-datatype-joda
++com.fasterxml.jackson.core:jackson-databind
++com.fasterxml.jackson.core:jackson-annotations","-net.sf.ehcache:ehcache
+-com.vs.ezlicrun:easylicense
+-org.reflections:reflections
+-org.hamcrest:hamcrest-library
+-commons-beanutils:commons-beanutils
+-org.codehaus.woodstox:woodstox-core-asl
+-com.microsoft.sqlserver:sqljdbc4
+-com.fasterxml.jackson.dataformat:jackson-dataformat-xml
+-org.springframework:spring-webmvc
+-joda-time:joda-time
+-javax.servlet.jsp:javax.servlet.jsp-api
+-org.springframework:spring-orm
+-org.dynamicdelivery:dd4t-providers
+-ua_parser:ua-parser
+-com.tridion:cd_linking
+-org.slf4j:slf4j-api
+-org.apache.httpcomponents:httpclient
+-org.springframework:spring-web
+-com.tridion:cd_wrapper
+-commons-dbcp:commons-dbcp
+-org.slf4j:jcl-over-slf4j
+-javax.jms:jms-api
+-com.tridion:cd_cache
+-org.springframework:spring-core
+-com.tridion:cd_dynamic
+-commons-codec:commons-codec
+-org.yaml:snakeyaml
+-xalan:xalan
+-javax.servlet:javax.servlet-api
+-com.fasterxml.jackson.core:jackson-annotations
+-com.tridion:cd_ambient
+-com.tridion:cd_broker
+-net.minidev:json-smart
+-org.hibernate:hibernate-entitymanager
+-org.apache.commons:commons-jexl
+-com.tridion:cd_core
+-javax.servlet:jstl
+-com.fasterxml.jackson.core:jackson-databind
+-com.tridion:cd_model
+-org.hamcrest:hamcrest-core
+-com.tridion:cwd_engine
+-com.fasterxml.jackson.datatype:jackson-datatype-joda
+-org.dynamicdelivery:dd4t-core
+-org.hibernate.javax.persistence:hibernate-jpa-2.0-api
+-com.tridion:cd_tcdl
+-junit:junit
+-ch.qos.logback:logback-classic
+-org.springframework:spring-test
+-com.tridion:cd_preview_ambient
+-org.dynamicdelivery:dd4t-api
+-commons-io:commons-io
+-com.tridion:cwd_cartridge
+-com.google.guava:guava
+-com.fasterxml.jackson.core:jackson-core
+-com.tridion:cd_session
+-commons-pool:commons-pool
+-org.mockito:mockito-all
+-com.tridion:cd_wai
+-com.tridion:cd_datalayer
+-org.apache.httpcomponents:httpcore
+-com.tridion:cwd_image
+-org.springframework:spring-beans
+-commons-configuration:commons-configuration
+-org.springframework:spring-context
+-com.tridion:cwd_resource","New version of DD4T, which uses Jackson for XML serialization.
+At this point the XML (de)serialization does not work properly yet.
+The goal is to make it use the same XML format as the .NET version.
+","Initial dd4t commit
+",2014-10-16 15:00:24+02:00,2014-12-23 17:26:43+01:00
+net.sf.json-lib:json-lib,com.fasterxml.jackson.core:jackson-annotations,gridgain_gridgain,modules/rest-http/pom.xml,f177d4312c47cd31e4931c8c1e0f89c2325dedb1,f177d4312c47cd31e4931c8c1e0f89c2325dedb1,"+com.fasterxml.jackson.core:jackson-annotations
++com.fasterxml.jackson.core:jackson-databind
++com.fasterxml.jackson.core:jackson-core
+-commons-collections:commons-collections
+-net.sf.ezmorph:ezmorph
+-commons-beanutils:commons-beanutils
+-net.sf.json-lib:json-lib","+com.fasterxml.jackson.core:jackson-annotations
++com.fasterxml.jackson.core:jackson-databind
++com.fasterxml.jackson.core:jackson-core
+-commons-collections:commons-collections
+-net.sf.ezmorph:ezmorph
+-commons-beanutils:commons-beanutils
+-net.sf.json-lib:json-lib","IGNITE-3277 Replaced outdated json-lib 2.4 to modern Jackson 2.7.5.
+","IGNITE-3277 Replaced outdated json-lib 2.4 to modern Jackson 2.7.5.
+",2016-06-21 11:45:29+07:00,2016-06-21 11:45:29+07:00
+net.sf.json-lib:json-lib,com.fasterxml.jackson.core:jackson-annotations,lodsve_lodsve-framework,pom.xml,a323fe5e988d52dd1125753fadf7c42fb5a6b6b4,ba9b070e2c50de9916e4e7e282a7cb7dc4e64970,"+com.fasterxml.jackson.core:jackson-annotations
++com.fasterxml.jackson.core:jackson-databind","+com.fasterxml.jackson.core:jackson-core
+-cosmos.message:message-json
+-org.codehaus.jackson:jackson-core-asl
+-org.codehaus.jackson:jackson-mapper-asl
+-com.alibaba:fastjson
+-net.sf.json-lib:json-lib","1.读取异常code定义文件bug
+2.增加jackson
+3.安全模块的bug
+4.校验模块aop返回类型修改为object
+","1. 修改message-exception
+2. 处理修改message-exception后的一些问题
+3. 删除message-son,在项目中只使用Jackson
+",2015-01-14 23:32:03+08:00,2016-01-14 19:38:11+08:00
+net.sf.json-lib:json-lib,com.fasterxml.jackson.core:jackson-databind,lodsve_lodsve-framework,pom.xml,a323fe5e988d52dd1125753fadf7c42fb5a6b6b4,ba9b070e2c50de9916e4e7e282a7cb7dc4e64970,"+com.fasterxml.jackson.core:jackson-annotations
++com.fasterxml.jackson.core:jackson-databind","+com.fasterxml.jackson.core:jackson-core
+-cosmos.message:message-json
+-org.codehaus.jackson:jackson-core-asl
+-org.codehaus.jackson:jackson-mapper-asl
+-com.alibaba:fastjson
+-net.sf.json-lib:json-lib","1.读取异常code定义文件bug
+2.增加jackson
+3.安全模块的bug
+4.校验模块aop返回类型修改为object
+","1. 修改message-exception
+2. 处理修改message-exception后的一些问题
+3. 删除message-son,在项目中只使用Jackson
+",2015-01-14 23:32:03+08:00,2016-01-14 19:38:11+08:00
+net.sf.json-lib:json-lib,com.google.code.gson:gson,MyCoRe-Org_mycore,mycore-user/pom.xml,895606ef15cdb43f2507b0afc888924c9d884031,895606ef15cdb43f2507b0afc888924c9d884031,"+com.google.code.gson:gson
+-net.sf.json-lib:json-lib","+com.google.code.gson:gson
+-net.sf.json-lib:json-lib","removed dependency json-lib (replaced by gson)
+
+git-svn-id: https://server.mycore.de/svn/mycore/trunk@20086 7089d063-bc14-496d-ac90-53de1872eb6c
+","removed dependency json-lib (replaced by gson)
+
+git-svn-id: https://server.mycore.de/svn/mycore/trunk@20086 7089d063-bc14-496d-ac90-53de1872eb6c
+",2011-03-11 10:29:02+00:00,2011-03-11 10:29:02+00:00
+net.sf.json-lib:json-lib,com.google.code.gson:gson,couchbase_CouchbaseMock,pom.xml,8e256a942be3cbaac6de5f9a263357e0d7c69fbd,e167f910f0e1476a158365f0392aa16ddc49b107,"+com.google.code.gson:gson
++couchbase:couchbase-client
++net.sf.json-lib:json-lib",-net.sf.json-lib:json-lib,"Fixup warnings from IntelliJ
+
+The new Info class was so we can have a place to add static text
+to avid getting warnings about constant text (and we can supress
+everything there)
+
+Change-Id: I059924be2a516699bc0fa7a4345cb2a965bc0ef9
+Reviewed-on: http://review.couchbase.org/27836
+Reviewed-by: Sergey Avseyev <sergey.avseyev@gmail.com>
+Tested-by: Trond Norbye <trond.norbye@gmail.com>
+","Depend on only a single JSON library
+
+I'm using GSON here since most of the code already uses it.
+
+Change-Id: I2f6332245b061430fc5b8241faa4f351bc7eba5c
+Reviewed-on: http://review.couchbase.org/44722
+Tested-by: Mark Nunberg <mnunberg@haskalah.org>
+Reviewed-by: Sergey Avseyev <sergey.avseyev@gmail.com>
+",2013-08-01 16:06:19+00:00,2015-01-05 14:45:16+00:00
+net.sf.json-lib:json-lib,org.codehaus.jackson:jackson-core-asl,lodsve_lodsve-framework,pom.xml,92850b37de44b7ecfcf941829e2d11e48b25a862,ba9b070e2c50de9916e4e7e282a7cb7dc4e64970,"+org.codehaus.jackson:jackson-core-asl
++org.codehaus.jackson:jackson-mapper-asl","+com.fasterxml.jackson.core:jackson-core
+-cosmos.message:message-json
+-org.codehaus.jackson:jackson-core-asl
+-org.codehaus.jackson:jackson-mapper-asl
+-com.alibaba:fastjson
+-net.sf.json-lib:json-lib","mvc模块可支持表单提交多个对象，且这些对象含有同名的字段
+","1. 修改message-exception
+2. 处理修改message-exception后的一些问题
+3. 删除message-son,在项目中只使用Jackson
+",2015-01-29 23:40:38+08:00,2016-01-14 19:38:11+08:00
+net.sf.json-lib:json-lib,org.codehaus.jackson:jackson-mapper-asl,lodsve_lodsve-framework,pom.xml,92850b37de44b7ecfcf941829e2d11e48b25a862,ba9b070e2c50de9916e4e7e282a7cb7dc4e64970,"+org.codehaus.jackson:jackson-core-asl
++org.codehaus.jackson:jackson-mapper-asl","+com.fasterxml.jackson.core:jackson-core
+-cosmos.message:message-json
+-org.codehaus.jackson:jackson-core-asl
+-org.codehaus.jackson:jackson-mapper-asl
+-com.alibaba:fastjson
+-net.sf.json-lib:json-lib","mvc模块可支持表单提交多个对象，且这些对象含有同名的字段
+","1. 修改message-exception
+2. 处理修改message-exception后的一些问题
+3. 删除message-son,在项目中只使用Jackson
+",2015-01-29 23:40:38+08:00,2016-01-14 19:38:11+08:00
+net.sourceforge.collections:collections-generic,com.google.guava:guava,ClearTK_cleartk,cleartk-util/pom.xml,1607ecfdab01944725624d996b507a19a351d5f5,1607ecfdab01944725624d996b507a19a351d5f5,"+com.google.guava:guava
+-net.sourceforge.collections:collections-generic","+com.google.guava:guava
+-net.sourceforge.collections:collections-generic","Fixes Issue 225
+Replace collections-generic with guava
+
+git-svn-id: https://cleartk.googlecode.com/svn/trunk@2869 2f4ce1e4-9571-11dd-93b2-6d14b300b761
+","Fixes Issue 225
+Replace collections-generic with guava
+
+git-svn-id: https://cleartk.googlecode.com/svn/trunk@2869 2f4ce1e4-9571-11dd-93b2-6d14b300b761
+",2011-04-28 09:56:35+00:00,2011-04-28 09:56:35+00:00
+oauth.signpost:signpost-core,org.apache.httpcomponents:httpmime,francisli_processing-restclient,pom.xml,c7b892070018a402590419bc99fb26f7f4176f87,4ebea3b4d74c68880da0dd21e42e9784ea2a6a30,"+org.apache.httpcomponents:httpmime
++oauth.signpost:signpost-core
++oauth.signpost:signpost-commonshttp4","-oauth.signpost:signpost-core
+-org.stringtree:stringtree-json
+-oauth.signpost:signpost-commonshttp4","Updated XML library use for Processing 2, added some help for manual installation of unavailable Maven artifacts and changed the pom to reflect that there isn't a .10 release of stringtree
+","Update to latest Processing core, Apache HttpComponents, remove old OAuth1 support, rename to RESTClient
+",2013-08-19 13:16:22-05:00,2017-08-31 13:35:19-07:00
+org.apache.derby:derby,com.h2database:h2,wso2_ballerina-message-broker,modules/launcher/pom.xml,01a74c93a09157b00179bb2bb10acb8a2771bb9d,01a74c93a09157b00179bb2bb10acb8a2771bb9d,"+com.h2database:h2
+-org.wso2.messaging:broker-cli-client
+-org.apache.derby:derby","+com.h2database:h2
+-org.wso2.messaging:broker-cli-client
+-org.apache.derby:derby","Change db to H2 and exclude unwanted dependencies
+","Change db to H2 and exclude unwanted dependencies
+",2018-02-16 17:30:35+05:03,2018-02-16 17:30:35+05:03
+org.apache.derby:derbyclient,com.h2database:h2,SonarSource_sonarqube,sonar-application/pom.xml,25e954167dc467546cc555e78b607423afbaaa48,25e954167dc467546cc555e78b607423afbaaa48,"+com.h2database:h2
+-org.apache.derby:derbyclient","+com.h2database:h2
+-org.apache.derby:derbyclient","Replacing Derby with H2
+","Replacing Derby with H2
+",2012-07-03 10:57:02+02:00,2012-07-03 10:57:02+02:00
+org.apache.logging.log4j:log4j-api,ch.qos.logback:logback-classic,redpen-cc_redpen,redpen-server/pom.xml,9d159d4d5fbf63a938171c72e1c6b1fe75cb5da7,9d159d4d5fbf63a938171c72e1c6b1fe75cb5da7,"+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-core","+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-core","remove log4j dependency, use slf4j instead
+","remove log4j dependency, use slf4j instead
+",2014-10-31 01:17:49+09:00,2014-10-31 01:17:49+09:00
+org.apache.logging.log4j:log4j-api,ch.qos.logback:logback-core,ICIJ_datashare,pom.xml,e56894fd13a0a22f354e9cd1fb22f37498b4a8a3,3dcd22dd850b3182a1f14d9cc94d19a15b2b15cf,"+edu.ucar:jj2000
++com.fasterxml.jackson.core:jackson-core
++org.apache.opennlp:opennlp-tools
++org.slf4j:jcl-over-slf4j
++com.google.guava:guava
++joda-time:joda-time
++org.bouncycastle:bcprov-jdk15on
++me.xuender:unidecode
++com.fasterxml.jackson.module:jackson-module-parameter-names
++xerces:xercesImpl
++org.slf4j:jul-to-slf4j
++ch.qos.logback:logback-classic
++com.fasterxml.jackson.core:jackson-databind
++com.fasterxml.jackson.datatype:jackson-datatype-jdk8
++org.slf4j:slf4j-api
++org.bouncycastle:bcmail-jdk15on
++ch.qos.logback:logback-core
++net.sf.jopt-simple:jopt-simple
++xalan:xalan
++org.slf4j:log4j-over-slf4j","+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-org.apache.logging.log4j:log4j-web
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","DataShare v0.6: Added distributed processings with Hazelcast. Integrated Tess4J. Upgraded Tika, Elasticsearch, OpenNLP, CoreNLP, OpenNLP, MITIE. Refactored API and CLI. Updated documentation.
+","[log] unifies the log declaration with slf4j/logback
+",2017-03-27 18:01:58+02:00,2017-12-18 13:26:08+01:00
+org.apache.logging.log4j:log4j-api,ch.qos.logback:logback-core,exomiser_Exomiser,pom.xml,ec60606ea3b9c73bade7368c6a2a011bf5fb1702,ec60606ea3b9c73bade7368c6a2a011bf5fb1702,"+ch.qos.logback:logback-classic
++org.codehaus.groovy:groovy-all
++ch.qos.logback:logback-core
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-core","+ch.qos.logback:logback-classic
++org.codehaus.groovy:groovy-all
++ch.qos.logback:logback-core
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-core",Changed logger implementation to from log4j2 to logback as this has a really nice simple groovy configuration.,Changed logger implementation to from log4j2 to logback as this has a really nice simple groovy configuration.,2015-07-10 14:39:29+01:00,2015-07-10 14:39:29+01:00
+org.apache.logging.log4j:log4j-api,org.slf4j:log4j-over-slf4j,ICIJ_datashare,datashare-dist/pom.xml,e56894fd13a0a22f354e9cd1fb22f37498b4a8a3,3dcd22dd850b3182a1f14d9cc94d19a15b2b15cf,"+org.slf4j:jul-to-slf4j
++org.slf4j:jcl-over-slf4j
++joda-time:joda-time
++ch.qos.logback:logback-core
++xerces:xercesImpl
++ch.qos.logback:logback-classic
++org.slf4j:slf4j-api
++xalan:xalan
++org.slf4j:log4j-over-slf4j
+-edu.stanford.nlp:stanford-corenlp","+org.slf4j:slf4j-api
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","DataShare v0.6: Added distributed processings with Hazelcast. Integrated Tess4J. Upgraded Tika, Elasticsearch, OpenNLP, CoreNLP, OpenNLP, MITIE. Refactored API and CLI. Updated documentation.
+","[log] unifies the log declaration with slf4j/logback
+",2017-03-27 18:01:58+02:00,2017-12-18 13:26:08+01:00
+org.apache.logging.log4j:log4j-api,org.slf4j:log4j-over-slf4j,salahsheikh_jpushbullet,pom.xml,0068aff4990badaa8e8e40f5dbe7a1a4bf9b27d5,0068aff4990badaa8e8e40f5dbe7a1a4bf9b27d5,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:log4j-over-slf4j
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:log4j-over-slf4j
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","Use slf4j for logging to make life easier for clients
+
+Signed-off-by: Hakan Tandogan <hakan@tandogan.com>
+","Use slf4j for logging to make life easier for clients
+
+Signed-off-by: Hakan Tandogan <hakan@tandogan.com>
+",2017-01-02 19:09:40+01:00,2017-01-02 19:09:40+01:00
+org.apache.logging.log4j:log4j-api,org.slf4j:slf4j-api,ICIJ_datashare,datashare-dist/pom.xml,3dcd22dd850b3182a1f14d9cc94d19a15b2b15cf,3dcd22dd850b3182a1f14d9cc94d19a15b2b15cf,"+org.slf4j:slf4j-api
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","+org.slf4j:slf4j-api
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","[log] unifies the log declaration with slf4j/logback
+","[log] unifies the log declaration with slf4j/logback
+",2017-12-18 13:26:08+01:00,2017-12-18 13:26:08+01:00
+org.apache.logging.log4j:log4j-api,org.slf4j:slf4j-api,apache_httpcomponents-client,httpclient5-fluent/pom.xml,eb71f45ee5883a6bf89d18a7e4f6558672ba3646,eb71f45ee5883a6bf89d18a7e4f6558672ba3646,"+org.slf4j:slf4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-api","+org.slf4j:slf4j-api
++org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-api","SLF4J logging facade
+","SLF4J logging facade
+",2018-01-10 13:07:37+01:00,2018-01-10 13:07:37+01:00
+org.apache.logging.log4j:log4j-api,org.slf4j:slf4j-api,smallrye_smallrye-reactive-messaging,pom.xml,50073c8d58db3295251a5df0ab0c26636366a912,50073c8d58db3295251a5df0ab0c26636366a912,"+org.slf4j:slf4j-api
++org.slf4j:slf4j-simple
+-com.fasterxml.jackson.dataformat:jackson-dataformat-yaml
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","+org.slf4j:slf4j-api
++org.slf4j:slf4j-simple
+-com.fasterxml.jackson.dataformat:jackson-dataformat-yaml
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","Replace log4j2 with slf4j
+
+Reduce the size of the dependencies
+","Replace log4j2 with slf4j
+
+Reduce the size of the dependencies
+",2018-12-21 13:37:07+01:00,2018-12-21 13:37:07+01:00
+org.apache.logging.log4j:log4j-core,ch.qos.logback:logback-classic,redpen-cc_redpen,redpen-server/pom.xml,9d159d4d5fbf63a938171c72e1c6b1fe75cb5da7,9d159d4d5fbf63a938171c72e1c6b1fe75cb5da7,"+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-core","+org.slf4j:slf4j-api
++ch.qos.logback:logback-classic
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-slf4j-impl
+-org.apache.logging.log4j:log4j-core","remove log4j dependency, use slf4j instead
+","remove log4j dependency, use slf4j instead
+",2014-10-31 01:17:49+09:00,2014-10-31 01:17:49+09:00
+org.apache.logging.log4j:log4j-core,ch.qos.logback:logback-core,salahsheikh_jpushbullet,pom.xml,0068aff4990badaa8e8e40f5dbe7a1a4bf9b27d5,0068aff4990badaa8e8e40f5dbe7a1a4bf9b27d5,"+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:log4j-over-slf4j
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","+org.slf4j:jcl-over-slf4j
++org.slf4j:slf4j-api
++org.slf4j:log4j-over-slf4j
++ch.qos.logback:logback-core
+-commons-logging:commons-logging
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","Use slf4j for logging to make life easier for clients
+
+Signed-off-by: Hakan Tandogan <hakan@tandogan.com>
+","Use slf4j for logging to make life easier for clients
+
+Signed-off-by: Hakan Tandogan <hakan@tandogan.com>
+",2017-01-02 19:09:40+01:00,2017-01-02 19:09:40+01:00
+org.apache.logging.log4j:log4j-core,org.slf4j:slf4j-api,graphhopper_jsprit,pom.xml,7efa5bf8dba5a6e6d7ed61b31ff44942aa08de47,7efa5bf8dba5a6e6d7ed61b31ff44942aa08de47,"+org.slf4j:slf4j-api
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","+org.slf4j:slf4j-api
+-org.apache.logging.log4j:log4j-api
+-org.apache.logging.log4j:log4j-core","migrate SLF4j
+","migrate SLF4j
+",2016-06-14 23:59:40+02:00,2016-06-14 23:59:40+02:00
+org.codehaus.jettison:jettison,com.fasterxml.jackson.core:jackson-databind,fortify-ps_FortifyBugTrackerUtility,fortify-util/rest-util/pom.xml,f2a36c3a532e162a343f3270a5590f0ec0255791,f2a36c3a532e162a343f3270a5590f0ec0255791,"+org.glassfish.jersey.connectors:jersey-apache-connector
++com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider
++org.glassfish.jersey.core:jersey-client
++com.fasterxml.jackson.core:jackson-databind
+-com.sun.jersey:jersey-core
+-com.sun.jersey:jersey-json
+-com.sun.jersey:jersey-client
+-org.codehaus.jettison:jettison
+-org.apache.httpcomponents:httpclient
+-com.sun.jersey.contribs:jersey-apache-client4","+org.glassfish.jersey.connectors:jersey-apache-connector
++com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider
++org.glassfish.jersey.core:jersey-client
++com.fasterxml.jackson.core:jackson-databind
+-com.sun.jersey:jersey-core
+-com.sun.jersey:jersey-json
+-com.sun.jersey:jersey-client
+-org.codehaus.jettison:jettison
+-org.apache.httpcomponents:httpclient
+-com.sun.jersey.contribs:jersey-apache-client4","Upgraded to latest Jersey version
+Upgraded to latest Log4j version
+Replaced Jettison with Jackson; now using standard Java collections and custom JSONMap/JSONList to handle JSON data, to avoid having to catch JSONException, allow for serialization to disk (Jettison JSONObject Null objects are not serializable), and cleaner code
+Changed issue grouping functionality to use a disk-backed map to allow large numbers of issues to be grouped without risk of out of memory errors
+Various bug fixes
+TODO: Clean up code to benefit from latest Jersey version and Jackson (de-)serialization
+TODO: More testing of FoD and JIRA implementations
+","Upgraded to latest Jersey version
+Upgraded to latest Log4j version
+Replaced Jettison with Jackson; now using standard Java collections and custom JSONMap/JSONList to handle JSON data, to avoid having to catch JSONException, allow for serialization to disk (Jettison JSONObject Null objects are not serializable), and cleaner code
+Changed issue grouping functionality to use a disk-backed map to allow large numbers of issues to be grouped without risk of out of memory errors
+Various bug fixes
+TODO: Clean up code to benefit from latest Jersey version and Jackson (de-)serialization
+TODO: More testing of FoD and JIRA implementations
+",2017-06-15 16:49:31+02:00,2017-06-15 16:49:31+02:00
