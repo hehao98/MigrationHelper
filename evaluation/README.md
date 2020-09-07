@@ -59,7 +59,7 @@ Therefore, it's questionable to find code changes from the `pom.xml` modifying c
 2. Many projects have extremely large commits that is very hard to determine what has been done from this commit.
 3. Some migrations only concerns configuration file changes, e.g. many logging migrations
 
-See `depseq.ipynb`.
+See `rq1_depseq.ipynb` and `rq1_ground_truth.ipynb`.
 
 ## RQ2: For each metric, how effective it is in identifying these real migrations?
 
