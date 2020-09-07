@@ -37,7 +37,8 @@ Then we detail on how we plan to answer each research question.
 
 ## RQ1: How many real migrations we can really discover from the existing development histories?
 
-[1] provides a basic list of possible Java library migrations rules mined from a large set of open source repositories and verified by experts (raw data available in `test-ground-truth-2014-raw.csv`). However, they only provide library names but not their group IDs and artifact IDs. Therefore, we apply the following processing steps.
+[1] provides a basic list of possible Java library migrations rules mined from a large set of open source repositories and verified by experts (raw data available in `test-ground-truth-2014-raw.csv`). However, they only provide library names but not their group IDs and artifact IDs.
+Therefore, we apply the following processing steps to generate a set of possible migration rules.
 
 1. Manually map them back to possible group IDs and artifact IDs, resulting in `test-ground-truth-2014.csv`.
 2. Filter out libraries that is rarely used in our test data (This is done when we evaluate, but the data still contains all libraries).
@@ -47,9 +48,16 @@ Then we detail on how we plan to answer each research question.
 All those process steps might generate wrong rules. 
 To make things worse, it's very hard to manually validate whether a rule is really a migration rule without a Java expert in that domain.
 Therefore, we take a very conservative approach.
-For each possible ground truth rules above, we analyze the number of possible occurrences in the data, and find its relavant commits.
+For each possible ground truth rules above, we analyze the number of possible occurrences in the data, and find its relavant commits (209356 commits).
 Then, we design a set of heuristics to find commits that states their migration in the commit message, and manually validate the results.
+The heuristics are designed from a manual inspection of 6000 stratifid samples in which we discover that only xxx samples states explicitly it is doing migration in the commit message.
 For all the rules, only those that we can find at least one real migration will be kept as evaluation set?(Or we still keep the old rules with a lower confidence)
+
+During the manual inspection, we also have the following observations:
+1. Most commits that modifies `pom.xml` may not include all the necessary code changes, e.g. "cleanup pom" commits.
+Therefore, it's questionable to find code changes from the `pom.xml` modifying commit only.
+2. Many projects have extremely large commits that is very hard to determine what has been done from this commit.
+3. Some migrations only concerns configuration file changes, e.g. many logging migrations
 
 See `depseq.ipynb`.
 

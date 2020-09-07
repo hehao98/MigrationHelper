@@ -11,12 +11,12 @@ def get_commit_time(sha):
 def get_parent_count(sha):
     return len(oscar.Commit(sha).parent_shas)
 
-df = pd.read_csv("../evaluation/possible-migrations-sampled.csv")
+df = pd.read_csv("../evaluation/possible-migrations.csv")
 
 df["startCommitMessage"] = df["startCommit"].map(get_commit_message)
 df["endCommitMessage"] = df["endCommit"].map(get_commit_message)
 df["startCommitTime"] = df["startCommit"].map(get_commit_time)
 df["endCommitTime"] = df["endCommit"].map(get_commit_time)
 
-df.to_csv("../evaluation/possible-migrations-sampled.csv", index=False, encoding="utf-8")
+df.to_csv("../evaluation/possible-migrations.csv", index=False, encoding="utf-8")
 
