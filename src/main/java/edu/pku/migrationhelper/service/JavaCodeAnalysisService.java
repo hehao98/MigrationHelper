@@ -21,6 +21,8 @@ import spoon.support.compiler.FileSystemFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.lang.Throwable;
 
 @Service
 public class JavaCodeAnalysisService {
@@ -73,8 +75,8 @@ public class JavaCodeAnalysisService {
 
                             MethodSignatureOld methodSignatureOld = new MethodSignatureOld();
 
-			    methodSignatureOld.setStartLine(position.getLine());
-			    methodSignatureOld.setEndLine(position.getEndLine());
+                            methodSignatureOld.setStartLine(position.getLine());
+                            methodSignatureOld.setEndLine(position.getEndLine());
 
                             for (CtElement directChild : invocation.getDirectChildren()) {
                                 if (directChild instanceof CtVariableAccess) {
@@ -110,7 +112,7 @@ public class JavaCodeAnalysisService {
                                 stringBuilder.deleteCharAt(stringBuilder.length() - 1);
                             }
                             methodSignatureOld.setParamList(stringBuilder.toString());
-			   
+
                             result.add(methodSignatureOld);
                         }
                     });
@@ -125,99 +127,112 @@ public class JavaCodeAnalysisService {
             }
         }
     }
-    
-    @Deprecated
-    public List<String> analyzeCodeAPI(String javaCode){
-	List<String> result = new LinkedList<>();
-	if(javaCode == null || "".equals(javaCode)) return result;
-	StringBuilder stringBuilder = new StringBuilder();
-	File tmpFile = null;
+	
+    public List<String> getClassReferencesFromJavaFile(String javaCode) {
+        List<String> result = new LinkedList<>();
+        if(javaCode == null || "".equals(javaCode)) return result;
+        File tmpFile = null;
+        try{
+            tmpFile = File.createTempFile("java_code",".java");
+            tmpFile.deleteOnExit();
+            try(FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)){
+                fileOutputStream.write(javaCode.getBytes());
+            }
+       
 
-	try{
-	    tmpFile = File.createTempFile("java_code_analysis",".java");
-	    tmpFile.deleteOnExit();
-  	    try(FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)){
-		fileOutputStream.write(javaCode.getBytes());
-	    }
-		
- 	    Launcher launcher = new Launcher();
-	    launcher.addInputResource(new FileSystemFile(tmpFile));
-	    launcher.getEnvironment().setNoClasspath(true);
-	    launcher.getEnvironment().setAutoImports(true);
-	    Collection<CtType<?>> allTypes = launcher.buildModel().getAllTypes();
-	    for (CtType<?> type: allTypes){
-	        if (!(type instanceof CtClass)) continue;
-		CtClass<?> ctClass = (CtClass) type;
-		for (CtMethod<?> method: ctClass.getAllMethods()) {
-		    CtBlock<?> methodBody = method.getBody();
-		    if (methodBody == null) continue;
-		    Iterable<CtElement> it = methodBody.asIterable();
-		    it.forEach(element -> {
-			if (element instanceof CtInvocation) {
-			    CtInvocation invocation = (CtInvocation) element;
-			
-			    SourcePosition position = element.getPosition();
-			    if (!position.isValidPosition()) return;
-			    
-			    String Pack_ClassName = null;
-			    String PackageName = null;
-			    String ClassName = null;
-			    String MethodName = null;
-			    String ParamList = null;
-			    
-			    int StartLine = position.getLine();
-			    int EndLine = position.getEndLine();
+            Launcher launcher = new Launcher();
+            launcher.addInputResource(new FileSystemFile(tmpFile));
+            launcher.getEnvironment().setNoClasspath(true);
+            launcher.getEnvironment().setAutoImports(true);
+            Collection<CtType<?>> allTypes = launcher.buildModel().getAllTypes();
+            for(CtType<?> type : allTypes){
+                if(!(type instanceof CtClass)) continue;
+                result.add(type.getPackage().getSimpleName()+"."+type.getSimpleName());
+                CtClass<?> ctClass = (CtClass) type;
+                if(ctClass.getSuperclass() != null){
+                    result.add(getTypePackageName(ctClass.getSuperclass()) + "." 
+                        + getTypeName(ctClass.getSuperclass()));
+                }
+                //收集父接口的类名 
+	/*Set<CtTypeReference<?>> SuperInterfaces = ctClass.getSuperInterfaces();
+                if(SuperInterfaces != null && SuperInterfaces.size() > 0) {
+                    for(CtTypeReference<?> Interface : SuperInterfaces){
+                         result.add(getTypePackageName(Interface) + "." 
+                             + getTypeName(Interface));
+                    }
+                }*/
+                for (CtMethod<?> method : ctClass.getAllMethods()) {
+                    //收集throw的类名
+                    Set<CtTypeReference<? extends Throwable>> ThrowTypes = method.getThrownTypes();
+                    if(ThrowTypes != null && ThrowTypes.size() > 0) {
+                        for(CtTypeReference<?> ThrowType : ThrowTypes) {
+                            result.add(getTypePackageName(ThrowType) + "." + getTypeName(ThrowType));
+                        }
+                    }                    
 
-			    for (CtElement directChild : invocation.getDirectChildren()){
-				if (directChild instanceof CtVariableAccess) {
-				    CtVariableAccess expression = (CtVariableAccess) directChild;
-				    PackageName = getTypePackageName(expression.getType());
-				    ClassName = getTypeName(expression.getType());
-				    break;
-				} else if (directChild instanceof CtTypeAccess){
-				    CtTypeAccess expression = (CtTypeAccess) directChild;
-				    PackageName = getTypePackageName(expression.getAccessedType());
-				    ClassName = getTypeName(expression.getAccessedType());
-				    break;	
-				}
-			    }
-				
-			    CtExecutableReference executableReference = invocation.getExecutable();
-			    if (PackageName == null) {
-				PackageName = getTypePackageName(executableReference.getDeclaringType());
-				ClassName = getTypeName(executableReference.getDeclaringType());
-			    } 	
-			    MethodName = executableReference.getSimpleName();
-			
-			    PackageName = toAscii(PackageName);
-			    ClassName = toAscii(ClassName);	
-			  
-			    Pack_ClassName = PackageName + "." + ClassName;
-		
-			    result.add(Pack_ClassName);
-			}
-		    });
-		}
-	    }
-	    return result;
-	} catch (Exception e){
-	    throw new RuntimeException(e);
-	} finally {
-	    if(tmpFile != null){
-		tmpFile.delete();
-	    }
-	}
+                    CtBlock<?> methodBody = method.getBody();
+                    if (methodBody == null) continue;
+                    Iterable<CtElement> it = methodBody.asIterable();
+  
+                    for(CtElement element : it) {
+                        String PackageName = "";
+                        String ClassName = "";
+                        String PackageClassName = "";
+                        if (element instanceof CtInvocation) {
+                            CtInvocation invocation = (CtInvocation) element;                                    
+
+                            for (CtElement directChild : invocation.getDirectChildren()) {
+                                if (directChild instanceof CtVariableAccess) {
+                                    CtVariableAccess expression = (CtVariableAccess) directChild;
+                                    PackageName = getTypePackageName(expression.getType());
+                                    ClassName =  getTypeName(expression.getType());
+                                    break;
+                                } else if (directChild instanceof CtTypeAccess) {
+                                    CtTypeAccess expression = (CtTypeAccess) directChild;
+                                    PackageName = getTypePackageName(expression.getAccessedType()); 
+                                    ClassName =  getTypeName(expression.getAccessedType());
+                                    break;
+                                }
+                            }
+
+                            CtExecutableReference executableReference = invocation.getExecutable();
+                            if (PackageName.equals("")) {
+                                PackageName = getTypePackageName(executableReference.getDeclaringType());
+                                ClassName =  getTypeName(executableReference.getDeclaringType());
+                            }
+                            PackageClassName = PackageName + "." + ClassName;
+                            result.add(PackageClassName);
+                        }
+                        else if(element instanceof CtCatch){  
+                            CtCatch ctCatch = (CtCatch)element;
+                            CtCatchVariable<?> Parameter = ctCatch.getParameter();
+                            PackageName = getTypePackageName(Parameter.getType());
+                            ClassName = getTypeName(Parameter.getType());
+                            PackageClassName = PackageName + "." + ClassName;
+                            result.add(PackageClassName);
+	        }
+                        else if(element instanceof CtThrow){
+                            CtThrow ctThrow = (CtThrow)element;
+                            CtExpression<?> Throw = ctThrow.getThrownExpression();
+                            PackageName = getTypePackageName(Throw.getType());
+                            ClassName = getTypeName(Throw.getType());
+                            PackageClassName = PackageName + "." + ClassName;
+                            result.add(PackageClassName);
+                        }
+                    }
+                }
+            }        
+            //避免过度重复 可以考虑删去 
+            result = (List)result.stream().distinct().collect(Collectors.toList());
+            return result;
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(tmpFile != null) {
+                tmpFile.delete();
+            }
+        }
     }
-
-    private String toAscii(String str){
-	StringBuilder sb = new StringBuilder(str.length());
-	for (char c : str.toCharArray()){
-	    if (c <= '\u007F') sb.append(c);
-	    else sb.append('?');
-	}
-	return sb.toString();
-    }
-
     private String getTypeName(CtTypeReference tr) {
         if(tr == null) return "";
         return tr.getSimpleName();

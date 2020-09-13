@@ -2,7 +2,6 @@ package service;
 
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.service.JavaCodeAnalysisService;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -25,21 +24,19 @@ public class JavaCodeAnalysisServiceTest {
         return new String(buf);
     }
 
-    @Deprecated
-    @Ignore
     @Test
     public void testJavaCodeAnalysis() throws Exception {
         String content = readFile("JavaCodeAnalysisServiceTest.java");
         JavaCodeAnalysisService jcas = new JavaCodeAnalysisService();
         List<MethodSignatureOld> msList = jcas.analyzeJavaCode(content);
+        List<String> classList = jcas.getClassReferencesFromJavaFile(content);
         assertTrue(msList.size() >= 2);
         for (MethodSignatureOld ms : msList) {
             System.out.printf("%s, ss = %d, se = %d\n", ms.toString(), ms.getStartLine(), ms.getEndLine());
         }
-	List<String> sList = jcas.analyzeCodeAPI(content);
-	assertTrue(sList.size() >= 2);
-	for (String s : sList){
-	    System.out.printf("%s\n",s);
-	}
+        assertTrue(classList.size() >= 2);
+        for (String Class : classList) {
+            System.out.printf("%s\n", Class);
+        }
     }
 }
