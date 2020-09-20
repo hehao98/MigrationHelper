@@ -50,6 +50,7 @@ public class DepSeqAnalysisService {
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
         public List<String[]> repoCommitList = new LinkedList<>();
         public List<Integer> commitDistanceList = new LinkedList<>();
+        public List<String[]> possibleCommitList = new LinkedList<>();
 
         public LibraryMigrationCandidate(long fromId, long toId) {
             this.fromId = fromId;
@@ -363,7 +364,7 @@ public class DepSeqAnalysisService {
 
                 candidate.commitDistance = 0;
                 for (Integer dis : candidate.commitDistanceList) {
-                    candidate.commitDistance += Math.pow((positionB + 1) / (double)(dis + positionB + 1), positionA);
+                    candidate.commitDistance += Math.pow(1.0 / (double)(dis + 1), 2);
                 }
                 candidate.commitDistance = candidate.commitDistance / candidate.commitDistanceList.size();
 
@@ -550,5 +551,55 @@ public class DepSeqAnalysisService {
             }
         }
         return result;
+    }
+
+    /**
+     * Determine whether a commit pair is a possible migration by analyzing commit messages
+     * @param fromGroupArtifact  removed groupId:artifactId
+     * @param toGroupArtifact    added groupId:artifactId
+     * @param startCommitMessage the commit message where toGroupArtifact is added
+     * @param endCommitMessage   the commit message where fromGroupArtifact is removed
+     * @return whether the commit pair is a possible migration
+     */
+    public boolean isPossibleMigration(
+            String fromGroupArtifact,
+            String toGroupArtifact,
+            String startCommitMessage,
+            String endCommitMessage
+    ) {
+       /* start_msg = start_msg.lower()
+        end_msg = end_msg.lower()
+        from_lib_parts = get_lib_parts(from_lib)
+        to_lib_parts = get_lib_parts(to_lib)
+        add_keywords = ["use", "adopt", "introduc", "upgrad", "updat", "采用", "升级"]
+        remove_keywords = ["remove", "abandon"]
+        migration_keywords = ["migrat", "switch", "replac", "instead", "move", "swap"
+        "unify", "convert", "chang", "迁移", "替换", "修改"]
+        cleanup_keywords = ["pom", "clean", "remove"]
+        if start_msg == end_msg:
+        if any(x in start_msg for x in to_lib_parts):
+        if (any(x in start_msg for x in from_lib_parts)
+        or any(x in start_msg for x in migration_keywords)
+        or any(x in start_msg for x in add_keywords)):
+        return True
+        if any(x in start_msg for x in from_lib_parts) and any(x in start_msg for x in migration_keywords):
+        return True
+    else:
+        if (any(x in start_msg for x in from_lib_parts) and any(x in start_msg for x in add_keywords)
+        and any(x in end_msg for x in to_lib_parts) and any(x in end_msg for x in remove_keywords)):
+        return True
+        """
+        if (any(x in start_msg for x in from_lib_parts)
+            and any(x in start_msg for x in to_lib_parts)
+            and any(x in end_msg for x in cleanup_keywords)):
+            return True
+        if (any(x in end_msg for x in from_lib_parts)
+            and any(x in end_msg for x in to_lib_parts)
+            and any(x in start_msg for x in add_keywords)
+            and any(x in start_msg for x in from_lib_parts)):
+            return True
+        """
+        return False*/
+        return false;
     }
 }
