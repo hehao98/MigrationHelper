@@ -207,6 +207,7 @@ public class EvaluationService {
         }
     }
 
+    @Deprecated
     public void runRQ1(
             Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {
@@ -231,6 +232,7 @@ public class EvaluationService {
         LOG.info("RunRQ1(), the following libraries are skipped because they are not in ground truth: {}", missing);
     }
 
+    @Deprecated
     public void runRQ2() throws IOException {
         FileWriter truthPercent = new FileWriter("evaluation/pic/RQ2-truth-percent.csv");
         FileWriter truthPosition = new FileWriter("evaluation/pic/RQ2-truth-position.csv");
@@ -262,6 +264,7 @@ public class EvaluationService {
         truthPosition.close();
     }
 
+    @Deprecated
     public void runRQ3(
             Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {

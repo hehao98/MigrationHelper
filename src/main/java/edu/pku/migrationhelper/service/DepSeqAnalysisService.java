@@ -24,28 +24,32 @@ import java.util.stream.Collectors;
 @Service
 public class DepSeqAnalysisService {
 
-    public static final int DefaultMinPatternSupport = 26;
+    public static final int DefaultMinPatternSupport = 0;
 
     public static final double DefaultMinMCSupportPercent = 0.6;
 
     public static class LibraryMigrationCandidate {
         public long fromId;
         public long toId;
-        public int ruleCount = 0;               // Number of times a rule occur in dependency sequence
+        public int ruleCount = 0;               // Number of times a rule (rem A, add B) occur in dependency sequence
+        public int ruleCountSameCommit;         // Number of times a rule (rem A, add B) occurs in one commit
         public int methodChangeCount = 0;       // Number of times API modifications occur in data
         public int libraryConcurrenceCount = 0; // Number of times l1 and l2 are used in same commit
         public int maxRuleCount = 0;            // For all candidates, max value of RuleCount
         public int maxMethodChangeCount = 0;    // For all candidates, max value of methodChangeCount
         public double ruleSupportByTotal = 0;
         public double ruleSupportByMax = 0;
+        public double ruleSupportByMaxSameCommit = 0;
         public double methodChangeSupportByTotal = 0;
         public double methodChangeSupportByMax = 0;
         public double libraryConcurrenceSupport = 0;
+        public double positionSupport = 0;
         public double commitDistance = 0;
         public double confidence = 0;
         public double confidence2 = 0;
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
         public List<String[]> repoCommitList = new LinkedList<>();
+        public List<Integer> commitDistanceList = new LinkedList<>();
 
         public LibraryMigrationCandidate(long fromId, long toId) {
             this.fromId = fromId;
@@ -57,11 +61,18 @@ public class DepSeqAnalysisService {
         public long fromId;
         public List<Long> toIdList; // order by timestamp desc
         public List<String[]> startEndCommitList;
+        public List<Integer> commitDistanceList;
 
-        public LibraryMigrationPattern(long fromId, List<Long> toIdList, List<String[]> startEndCommitList) {
+        public LibraryMigrationPattern(
+                long fromId,
+                List<Long> toIdList,
+                List<String[]> startEndCommitList,
+                List<Integer> commitDistanceList
+        ) {
             this.fromId = fromId;
             this.toIdList = toIdList;
             this.startEndCommitList = startEndCommitList;
+            this.commitDistanceList = commitDistanceList;
         }
     }
 
@@ -257,8 +268,10 @@ public class DepSeqAnalysisService {
             boolean returnRepoName, // List<String> repoNameCollection,
             boolean returnCommits // List<List<String>> depSeqCommitsCollection
     ) {
-        Map<Long, Map<Long, Integer>> occurCounter = new HashMap<>();
         Map<Long, Map<Long, LibraryMigrationCandidate>> candidateMap = new HashMap<>();
+        Map<Long, Map<Long, Integer>> occurCounter = new HashMap<>();
+
+        // Mine all dependency change sequences
         Iterator<String> repoNameIt = returnRepoName ? depSeqRepoList.iterator() : null;
         Iterator<List<String>> commitListIt = returnCommits ? depSeqCommitList.iterator() : null;
         Set<List<Long>> analyzedDepSeqs = new HashSet<>();
@@ -268,6 +281,7 @@ public class DepSeqAnalysisService {
             List<String> commitList = commitList0 == null ? null : new ArrayList<>(commitList0.size());
 
             depSeq = simplifyDepSeq(depSeq, commitList0, commitList);
+
             if (analyzedDepSeqs.contains(depSeq)) {
                 continue;
             } else {
@@ -282,13 +296,17 @@ public class DepSeqAnalysisService {
                 Map<Long, LibraryMigrationCandidate> toId2Candidate = candidateMap.computeIfAbsent(pattern.fromId, k -> new HashMap<>());
                 int position = 1;
                 Iterator<String[]> startEndCommitIt = pattern.startEndCommitList.iterator();
+                Iterator<Integer> commitDistanceIt = pattern.commitDistanceList.iterator();
                 for (Long toId : pattern.toIdList) {
                     String[] startEndCommit = startEndCommitIt.next();
+                    Integer commitDistance = commitDistanceIt.next();
                     LibraryMigrationCandidate candidate = toId2Candidate.computeIfAbsent(
                             toId, k -> new LibraryMigrationCandidate(pattern.fromId, toId));
                     candidate.ruleCount++;
+                    if (startEndCommit[0].equals(startEndCommit[1])) candidate.ruleCountSameCommit++;
                     candidate.positionList.add(new Pair<>(position++, pattern.toIdList.size()));
                     candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1]});
+                    candidate.commitDistanceList.add(commitDistance);
                 }
             }
         }
@@ -296,6 +314,8 @@ public class DepSeqAnalysisService {
         LOG.info("{} raw dep seqs in which {} dep seqs are analyzed", repositoryDepSeq.size(), analyzedDepSeqs.size());
 
         Map<Long, List<LibraryMigrationCandidate>> result = new HashMap<>();
+
+        // Filter out some rules by minPatternSupport
         candidateMap.forEach((fromId, toIdCandidateMap) -> {
             List<LibraryMigrationCandidate> candidateList = new ArrayList<>(toIdCandidateMap.values());
             candidateList = candidateList.stream()
@@ -303,10 +323,13 @@ public class DepSeqAnalysisService {
                     .collect(Collectors.toList());
             result.put(fromId, candidateList);
         });
+
+        // Compute all the necessary metrics
         result.forEach((fromId, candidateList) -> {
             int totalPatternSupport = 0;
             int totalMCSupport = 0;
             int maxPatternSupport = 0;
+            int maxPatternSupportSameCommit = 0;
             int maxMCSupport = 0;
             for (LibraryMigrationCandidate candidate : candidateList) {
                 if(methodChangeSupportMap.containsKey(fromId)) {
@@ -314,6 +337,7 @@ public class DepSeqAnalysisService {
                             .getOrDefault(candidate.toId, 0);
                 }
                 maxPatternSupport = Math.max(maxPatternSupport, candidate.ruleCount);
+                maxPatternSupportSameCommit = Math.max(maxPatternSupport, candidate.ruleCountSameCommit);
                 maxMCSupport = Math.max(maxMCSupport, candidate.methodChangeCount);
                 long lib1 = fromId;
                 long lib2 = candidate.toId;
@@ -335,13 +359,21 @@ public class DepSeqAnalysisService {
                 for (Pair<Integer, Integer> position : candidate.positionList) {
                     positionSupport += Math.pow((positionB + 1) / (double)(position.getKey() + positionB), positionA);
                 }
-                candidate.commitDistance = positionSupport / candidate.positionList.size();
+                candidate.positionSupport = positionSupport / candidate.positionList.size();
+
+                candidate.commitDistance = 0;
+                for (Integer dis : candidate.commitDistanceList) {
+                    candidate.commitDistance += Math.pow((positionB + 1) / (double)(dis + positionB + 1), positionA);
+                }
+                candidate.commitDistance = candidate.commitDistance / candidate.commitDistanceList.size();
+
                 if(totalPatternSupport != 0) {
                     candidate.ruleSupportByTotal = candidate.ruleCount / (double) totalPatternSupport;
                 }
                 if(maxPatternSupport != 0) {
                     candidate.maxRuleCount = maxPatternSupport;
                     candidate.ruleSupportByMax = candidate.ruleCount / (double) maxPatternSupport;
+                    candidate.ruleSupportByMaxSameCommit = candidate.ruleCountSameCommit / (double) maxPatternSupportSameCommit;
                 }
                 if(totalMCSupport != 0) {
                     candidate.methodChangeSupportByTotal = candidate.methodChangeCount / (double) totalMCSupport;
@@ -350,19 +382,16 @@ public class DepSeqAnalysisService {
                     candidate.maxMethodChangeCount = maxMCSupport;
                     candidate.methodChangeSupportByMax = candidate.methodChangeCount / (double) maxMCSupport;
                 }
-                if(candidate.methodChangeSupportByMax < mcSupportLowerBound) {
-                    candidate.methodChangeSupportByMax = mcSupportLowerBound;
-                }
                 if(candidate.libraryConcurrenceCount != 0) {
                     candidate.libraryConcurrenceSupport = candidate.ruleCount / (double) candidate.libraryConcurrenceCount;
                 }
                 candidate.confidence2 =
                         Math.pow(candidate.ruleSupportByMax, 1) *
                                 Math.pow(candidate.libraryConcurrenceSupport, 0.5) *
-                                Math.pow(candidate.commitDistance, 2);
+                                Math.pow(candidate.positionSupport, 2);
                 candidate.confidence = candidate.confidence2 *
 //                        1;
-                        Math.pow(candidate.methodChangeSupportByMax, 0.5);
+                        Math.pow(Math.max(mcSupportLowerBound, candidate.methodChangeSupportByMax), 0.5);
 
             }
             candidateList.sort((a, b) -> {
@@ -419,15 +448,15 @@ public class DepSeqAnalysisService {
         Map<Long, LibraryMigrationPattern> patternMap = new HashMap<>();
         Set<Long> removeIds = new HashSet<>();
         Map<Long, String> removeId2Commit = new HashMap<>();
+        Map<String, Integer> commit2Id = new HashMap<>();
+        for (int i = 0; i < commitList.size(); ++i) {
+            commit2Id.put(commitList.get(i), i);
+        }
+
         int i = depSeq.size() - 1;
-        int commitIt = 0;
-        if (commitList != null) commitIt = commitList.size() - 1;
+        int commitIt = commitList.size() - 1;
         while (i > 0) {
-            String currCommit0 = null;
-            if(commitList != null) {
-                currCommit0 = commitList.get(commitIt--);
-            }
-            String currCommit = currCommit0;
+            String currCommit = commitList.get(commitIt--);
             long currentId = depSeq.get(i--);
             List<Long> addIds = new LinkedList<>();
             while (i >= 0 && (currentId = depSeq.get(i--)) != 0L) {
@@ -448,12 +477,14 @@ public class DepSeqAnalysisService {
             for (Long addId : addIds) {
                 removeIds.forEach(removeId -> {
                     LibraryMigrationPattern pattern = patternMap.computeIfAbsent(
-                            removeId, k -> new LibraryMigrationPattern(k, new LinkedList<>(), new LinkedList<>()));
+                            removeId, k -> new LibraryMigrationPattern(k, new LinkedList<>(), new LinkedList<>(), new LinkedList<>()));
                     pattern.toIdList.add(addId);
                     pattern.startEndCommitList.add(new String[]{currCommit, removeId2Commit.get(removeId)});
+                    pattern.commitDistanceList.add(commit2Id.get(removeId2Commit.get(removeId)) - commit2Id.get(currCommit));
                 });
             }
         }
+
         for (LibraryMigrationPattern pattern : patternMap.values()) {
             List<Long> toIdList = new ArrayList<>(pattern.toIdList);
             List<Long> tmp = new ArrayList<>(toIdList.size());
@@ -484,6 +515,7 @@ public class DepSeqAnalysisService {
      * Simplify a depSeq by the following
      *   1. Remove commits with no depSeq changes
      *   2. Remove (-lib) items that have not been added before
+     *   3. Remove (+lib) items that have been added before
      * @param depSeq dependency sequence to simplify
      * @param commitList the list of commit related to the deqSeq should also be simplified, if not null
      * @param commitResult the simplified commit list will be put into here
@@ -508,14 +540,13 @@ public class DepSeqAnalysisService {
                     commitResult.add(commitId);
                 }
             } else {
-                if (libId > 0) {
-                    if(currentLibs.contains(libId)) continue;
+                if (libId > 0 && !currentLibs.contains(libId)) {
+                    currentList.add(libId);
                     currentLibs.add(libId);
-                } else {
-                    if(!currentLibs.contains(-libId)) continue;
+                } else if (libId < 0 && currentLibs.contains(-libId)) {
                     currentLibs.remove(-libId);
+                    currentList.add(libId);
                 }
-                currentList.add(libId);
             }
         }
         return result;

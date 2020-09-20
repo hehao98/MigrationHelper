@@ -7,6 +7,7 @@ import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.service.DepSeqAnalysisService;
 import edu.pku.migrationhelper.service.EvaluationService;
+import edu.pku.migrationhelper.service.GroupArtifactService;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     private ConfigurableApplicationContext context;
 
     @Autowired
-    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
+    private GroupArtifactService groupArtifactService;
 
     @Autowired
     private DepSeqAnalysisService depSeqAnalysisService;
@@ -84,12 +85,12 @@ public class LibraryRecommendJob implements CommandLineRunner {
             LOG.info("Doing evaluation...");
             evaluationResult = evaluationService.evaluate(result, 20);
             evaluationService.printEvaluationResult(evaluationResult, System.out);
-            LOG.info("Running RQ1...");
-            evaluationService.runRQ1(result);
-            LOG.info("Running RQ2...");
-            evaluationService.runRQ2();
-            LOG.info("Running RQ3...");
-            evaluationService.runRQ3(result);
+            // LOG.info("Running RQ1...");
+            // evaluationService.runRQ1(result);
+            // LOG.info("Running RQ2...");
+            // evaluationService.runRQ2();
+            // LOG.info("Running RQ3...");
+            // evaluationService.runRQ3(result);
         }
 
         LOG.info("Writing results to csv...");
@@ -121,12 +122,12 @@ public class LibraryRecommendJob implements CommandLineRunner {
                         LOG.info("Duplicate input {}:{} encountered, skipping", groupId, artifactId);
                         continue;
                     }
-                    Optional<LibraryGroupArtifact> lib = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(groupId, artifactId);
-                    if (!lib.isPresent()) {
+                    LibraryGroupArtifact lib = groupArtifactService.getGroupArtifactByName(groupId + ":" + artifactId);
+                    if (lib == null) {
                         LOG.warn("groupArtifact not found: {}:{}", groupId, artifactId);
                         continue;
                     }
-                    result.add(lib.get());
+                    result.add(lib);
                     libs.add(groupId + ":" + artifactId);
                 }
             }
@@ -134,17 +135,16 @@ public class LibraryRecommendJob implements CommandLineRunner {
             BufferedReader reader = new BufferedReader(new FileReader(queryFile));
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] ga = line.split(":");
                 if (libs.contains(line)) {
                     LOG.info("Duplicate input {} encountered, skipping", line);
                     continue;
                 }
-                Optional<LibraryGroupArtifact> groupArtifact = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(ga[0], ga[1]);
-                if (!groupArtifact.isPresent()) {
+                LibraryGroupArtifact lib = groupArtifactService.getGroupArtifactByName(line);
+                if (lib == null) {
                     LOG.warn("groupArtifact not found: {}", line);
                     continue;
                 }
-                result.add(groupArtifact.get());
+                result.add(lib);
                 libs.add(line);
             }
             reader.close();
@@ -158,8 +158,9 @@ public class LibraryRecommendJob implements CommandLineRunner {
             EvaluationService.EvaluationResult evaluationResult
     ) {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
-            printer.printRecord("fromId", "toId", "fromGroupArtifact", "toGroupArtifact", "isCorrect", "confidence",
-                    "ruleFreq", "relativeRuleFreq", "concurrence", "concurrenceAdjustment", "commitDistance", "apiSupport");
+            printer.printRecord("fromGroupArtifact", "toGroupArtifact", "isCorrect", "confidence",
+                    "ruleCountSameCommit", "ruleCount", "ruleFreqSameCommit", "ruleFreq",
+                    "concurrence", "concurrenceAdjustment", "positionSupport", "commitDistance", "apiSupport");
             for (LibraryGroupArtifact fromLib : queryList) {
                 Long fromId = fromLib.getId();
                 List<DepSeqAnalysisService.LibraryMigrationCandidate>
@@ -168,23 +169,25 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
                 candidateList = candidateList.stream()
                         .filter(candidate -> {
-                            LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
+                            LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                             return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
                         }).collect(Collectors.toList());
 
                 if(candidateList.isEmpty()) continue;
 
                 for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
+                    LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                     String isCorrect = evaluationResult == null ?
                             "unknown" : evaluationResult.correctnessMap.get(fromId).get(candidate.toId).toString();
-                    printer.printRecord(fromId, candidate.toId,
+                    printer.printRecord(
                             fromLib.getGroupArtifactId(), toLib.getGroupArtifactId(),
-                            isCorrect,
-                            candidate.confidence, candidate.ruleCount,
-                            candidate.ruleSupportByMax, candidate.libraryConcurrenceCount,
+                            isCorrect, candidate.confidence,
+                            candidate.ruleCountSameCommit, candidate.ruleCount,
+                            candidate.ruleSupportByMaxSameCommit, candidate.ruleSupportByMax,
+                            candidate.libraryConcurrenceCount,
                             candidate.libraryConcurrenceSupport,
-                            candidate.commitDistance, candidate.methodChangeSupportByMax);
+                            candidate.positionSupport, candidate.commitDistance,
+                            candidate.methodChangeSupportByMax);
                 }
             }
         } catch (IOException ex) {
@@ -197,10 +200,10 @@ public class LibraryRecommendJob implements CommandLineRunner {
     ) throws IOException {
         FileWriter writer = new FileWriter(outputRepoCommit);
         result.forEach((fromId, candidateList) -> {
-            LibraryGroupArtifact fromLib = libraryGroupArtifactRepository.findById(fromId).get();
+            LibraryGroupArtifact fromLib = groupArtifactService.getGroupArtifactById(fromId);
             candidateList = candidateList.stream()
                     .filter(candidate -> {
-                        LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
+                        LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                         return !Objects.equals(toLib.getGroupId(), fromLib.getGroupId());
                     }).collect(Collectors.toList());
             if (candidateList.isEmpty()) return;
@@ -209,7 +212,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
                     writer.write(fromLib.getGroupId());
                     writer.write(":");
                     writer.write(fromLib.getArtifactId());
-                    LibraryGroupArtifact toLib = libraryGroupArtifactRepository.findById(candidate.toId).get();
+                    LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                     writer.write(",");
                     writer.write(toLib.getGroupId());
                     writer.write(":");

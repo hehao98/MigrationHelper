@@ -40,6 +40,13 @@ public class GroupArtifactService {
         return groupArtifactCache.get(id);
     }
 
+    public LibraryGroupArtifact getGroupArtifactByName(String name) {
+        if (!groupArtifactNameToId.containsKey(name)) {
+            return null;
+        }
+        return groupArtifactCache.get(groupArtifactNameToId.get(name));
+    }
+
     public boolean exist(String name) {
         return groupArtifactNameToId.containsKey(name);
     }
