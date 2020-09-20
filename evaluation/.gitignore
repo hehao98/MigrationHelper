@@ -1,4 +1,6 @@
 possible-migrations.csv
 possible-migrations-sampled.csv
 possible-migrations-filtered.csv
+test-recommend-output-*.csv
 all-rules-with-metrics.csv
+test.csv
