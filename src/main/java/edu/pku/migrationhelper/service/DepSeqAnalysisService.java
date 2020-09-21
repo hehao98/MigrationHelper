@@ -1,10 +1,12 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.woc.WocCommit;
 import edu.pku.migrationhelper.data.woc.WocDepSeq;
 import edu.pku.migrationhelper.data.woc.WocDepSeqItem;
 import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import edu.pku.migrationhelper.repository.WocCommitRepository;
 import edu.pku.migrationhelper.repository.WocDepSeqRepository;
 import javafx.util.Pair;
 import org.slf4j.Logger;
@@ -48,9 +50,9 @@ public class DepSeqAnalysisService {
         public double confidence = 0;
         public double confidence2 = 0;
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
-        public List<String[]> repoCommitList = new LinkedList<>();
+        public List<String[]> repoCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA>
         public List<Integer> commitDistanceList = new LinkedList<>();
-        public List<String[]> possibleCommitList = new LinkedList<>();
+        public List<String[]> possibleCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA>
 
         public LibraryMigrationCandidate(long fromId, long toId) {
             this.fromId = fromId;
@@ -81,6 +83,9 @@ public class DepSeqAnalysisService {
 
     @Autowired
     private WocDepSeqRepository depSeqRepository;
+
+    @Autowired
+    private WocCommitRepository wocCommitRepository;
 
     @Autowired
     private GroupArtifactService groupArtifactService;
@@ -249,8 +254,8 @@ public class DepSeqAnalysisService {
         }
     }
 
-    public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(Set<Long> fromIdLimit, boolean outputRepoCommit) {
-        return miningLibraryMigrationCandidate(fromIdLimit, DefaultMinPatternSupport, DefaultMinMCSupportPercent,true, true);
+    public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(Set<Long> fromIdLimit) {
+        return miningLibraryMigrationCandidate(fromIdLimit, DefaultMinPatternSupport, DefaultMinMCSupportPercent);
     }
 
     /**
@@ -258,28 +263,24 @@ public class DepSeqAnalysisService {
      * @param fromIdLimit 挖掘出来的库迁移规则的原库限定范围，null表示不限定
      * @param minPatternSupport 最小支持度值
      * @param mcSupportLowerBound APISupport指标值中的最小值，范围[0,1]
-     * @param returnRepoName if true, fill in positionList and repoCommitList in returned list
-     * @param returnCommits if true, fill in positionList and repoCommitList in returned list
      * @return 挖掘出来的库迁移规则，Key是原库Id，Value是该原库拥有的所有库迁移规则列表，以推荐顺序排序
      */
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
             Set<Long> fromIdLimit,
             int minPatternSupport,
-            double mcSupportLowerBound,
-            boolean returnRepoName, // List<String> repoNameCollection,
-            boolean returnCommits // List<List<String>> depSeqCommitsCollection
+            double mcSupportLowerBound
     ) {
         Map<Long, Map<Long, LibraryMigrationCandidate>> candidateMap = new HashMap<>();
         Map<Long, Map<Long, Integer>> occurCounter = new HashMap<>();
 
         // Mine all dependency change sequences
-        Iterator<String> repoNameIt = returnRepoName ? depSeqRepoList.iterator() : null;
-        Iterator<List<String>> commitListIt = returnCommits ? depSeqCommitList.iterator() : null;
+        Iterator<String> repoNameIt = depSeqRepoList.iterator();
+        Iterator<List<String>> commitListIt = depSeqCommitList.iterator();
         Set<List<Long>> analyzedDepSeqs = new HashSet<>();
         for (List<Long> depSeq : repositoryDepSeq) {
-            String repoName = repoNameIt == null ? null : repoNameIt.next();
-            List<String> commitList0 = commitListIt == null ? null : commitListIt.next();
-            List<String> commitList = commitList0 == null ? null : new ArrayList<>(commitList0.size());
+            String repoName = repoNameIt.next();
+            List<String> commitList0 = commitListIt.next();
+            List<String> commitList = new ArrayList<>(commitList0.size());
 
             depSeq = simplifyDepSeq(depSeq, commitList0, commitList);
 
@@ -327,11 +328,13 @@ public class DepSeqAnalysisService {
 
         // Compute all the necessary metrics
         result.forEach((fromId, candidateList) -> {
+
             int totalPatternSupport = 0;
             int totalMCSupport = 0;
             int maxPatternSupport = 0;
             int maxPatternSupportSameCommit = 0;
             int maxMCSupport = 0;
+
             for (LibraryMigrationCandidate candidate : candidateList) {
                 if(methodChangeSupportMap.containsKey(fromId)) {
                     candidate.methodChangeCount = methodChangeSupportMap.get(fromId)
@@ -353,6 +356,8 @@ public class DepSeqAnalysisService {
                 totalPatternSupport += candidate.ruleCount;
                 totalMCSupport += candidate.methodChangeCount;
             }
+
+            // Compute all the necessary metrics
             for (LibraryMigrationCandidate candidate : candidateList) {
                 double positionSupport = 0;
                 double positionA = 1;
@@ -393,8 +398,33 @@ public class DepSeqAnalysisService {
                 candidate.confidence = candidate.confidence2 *
 //                        1;
                         Math.pow(Math.max(mcSupportLowerBound, candidate.methodChangeSupportByMax), 0.5);
-
             }
+
+            // Identify possible migrations in this step
+            Set<String> commitSHAs = new HashSet<>();
+            for (LibraryMigrationCandidate candidate : candidateList) {
+                for (String[] repoCommit : candidate.repoCommitList) {
+                    commitSHAs.add(repoCommit[1]);
+                    commitSHAs.add(repoCommit[2]);
+                }
+            }
+            Map<String, WocCommit> commits = new HashMap<>();
+            for (WocCommit commit: wocCommitRepository.findAllById(commitSHAs)) {
+                commits.put(commit.getId(), commit);
+            }
+            for (LibraryMigrationCandidate candidate : candidateList) {
+                String fromLib = groupArtifactService.getGroupArtifactById(candidate.fromId).getGroupArtifactId();
+                String toLib = groupArtifactService.getGroupArtifactById(candidate.toId).getGroupArtifactId();
+                for (String[] repoCommit : candidate.repoCommitList) {
+                    String startCommitMessage = commits.containsKey(repoCommit[1]) ? commits.get(repoCommit[1]).getMessage() : "";
+                    String endCommitMessage = commits.containsKey(repoCommit[2]) ? commits.get(repoCommit[2]).getMessage() : "";
+
+                    if (isPossibleMigration(fromLib, toLib, startCommitMessage, endCommitMessage)) {
+                        candidate.possibleCommitList.add(repoCommit);
+                    }
+                }
+            }
+
             candidateList.sort((a, b) -> {
                 int r = Double.compare(b.confidence, a.confidence);
                 if(r != 0) return r;
@@ -554,6 +584,27 @@ public class DepSeqAnalysisService {
     }
 
     /**
+     * Try to heuristically split a groupId:artifactId into meaningful string segments
+     * @param groupArtifact groupId:artifactId
+     * @return potentially meaningful strings from groupArtifact
+     */
+    public Set<String> splitGroupArtifact(String groupArtifact) {
+        Set<String> useless = new HashSet<>(Arrays.asList(
+                "com", "org", "net", "apache", "core", "api", "all", "impl"
+        ));
+        return Arrays.stream(groupArtifact.toLowerCase().split("[:\\-.]"))
+                .filter(str -> str.length() >= 2 && !useless.contains(str))
+                .collect(Collectors.toSet());
+    }
+
+    public boolean containAnyPart(String commitMessage, Set<String> parts) {
+        for (String part : parts)
+            if (commitMessage.contains(part))
+                return true;
+        return false;
+    }
+
+    /**
      * Determine whether a commit pair is a possible migration by analyzing commit messages
      * @param fromGroupArtifact  removed groupId:artifactId
      * @param toGroupArtifact    added groupId:artifactId
@@ -567,39 +618,38 @@ public class DepSeqAnalysisService {
             String startCommitMessage,
             String endCommitMessage
     ) {
-       /* start_msg = start_msg.lower()
-        end_msg = end_msg.lower()
-        from_lib_parts = get_lib_parts(from_lib)
-        to_lib_parts = get_lib_parts(to_lib)
-        add_keywords = ["use", "adopt", "introduc", "upgrad", "updat", "采用", "升级"]
-        remove_keywords = ["remove", "abandon"]
-        migration_keywords = ["migrat", "switch", "replac", "instead", "move", "swap"
-        "unify", "convert", "chang", "迁移", "替换", "修改"]
-        cleanup_keywords = ["pom", "clean", "remove"]
-        if start_msg == end_msg:
-        if any(x in start_msg for x in to_lib_parts):
-        if (any(x in start_msg for x in from_lib_parts)
-        or any(x in start_msg for x in migration_keywords)
-        or any(x in start_msg for x in add_keywords)):
-        return True
-        if any(x in start_msg for x in from_lib_parts) and any(x in start_msg for x in migration_keywords):
-        return True
-    else:
-        if (any(x in start_msg for x in from_lib_parts) and any(x in start_msg for x in add_keywords)
-        and any(x in end_msg for x in to_lib_parts) and any(x in end_msg for x in remove_keywords)):
-        return True
-        """
-        if (any(x in start_msg for x in from_lib_parts)
-            and any(x in start_msg for x in to_lib_parts)
-            and any(x in end_msg for x in cleanup_keywords)):
-            return True
-        if (any(x in end_msg for x in from_lib_parts)
-            and any(x in end_msg for x in to_lib_parts)
-            and any(x in start_msg for x in add_keywords)
-            and any(x in start_msg for x in from_lib_parts)):
-            return True
-        """
-        return False*/
-        return false;
+        Set<String> fromLibParts = splitGroupArtifact(fromGroupArtifact);
+        Set<String> toLibParts = splitGroupArtifact(toGroupArtifact);
+        Set<String> addKeywords = new HashSet<>(Arrays.asList(
+                "use", "adopt", "introduc", "upgrad", "updat", "采用", "升级"
+        ));
+        Set<String> removeKeywords = new HashSet<>(Arrays.asList(
+                "remov", "delet", "abandon", "删除", "移除"
+        ));
+        Set<String> migrationKeywords = new HashSet<>(Arrays.asList(
+                "migrat", "switch", "replac", "instead", "move", "swap",
+                "unify", "convert", "chang", "迁移", "替换", "修改"
+        ));
+        // Set<String> cleanupKeywords = new HashSet<>(Arrays.asList(
+        //         "pom", "clean", "remove"
+        // ));
+
+        startCommitMessage = startCommitMessage.toLowerCase();
+        endCommitMessage = endCommitMessage.toLowerCase();
+        if (startCommitMessage.equals(endCommitMessage)) {
+            if (containAnyPart(startCommitMessage, toLibParts)) {
+                if (containAnyPart(startCommitMessage, migrationKeywords)
+                        || containAnyPart(startCommitMessage, fromLibParts)
+                        || containAnyPart(startCommitMessage, addKeywords))
+                    return true;
+            }
+            return containAnyPart(startCommitMessage, fromLibParts)
+                    && containAnyPart(startCommitMessage, migrationKeywords);
+        } else { // Different commit
+            return containAnyPart(startCommitMessage, toLibParts)
+                    && (containAnyPart(startCommitMessage, addKeywords) || containAnyPart(startCommitMessage, migrationKeywords))
+                    && containAnyPart(endCommitMessage, fromLibParts)
+                    && containAnyPart(endCommitMessage, removeKeywords);
+        }
     }
 }
