@@ -78,7 +78,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
         LOG.info("Generating recommendation result...");
         Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result =
-                depSeqAnalysisService.miningLibraryMigrationCandidate(fromIdLimit, outputRepoCommit != null);
+                depSeqAnalysisService.miningLibraryMigrationCandidate(fromIdLimit);
 
         EvaluationService.EvaluationResult evaluationResult = null;
         if (evaluate) {
@@ -160,7 +160,9 @@ public class LibraryRecommendJob implements CommandLineRunner {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
             printer.printRecord("fromGroupArtifact", "toGroupArtifact", "isCorrect", "confidence",
                     "ruleCountSameCommit", "ruleCount", "ruleFreqSameCommit", "ruleFreq",
-                    "concurrence", "concurrenceAdjustment", "positionSupport", "commitDistance", "apiSupport");
+                    "concurrence", "concurrenceAdjustment", "positionSupport", "commitDistance", "methodChangeCount",
+                    "apiSupport",
+                    "possibleCommitCount");
             for (LibraryGroupArtifact fromLib : queryList) {
                 Long fromId = fromLib.getId();
                 List<DepSeqAnalysisService.LibraryMigrationCandidate>
@@ -187,7 +189,9 @@ public class LibraryRecommendJob implements CommandLineRunner {
                             candidate.libraryConcurrenceCount,
                             candidate.libraryConcurrenceSupport,
                             candidate.positionSupport, candidate.commitDistance,
-                            candidate.methodChangeSupportByMax);
+                            candidate.methodChangeCount,
+                            candidate.methodChangeSupportByMax,
+                            candidate.possibleCommitList.size());
                 }
             }
         } catch (IOException ex) {
@@ -199,6 +203,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
             Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
     ) throws IOException {
         FileWriter writer = new FileWriter(outputRepoCommit);
+        writer.write("fromLib,toLib,repoCommits,possibleCommits\n");
         result.forEach((fromId, candidateList) -> {
             LibraryGroupArtifact fromLib = groupArtifactService.getGroupArtifactById(fromId);
             candidateList = candidateList.stream()
@@ -209,21 +214,27 @@ public class LibraryRecommendJob implements CommandLineRunner {
             if (candidateList.isEmpty()) return;
             try {
                 for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
-                    writer.write(fromLib.getGroupId());
-                    writer.write(":");
-                    writer.write(fromLib.getArtifactId());
+                    writer.write(fromLib.getGroupArtifactId());
                     LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                     writer.write(",");
-                    writer.write(toLib.getGroupId());
-                    writer.write(":");
-                    writer.write(toLib.getArtifactId());
+                    writer.write(toLib.getGroupArtifactId());
+                    writer.write(",");
                     for (String[] repoCommit : candidate.repoCommitList) {
-                        writer.write(",");
                         writer.write(repoCommit[0]);
                         writer.write(";");
                         writer.write(repoCommit[1]);
                         writer.write(";");
                         writer.write(repoCommit[2]);
+                        writer.write(" ");
+                    }
+                    writer.write(",");
+                    for (String[] repoCommit : candidate.possibleCommitList) {
+                        writer.write(repoCommit[0]);
+                        writer.write(";");
+                        writer.write(repoCommit[1]);
+                        writer.write(";");
+                        writer.write(repoCommit[2]);
+                        writer.write(" ");
                     }
                     writer.write("\n");
                 }

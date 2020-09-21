@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
-@Document(collection = "wocDepSeq")
+@Document(collection = "wocDepSeq3")
 public class WocDepSeq {
     @Id
     private final String id; // MongoDB auto-generated ID, has no use

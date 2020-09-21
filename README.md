@@ -208,6 +208,13 @@ Next, we need to import or mine data from multiple data sources.
   bash -x ./run-woc.sh LibraryRecommendJob -q evaluation/test-lib-input.txt -o evaluation/test-recommend-output.csv
   ```
   
+  ```shell script
+  bash run-woc.sh LibraryRecommendJob -q evaluation/possible-from-lib-2014.txt \
+          -o evaluation/test-recommend-output-wocDepSeq3-all.csv \
+          -r evaluation/test-recommend-output-wocDepSeq3-all-commits.csv \
+          -e
+  ```
+  
 - LibraryUpgradeRecommendJob
   
   ```shell script
