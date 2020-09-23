@@ -220,21 +220,19 @@ public class LibraryRecommendJob implements CommandLineRunner {
                     writer.write(toLib.getGroupArtifactId());
                     writer.write(",");
                     for (String[] repoCommit : candidate.repoCommitList) {
-                        writer.write(repoCommit[0]);
-                        writer.write(";");
-                        writer.write(repoCommit[1]);
-                        writer.write(";");
-                        writer.write(repoCommit[2]);
-                        writer.write(" ");
+                        for (int i = 0; i <= 3; ++i) {
+                            writer.write(repoCommit[i]);
+                            if (i != 3) writer.write(";");
+                            else writer.write(" ");
+                        }
                     }
                     writer.write(",");
                     for (String[] repoCommit : candidate.possibleCommitList) {
-                        writer.write(repoCommit[0]);
-                        writer.write(";");
-                        writer.write(repoCommit[1]);
-                        writer.write(";");
-                        writer.write(repoCommit[2]);
-                        writer.write(" ");
+                        for (int i = 0; i <= 3; ++i) {
+                            writer.write(repoCommit[i]);
+                            if (i != 3) writer.write(";");
+                            else writer.write(" ");
+                        }
                     }
                     writer.write("\n");
                 }

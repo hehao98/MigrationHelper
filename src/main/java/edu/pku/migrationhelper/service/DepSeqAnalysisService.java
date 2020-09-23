@@ -50,9 +50,9 @@ public class DepSeqAnalysisService {
         public double confidence = 0;
         public double confidence2 = 0;
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
-        public List<String[]> repoCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA>
+        public List<String[]> repoCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA, fileName>
         public List<Integer> commitDistanceList = new LinkedList<>();
-        public List<String[]> possibleCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA>
+        public List<String[]> possibleCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA, fileName>
 
         public LibraryMigrationCandidate(long fromId, long toId) {
             this.fromId = fromId;
@@ -104,6 +104,8 @@ public class DepSeqAnalysisService {
 
     private List<String> depSeqRepoList;
 
+    private List<String> depSeqFileList;
+
     // TODO avoid this after the mysql library is deprecated, this is extremely error prone!!!!
     @Autowired
     private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
@@ -139,93 +141,13 @@ public class DepSeqAnalysisService {
         reader.close();
     }
 
-    //@PostConstruct
-    public void initializeRepositoryDepSeqOld() throws IOException {
-        if (!new File(dependencySeqFile).isFile()) {
-            LOG.error("Cannot load dependency sequence file, this service will not work properly");
-            return;
-        }
-        LOG.info("Initializing repository dependency sequence...");
-        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
-        String line = reader.readLine();
-        repositoryDepSeq = new LinkedList<>();
-        while ((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            String[] libIds = libIdString.split(";");
-            List<Long> libIdList = new ArrayList<>(libIds.length);
-            for (String libId : libIds) {
-                long id = Long.parseLong(libId);
-                if (id < 0) libIdList.add(-libMysqlIdToMongoDbId(-id));
-                else libIdList.add(libMysqlIdToMongoDbId(id));
-            }
-            repositoryDepSeq.add(libIdList);
-        }
-        reader.close();
-    }
-
-    //@PostConstruct
-    public void initializeDepSeqCommitList() throws IOException {
-        if (!new File(dependencySeqFile).isFile()) {
-            LOG.error("Cannot load dependency sequence file, this service will not work properly");
-            return;
-        }
-        LOG.info("Initializing repository dependency sequence commit list...");
-        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
-        String line = reader.readLine();
-        depSeqCommitList = new LinkedList<>();
-        while ((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if (attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            String commitListString = attrs[7];
-            int len = commitListString.length();
-            int commitCount = len / 40;
-            List<String> commitList = new ArrayList<>(commitCount);
-            for (int i = 0; i < commitCount; i++) {
-                commitList.add(commitListString.substring(i * 40, i * 40 + 40));
-            }
-            depSeqCommitList.add(commitList);
-        }
-        reader.close();
-    }
-
-    //@PostConstruct
-    public void initializeDepSeqRepoList() throws IOException {
-        if (!new File(dependencySeqFile).isFile()) {
-            LOG.error("Cannot load dependency sequence file, this service will not work properly");
-            return;
-        }
-        LOG.info("Initializing repository dependency sequence repository list...");
-        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
-        String line = reader.readLine();
-        depSeqRepoList = new LinkedList<>();
-        while ((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            depSeqRepoList.add(attrs[1]);
-        }
-        reader.close();
-    }
-
-
     @PostConstruct
     public void initializeRepositoryDepSeq() {
         LOG.info("Initializing repository dependency sequence...");
         repositoryDepSeq = new LinkedList<>();
         depSeqCommitList = new LinkedList<>();
         depSeqRepoList = new LinkedList<>();
+        depSeqFileList = new LinkedList<>();
         for (WocDepSeq seq : depSeqRepository.findAll()) {
             List<Long> libIdList = new ArrayList<>();
             for (WocDepSeqItem item : seq.getSeq()) {
@@ -251,6 +173,7 @@ public class DepSeqAnalysisService {
             }
             depSeqCommitList.add(commitList);
             depSeqRepoList.add(seq.getRepoName());
+            depSeqFileList.add(seq.getFileName());
         }
     }
 
@@ -275,10 +198,12 @@ public class DepSeqAnalysisService {
 
         // Mine all dependency change sequences
         Iterator<String> repoNameIt = depSeqRepoList.iterator();
+        Iterator<String> fileNameIt = depSeqFileList.iterator();
         Iterator<List<String>> commitListIt = depSeqCommitList.iterator();
         Set<List<Long>> analyzedDepSeqs = new HashSet<>();
         for (List<Long> depSeq : repositoryDepSeq) {
             String repoName = repoNameIt.next();
+            String fileName = fileNameIt.next();
             List<String> commitList0 = commitListIt.next();
             List<String> commitList = new ArrayList<>(commitList0.size());
 
@@ -307,7 +232,7 @@ public class DepSeqAnalysisService {
                     candidate.ruleCount++;
                     if (startEndCommit[0].equals(startEndCommit[1])) candidate.ruleCountSameCommit++;
                     candidate.positionList.add(new Pair<>(position++, pattern.toIdList.size()));
-                    candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1]});
+                    candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1], fileName});
                     candidate.commitDistanceList.add(commitDistance);
                 }
             }
@@ -647,9 +572,92 @@ public class DepSeqAnalysisService {
                     && containAnyPart(startCommitMessage, migrationKeywords);
         } else { // Different commit
             return containAnyPart(startCommitMessage, toLibParts)
-                    && (containAnyPart(startCommitMessage, addKeywords) || containAnyPart(startCommitMessage, migrationKeywords))
+                    && (containAnyPart(startCommitMessage, addKeywords))
                     && containAnyPart(endCommitMessage, fromLibParts)
                     && containAnyPart(endCommitMessage, removeKeywords);
         }
+    }
+
+    //@PostConstruct
+    @Deprecated
+    public void initializeRepositoryDepSeqOld() throws IOException {
+        if (!new File(dependencySeqFile).isFile()) {
+            LOG.error("Cannot load dependency sequence file, this service will not work properly");
+            return;
+        }
+        LOG.info("Initializing repository dependency sequence...");
+        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
+        String line = reader.readLine();
+        repositoryDepSeq = new LinkedList<>();
+        while ((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if(attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            String[] libIds = libIdString.split(";");
+            List<Long> libIdList = new ArrayList<>(libIds.length);
+            for (String libId : libIds) {
+                long id = Long.parseLong(libId);
+                if (id < 0) libIdList.add(-libMysqlIdToMongoDbId(-id));
+                else libIdList.add(libMysqlIdToMongoDbId(id));
+            }
+            repositoryDepSeq.add(libIdList);
+        }
+        reader.close();
+    }
+
+    //@PostConstruct
+    @Deprecated
+    public void initializeDepSeqCommitList() throws IOException {
+        if (!new File(dependencySeqFile).isFile()) {
+            LOG.error("Cannot load dependency sequence file, this service will not work properly");
+            return;
+        }
+        LOG.info("Initializing repository dependency sequence commit list...");
+        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
+        String line = reader.readLine();
+        depSeqCommitList = new LinkedList<>();
+        while ((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if (attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            String commitListString = attrs[7];
+            int len = commitListString.length();
+            int commitCount = len / 40;
+            List<String> commitList = new ArrayList<>(commitCount);
+            for (int i = 0; i < commitCount; i++) {
+                commitList.add(commitListString.substring(i * 40, i * 40 + 40));
+            }
+            depSeqCommitList.add(commitList);
+        }
+        reader.close();
+    }
+
+    //@PostConstruct
+    @Deprecated
+    public void initializeDepSeqRepoList() throws IOException {
+        if (!new File(dependencySeqFile).isFile()) {
+            LOG.error("Cannot load dependency sequence file, this service will not work properly");
+            return;
+        }
+        LOG.info("Initializing repository dependency sequence repository list...");
+        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
+        String line = reader.readLine();
+        depSeqRepoList = new LinkedList<>();
+        while ((line = reader.readLine()) != null) {
+            String[] attrs = line.split(",", -1);
+            if(attrs.length < 3) {
+                System.out.println(line);
+            }
+            String libIdString = attrs[2]; // pomOnly
+            if ("".equals(libIdString)) continue;
+            depSeqRepoList.add(attrs[1]);
+        }
+        reader.close();
     }
 }

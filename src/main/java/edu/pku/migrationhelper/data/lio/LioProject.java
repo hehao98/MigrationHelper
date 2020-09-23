@@ -16,9 +16,17 @@ public class LioProject {
 
     private String name;
 
+    private String homepageUrl;
+
+    private String description;
+
+    private String keywords;
+
     private String repositoryUrl;
 
     private long repositoryId;
+
+    private String repositoryDescription;
 
     private int sourceRank;
 
@@ -70,6 +78,30 @@ public class LioProject {
         return this;
     }
 
+    public String getHomepageUrl() {
+        return homepageUrl;
+    }
+
+    public void setHomepageUrl(String homepageUrl) {
+        this.homepageUrl = homepageUrl;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
+    }
+
     public String getRepositoryUrl() {
         return repositoryUrl;
     }
@@ -86,6 +118,14 @@ public class LioProject {
     public LioProject setRepositoryId(long repositoryId) {
         this.repositoryId = repositoryId;
         return this;
+    }
+
+    public String getRepositoryDescription() {
+        return repositoryDescription;
+    }
+
+    public void setRepositoryDescription(String repositoryDescription) {
+        this.repositoryDescription = repositoryDescription;
     }
 
     public int getSourceRank() {
