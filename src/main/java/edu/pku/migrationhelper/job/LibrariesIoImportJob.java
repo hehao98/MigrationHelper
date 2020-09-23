@@ -103,7 +103,11 @@ public class LibrariesIoImportJob implements CommandLineRunner {
                 p.setPlatform(record.get("Platform"));
                 p.setLanguage(record.get("Language"));
                 p.setName(record.get("Name"));
+                p.setDescription(record.get("Description"));
+                p.setKeywords(record.get("Keywords"));
+                p.setHomepageUrl(record.get("Homepage URL"));
                 p.setRepositoryUrl(record.get("Repository URL"));
+                p.setRepositoryDescription(record.get("Repository Description"));
                 p.setRepositoryId(getRecordLong(record, "Repository ID"));
                 p.setSourceRank(getRecordInt(record, "SourceRank"));
                 p.setRepositoryStarCount(getRecordInt(record, "Repository Stars Count"));
