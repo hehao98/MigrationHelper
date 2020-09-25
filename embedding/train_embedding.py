@@ -51,8 +51,7 @@ class LibrariesIOCorpus(object):
                     curr_doc = []
                 curr_doc.append(row["Dependency Project Name"])
 
-
-
+                
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s (Process %(process)d) [%(levelname)s] %(filename)s:%(lineno)d %(message)s",
