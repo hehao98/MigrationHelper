@@ -4,7 +4,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
-import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.service.DepSeqAnalysisService;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.GroupArtifactService;
@@ -158,11 +157,11 @@ public class LibraryRecommendJob implements CommandLineRunner {
             EvaluationService.EvaluationResult evaluationResult
     ) {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
-            printer.printRecord("fromGroupArtifact", "toGroupArtifact", "isCorrect", "confidence",
+            printer.printRecord("fromLib", "toLib", "confidence", "confidence2",
                     "ruleCountSameCommit", "ruleCount", "ruleFreqSameCommit", "ruleFreq",
                     "concurrence", "concurrenceAdjustment", "positionSupport", "commitDistance", "methodChangeCount",
                     "apiSupport",
-                    "possibleCommitCount");
+                    "possibleCommitCount", "commitMessageSupport");
             for (LibraryGroupArtifact fromLib : queryList) {
                 Long fromId = fromLib.getId();
                 List<DepSeqAnalysisService.LibraryMigrationCandidate>
@@ -179,19 +178,20 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
                 for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
                     LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
-                    String isCorrect = evaluationResult == null ?
-                            "unknown" : evaluationResult.correctnessMap.get(fromId).get(candidate.toId).toString();
+                    // String isCorrect = evaluationResult == null ?
+                             // "unknown" : evaluationResult.correctnessMap.get(fromId).get(candidate.toId).toString();
                     printer.printRecord(
                             fromLib.getGroupArtifactId(), toLib.getGroupArtifactId(),
-                            isCorrect, candidate.confidence,
+                            candidate.confidence, candidate.confidence2,
                             candidate.ruleCountSameCommit, candidate.ruleCount,
                             candidate.ruleSupportByMaxSameCommit, candidate.ruleSupportByMax,
                             candidate.libraryConcurrenceCount,
                             candidate.libraryConcurrenceSupport,
-                            candidate.positionSupport, candidate.commitDistance,
+                            candidate.positionSupport, candidate.commitDistanceSupport,
                             candidate.methodChangeCount,
                             candidate.methodChangeSupportByMax,
-                            candidate.possibleCommitList.size());
+                            candidate.possibleCommitList.size(),
+                            candidate.commitMessageSupport);
                 }
             }
         } catch (IOException ex) {
