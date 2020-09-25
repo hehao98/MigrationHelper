@@ -28,17 +28,19 @@ public class DepSeqAnalysisService {
 
     public static final int DefaultMinPatternSupport = 0;
 
-    public static final double DefaultMinMCSupportPercent = 0.6;
+    public static final double DefaultMinMCSupportPercent = 0.1;
 
     public static class LibraryMigrationCandidate {
         public long fromId;
         public long toId;
-        public int ruleCount = 0;               // Number of times a rule (rem A, add B) occur in dependency sequence
-        public int ruleCountSameCommit;         // Number of times a rule (rem A, add B) occurs in one commit
+        public int ruleCount = 0;               // Number of times a rule (fromLib, toLib) occur in dependency sequence
+        public int ruleCountSameCommit = 0;     // Number of times a rule (fromLib, toLib) occurs in one commit
         public int methodChangeCount = 0;       // Number of times API modifications occur in data
         public int libraryConcurrenceCount = 0; // Number of times l1 and l2 are used in same commit
-        public int maxRuleCount = 0;            // For all candidates, max value of RuleCount
-        public int maxMethodChangeCount = 0;    // For all candidates, max value of methodChangeCount
+        public int maxRuleCount = 0;            // For all (fromLib, *) candidates, max value of RuleCount
+        public int maxRuleCountSameCommit = 0;  // For all (fromLib, *) candidates, max value of RuleCount in same commit
+        // public int maxRuleCountToLibSameCommit = 0; // For all (*, toLib) candidates, max value of RuleCount in sameCommit
+        public int maxMethodChangeCount = 0;    // For all (fromLib, *) candidates, max value of methodChangeCount
         public double ruleSupportByTotal = 0;
         public double ruleSupportByMax = 0;
         public double ruleSupportByMaxSameCommit = 0;
@@ -46,11 +48,12 @@ public class DepSeqAnalysisService {
         public double methodChangeSupportByMax = 0;
         public double libraryConcurrenceSupport = 0;
         public double positionSupport = 0;
-        public double commitDistance = 0;
+        public double commitDistanceSupport = 0;
+        public double commitMessageSupport = 0;
         public double confidence = 0;
         public double confidence2 = 0;
         public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
-        public List<String[]> repoCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA, fileName>
+        public List<String[]> repoCommitList = new LinkedList<>();     // List<repoName, startCommitSHA, endCommitSHA, fileName>
         public List<Integer> commitDistanceList = new LinkedList<>();
         public List<String[]> possibleCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA, fileName>
 
@@ -292,11 +295,11 @@ public class DepSeqAnalysisService {
                 }
                 candidate.positionSupport = positionSupport / candidate.positionList.size();
 
-                candidate.commitDistance = 0;
+                candidate.commitDistanceSupport = 0;
                 for (Integer dis : candidate.commitDistanceList) {
-                    candidate.commitDistance += Math.pow(1.0 / (double)(dis + 1), 2);
+                    candidate.commitDistanceSupport += Math.pow(1.0 / (double)(dis + 1), 2);
                 }
-                candidate.commitDistance = candidate.commitDistance / candidate.commitDistanceList.size();
+                candidate.commitDistanceSupport = candidate.commitDistanceSupport / candidate.commitDistanceList.size();
 
                 if(totalPatternSupport != 0) {
                     candidate.ruleSupportByTotal = candidate.ruleCount / (double) totalPatternSupport;
@@ -306,6 +309,7 @@ public class DepSeqAnalysisService {
                     candidate.ruleSupportByMax = candidate.ruleCount / (double) maxPatternSupport;
                     candidate.ruleSupportByMaxSameCommit = candidate.ruleCountSameCommit / (double) maxPatternSupportSameCommit;
                 }
+
                 if(totalMCSupport != 0) {
                     candidate.methodChangeSupportByTotal = candidate.methodChangeCount / (double) totalMCSupport;
                 }
@@ -313,16 +317,15 @@ public class DepSeqAnalysisService {
                     candidate.maxMethodChangeCount = maxMCSupport;
                     candidate.methodChangeSupportByMax = candidate.methodChangeCount / (double) maxMCSupport;
                 }
+
                 if(candidate.libraryConcurrenceCount != 0) {
                     candidate.libraryConcurrenceSupport = candidate.ruleCount / (double) candidate.libraryConcurrenceCount;
                 }
-                candidate.confidence2 =
-                        Math.pow(candidate.ruleSupportByMax, 1) *
-                                Math.pow(candidate.libraryConcurrenceSupport, 0.5) *
-                                Math.pow(candidate.positionSupport, 2);
-                candidate.confidence = candidate.confidence2 *
-//                        1;
-                        Math.pow(Math.max(mcSupportLowerBound, candidate.methodChangeSupportByMax), 0.5);
+
+                candidate.confidence2 = Math.pow(candidate.ruleSupportByMax, 1)
+                                * Math.pow(candidate.libraryConcurrenceSupport, 0.5)
+                                * Math.pow(candidate.commitDistanceSupport, 2)
+                                * Math.max(mcSupportLowerBound, candidate.methodChangeSupportByMax);
             }
 
             // Identify possible migrations in this step
@@ -348,15 +351,21 @@ public class DepSeqAnalysisService {
                         candidate.possibleCommitList.add(repoCommit);
                     }
                 }
+
+                candidate.commitMessageSupport = Math.log1p(candidate.possibleCommitList.size()) / Math.log(2);
+
+                candidate.confidence =
+                        candidate.ruleSupportByMaxSameCommit
+                                * Math.max(mcSupportLowerBound, candidate.methodChangeSupportByMax)
+                                * candidate.commitDistanceSupport
+                                * candidate.commitMessageSupport;
             }
 
             candidateList.sort((a, b) -> {
                 int r = Double.compare(b.confidence, a.confidence);
-                if(r != 0) return r;
+                if (r != 0) return r;
                 return Double.compare(b.confidence2, a.confidence2);
             });
-//            candidateList.sort((a, b) -> Double.compare(b.methodChangeSupportPercent, a.methodChangeSupportPercent));
-//            candidateList.sort((a, b) -> Double.compare(b.patternSupportPercent, a.patternSupportPercent));
         });
         return result;
     }
