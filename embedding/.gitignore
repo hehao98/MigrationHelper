@@ -2,3 +2,4 @@ doc2vec.*
 .ipynb_checkpoints/
 *.log
 tsne.png
+java_w2v_dim100.txt

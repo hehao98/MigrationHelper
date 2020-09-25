@@ -43,6 +43,7 @@ def iter_commits_with_diff(chunk_id, all_commits):
                 "_class": "edu.pku.migrationhelper.data.woc.WocCommit",
                 "error": False,
                 "timestamp": "",
+                "message": "",
                 "parents": [],
                 "diffs": []
             }
@@ -50,6 +51,7 @@ def iter_commits_with_diff(chunk_id, all_commits):
                 woc_commit = oscar.Commit(current_sha)
                 current_commit["timestamp"] = woc_commit.committed_at
                 current_commit["parents"] = woc_commit.parent_shas
+                current_commit["message"] = woc_commit.full_message.decode("utf-8", "ignore")
             except ValueError as e:
                 logging.error("Error while loading commit info {}: {}".format(current_sha, e))
                 current_commit["error"] = True
