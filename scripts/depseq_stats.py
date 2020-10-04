@@ -21,14 +21,18 @@ for woc_repo in db.wocRepository.find():
     commits.update(woc_repo["commits"])
 logging.info("{} commits in total ({} in our database)".format(len(commits), have_commits))
 
+pom_blobs = set()
 pom_pairs = set()
 java_pairs = set()
 for count, commit in enumerate(db.wocCommit.find()):
     for diff in commit["diffs"]:
         if diff["filename"].endswith("pom.xml"):
             pom_pairs.add((diff["oldBlob"], diff["newBlob"]))
+            pom_blobs.add(diff["oldBlob"])
+            pom_blobs.add(diff["newBlob"])
         if diff["filename"].endswith(".java"):
             java_pairs.add((diff["oldBlob"], diff["newBlob"]))
     if count % 1000000 == 0:
         logging.info("{} commits inspected".format(count))
-logging.info("{} different pom pairs, {} different java pairs".format(len(pom_pairs), len(java_pairs)))
+logging.info("{} different pom blobs, {} different pom pairs, {} different java pairs"
+             .format(len(pom_blobs), len(pom_pairs), len(java_pairs)))
