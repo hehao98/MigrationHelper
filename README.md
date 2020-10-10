@@ -6,7 +6,7 @@ This repository contains everything for paper replication, some command-line uti
 
 ## Note for Double-Blind Review
 
-Despite our best effort in preserving anonymity here, reviewing materials here indeed poses a risk in revealing our identity. The source code may not be runnable due to package renaming. Some too large data are not shared (e.g., the 100GB MongoDB dump). We will release all code and full data in the Camera Ready version of this repository. The following section provides some interesting destinations to look at.
+Despite our best effort in preserving anonymity here, reviewing materials here indeed poses a risk in revealing our identity. The source code may not be runnable due to package renaming and partial removals. Some too large data are not shared (e.g., the 100GB MongoDB dump). We will release all code and full data in the Camera Ready version of this repository. The following section provides some interesting destinations for you to look at.
 
 ## For SANER 2021 Reviewers and Paper Readers
 
@@ -21,21 +21,22 @@ Note that the Web Demo only stores a limited amount of data and is just a very s
 We list where to find the migration dataset mentioned in the paper here.
 
 1. `evaluation/manual/ground-truth-all.xlsx`. List of all ground truth migration rules.
-2. `evaluation/manual/confirmed-migration-all.xlsx`. List of all confirmed migration commits (start and end).
+2. `evaluation/manual/confirmed-migration-all.xlsx`. List of all confirmed migration commits.
 
 We also have some partial database dumps, including dependency change sequences, available here (TODO: add a Google Drive link). See the `doc/` folder for documentation about the MongoDB database.
 
 ### Recommendation Examples
 
-Please download `evaluation/recommend-output.csv` for all recommendation output in the 190 source libraries used in RQ1 and RQ2. For other recommend output, you can either try the web demo above, or download dumped data in the Google Drive link mentioned above.
+Please download `evaluation/recommend-output.csv` (~50MB) for all recommendation output in the 190 source libraries used in RQ1 and RQ2. For other recommendation example, you can either try the web demo above, or download dumped data in the Google Drive link mentioned above.
 
 ### Evaluation
 
-The evaluation results are all put in the `evaluation/` folder. Not that the RQs are an earlier formulation different from that in paper. Therefore, I list where to find evaluation results in the paper here.
+The evaluation results are all put in the `evaluation/` folder. Not that the RQs are an earlier formulation different from that in paper. Therefore, we list where to find evaluation results in the paper here.
 
-1. For RQ1, see `evaluation/rq2_metrics.ipynb`.
-2. For RQ2, see `evaluation/rq3_ranking.ipynb`.
-3. For RQ3, see `evaluation/rq4_*.ipynb`.
+1. For labelling of ground truth used in RQ1 and RQ2, see `evaluation/rq1_*.ipynb`, `evaluation/manual/confirmed-migrations-*.xlsx`, and `evaluation/ground-truth.xlsx`.
+2. For RQ1, see `evaluation/rq2_metrics.ipynb`.
+3. For RQ2, see `evaluation/rq3_ranking.ipynb`.
+4. For RQ3, see `evaluation/rq4_*.ipynb`, and `evaluation/manual/extended-migrations-extended.xlsx`.
 
 All the intermediate data during labelling of ground truth are also kept in this folder.
 
