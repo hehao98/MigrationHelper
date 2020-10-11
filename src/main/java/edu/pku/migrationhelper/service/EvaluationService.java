@@ -2,21 +2,17 @@ package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lio.LioProject;
+import edu.pku.migrationhelper.data.woc.WocConfirmedMigration;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
 import edu.pku.migrationhelper.repository.WocConfirmedMigrationRepository;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -45,18 +41,6 @@ public class EvaluationService {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-    private static class GroundTruth {
-        String fromLib;
-        String toLib;
-        List<String> fromGroupArtifacts;
-        List<String> toGroupArtifacts;
-        List<Long> fromGroupArtifactIds;
-        List<Long> toGroupArtifactIds;
-    }
-
-    @Value("${migration-helper.evaluation.ground-truth-file}")
-    private String groundTruthFile;
-
     @Autowired
     private DepSeqAnalysisService depSeqAnalysisService;
 
@@ -69,42 +53,19 @@ public class EvaluationService {
     @Autowired
     private GroupArtifactService groupArtifactService;
 
-    private List<GroundTruth> groundTruths;
+    private List<WocConfirmedMigration> migrations;
 
     private Map<Long, Set<Long>> groundTruthMap;
 
     @PostConstruct
-    public void initializeGroundTruth() throws IOException {
+    public void initializeGroundTruth() {
         LOG.info("Initializing ground truth...");
-        groundTruths = new ArrayList<>();
-        try (CSVParser parser = CSVFormat.DEFAULT.withHeader().parse(new FileReader(groundTruthFile))) {
-            for (CSVRecord record : parser) {
-                GroundTruth gt = new GroundTruth();
-                gt.fromLib = record.get("fromLibrary");
-                gt.toLib = record.get("toLibrary");
-                if (!record.get("fromGroupArtifacts").equals(""))
-                    gt.fromGroupArtifacts = Arrays.asList(record.get("fromGroupArtifacts").split(";"));
-                else
-                    gt.fromGroupArtifacts = new ArrayList<>();
-                if (!record.get("toGroupArtifacts").equals(""))
-                    gt.toGroupArtifacts = Arrays.asList(record.get("toGroupArtifacts").split(";"));
-                else
-                    gt.fromGroupArtifacts = new ArrayList<>();
-                gt.fromGroupArtifactIds = gt.fromGroupArtifacts.stream()
-                        .map(groupArtifactService::getIdByName).collect(Collectors.toList());
-                gt.toGroupArtifactIds = gt.toGroupArtifacts.stream()
-                        .map(groupArtifactService::getIdByName).collect(Collectors.toList());
-                groundTruths.add(gt);
-            }
-        }
+        migrations = wocConfirmedMigrationRepository.findAll();
         groundTruthMap = new HashMap<>();
-        for (GroundTruth gt : groundTruths) {
-            for (Long fromId : gt.fromGroupArtifactIds) {
-                groundTruthMap.computeIfAbsent(fromId, k -> new HashSet<>()).addAll(gt.toGroupArtifactIds);
-            }
-            for (Long toId : gt.toGroupArtifactIds) {
-                groundTruthMap.computeIfAbsent(toId, k -> new HashSet<>()).addAll(gt.fromGroupArtifactIds);
-            }
+        for (WocConfirmedMigration migration : migrations) {
+            long fromId = groupArtifactService.getIdByName(migration.getFromLib());
+            long toId = groupArtifactService.getIdByName(migration.getToLib());
+            groundTruthMap.computeIfAbsent(fromId, k -> new HashSet<>()).add(toId);
         }
     }
 
@@ -302,13 +263,12 @@ public class EvaluationService {
 
     public List<Long> getLioProjectIdsInGroundTruth() {
         Set<Long> result = new HashSet<>();
-        for (GroundTruth gt : groundTruths) {
-            result.addAll(gt.fromGroupArtifacts.stream()
-                    .map(s -> lioProjectRepository.findByName(s).get().getId())
-                    .collect(Collectors.toList()));
-            result.addAll(gt.toGroupArtifacts.stream()
-                    .map(s -> lioProjectRepository.findByName(s).get().getId())
-                    .collect(Collectors.toList()));
+        for (WocConfirmedMigration migration : migrations) {
+            Optional<LioProject> p;
+            if ((p = lioProjectRepository.findByName(migration.getFromLib())).isPresent())
+                result.add(p.get().getId());
+            if ((p = lioProjectRepository.findByName(migration.getToLib())).isPresent())
+                result.add(p.get().getId());
         }
         return new ArrayList<>(result);
     }
