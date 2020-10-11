@@ -14,8 +14,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Deprecated
-@Component
-@ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "CreateTableJob")
+// @Component
+// @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "CreateTableJob")
 public class CreateTableJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());

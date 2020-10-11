@@ -31,8 +31,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Deprecated
-@Component
-@ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "TestJob")
+// @Component
+// @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "TestJob")
 public class TestJob implements CommandLineRunner {
 
     Logger LOG = LoggerFactory.getLogger(getClass());

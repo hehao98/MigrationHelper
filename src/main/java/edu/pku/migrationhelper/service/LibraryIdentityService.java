@@ -388,24 +388,24 @@ public class LibraryIdentityService {
                 + artifactId + "-" + version + ".jar";
     }
 
-    @Autowired
+    // @Autowired
     @Deprecated
     private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
 
-    @Autowired
+    // @Autowired
     @Deprecated
     private LibraryVersionMapper libraryVersionMapper;
 
     @Deprecated
-    @Autowired
+    // @Autowired
     private MethodSignatureMapper methodSignatureMapper;
 
     @Deprecated
-    @Autowired
+    // @Autowired
     private LibrarySignatureToVersionMapper librarySignatureToVersionMapper;
 
     @Deprecated
-    @Autowired
+    // @Autowired
     private LibraryVersionToSignatureMapper libraryVersionToSignatureMapper;
 
     @Deprecated

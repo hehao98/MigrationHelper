@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Deprecated
-@Service
+// @Service
 public class GitObjectStorageService {
 
     @Autowired
