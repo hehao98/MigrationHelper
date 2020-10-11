@@ -1,6 +1,5 @@
 package edu.pku.migrationhelper.data.api;
 
-import javafx.util.Pair;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.ElementValuePair;
 

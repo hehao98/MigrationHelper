@@ -1,6 +1,7 @@
 package data;
 
-import edu.pku.migrationhelper.data.api.*;
+import edu.pku.migrationhelper.data.api.APIChange;
+import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import org.junit.Test;
 

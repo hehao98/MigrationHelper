@@ -3,10 +3,10 @@ package service;
 import edu.pku.migrationhelper.service.DepSeqAnalysisService;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class DepSeqAnalysisServiceTest {
 

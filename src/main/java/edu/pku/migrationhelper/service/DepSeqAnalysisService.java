@@ -1,12 +1,9 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.woc.WocAPICount;
 import edu.pku.migrationhelper.data.woc.WocCommit;
 import edu.pku.migrationhelper.data.woc.WocDepSeq;
 import edu.pku.migrationhelper.data.woc.WocDepSeqItem;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
-import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.repository.WocAPICountRepository;
 import edu.pku.migrationhelper.repository.WocCommitRepository;
 import edu.pku.migrationhelper.repository.WocDepSeqRepository;
@@ -14,13 +11,9 @@ import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;

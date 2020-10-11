@@ -3,8 +3,6 @@ package edu.pku.migrationhelper.job;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.SemverException;
 import edu.pku.migrationhelper.data.api.APIChange;
@@ -31,7 +29,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component

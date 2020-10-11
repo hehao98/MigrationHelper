@@ -3,6 +3,7 @@ package edu.pku.migrationhelper.service;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
+import edu.pku.migrationhelper.repository.WocConfirmedMigrationRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -15,7 +16,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,6 +62,9 @@ public class EvaluationService {
 
     @Autowired
     private LioProjectRepository lioProjectRepository;
+
+    @Autowired
+    private WocConfirmedMigrationRepository wocConfirmedMigrationRepository;
 
     @Autowired
     private GroupArtifactService groupArtifactService;

@@ -7,8 +7,8 @@ import tokyocabinet.HDB;
 import java.io.File;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 public class TokyoCabinetTest {
 

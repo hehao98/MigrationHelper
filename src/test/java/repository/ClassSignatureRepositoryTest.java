@@ -7,7 +7,6 @@ import edu.pku.migrationhelper.data.api.MethodSignature;
 import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.MongoDbUtilService;
-import javafx.util.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,6 +1,8 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.data.CommitInfo;
+import edu.pku.migrationhelper.data.MethodChangeOld;
+import edu.pku.migrationhelper.data.RepositoryDepSeq;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
@@ -22,11 +24,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
