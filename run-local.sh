@@ -2,8 +2,8 @@ if [ "$1" != "CreateTableJob" ] && [ "$1" != "LibrariesIoImportJob" ] \
    && [ "$1" != "LioJarParseJob" ] && [ "$1" != "LibraryUpgradeRecommendJob" ] \
    && [ "$1" != "MongoDbInitializeJob" ] && [ "$1" != "TestJob" ]; then
   echo "Usage: run-local.sh <Job Name> <Arg1> <Arg2> <Arg3> <Arg4> ..."
-  echo "Currently Supported Jobs: CreateTableJob, LibrariesIoImportJob, LioJarParseJob, LibraryUpgradeRecommendJob, "
-  echo "                          MongoDbInitializeJob, TestJob"
+  echo "Currently Supported Jobs: LibrariesIoImportJob, LioJarParseJob, LibraryUpgradeRecommendJob, "
+  echo "                          MongoDbInitializeJob"
   echo "See README.md for usage examples"
   exit
 fi

@@ -1,15 +1,10 @@
 package data;
 
-import edu.pku.migrationhelper.data.api.Annotation;
 import edu.pku.migrationhelper.data.api.ClassSignature;
-import edu.pku.migrationhelper.data.api.MethodSignature;
-import javafx.util.Pair;
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 

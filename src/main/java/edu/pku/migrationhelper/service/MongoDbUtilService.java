@@ -1,23 +1,26 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.CustomSequences;
+import edu.pku.migrationhelper.data.api.ClassSignature;
+import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.lib.LibraryVersion;
+import edu.pku.migrationhelper.data.lib.LibraryVersionToClass;
+import edu.pku.migrationhelper.data.lib.LibraryVersionToDependency;
 import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.data.lio.LioProjectDependency;
 import edu.pku.migrationhelper.data.lio.LioRepository;
-import edu.pku.migrationhelper.data.api.ClassSignature;
-import edu.pku.migrationhelper.data.lib.*;
 import edu.pku.migrationhelper.data.lio.LioRepositoryDependency;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.CompoundIndexDefinition;
 import org.springframework.data.mongodb.core.index.Index;
-import org.springframework.stereotype.Service;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
