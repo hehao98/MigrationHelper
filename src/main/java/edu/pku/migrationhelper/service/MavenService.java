@@ -52,7 +52,11 @@ public class MavenService {
     public String resolveProperties(String original, Properties properties) {
         if (original == null) original = "";
         for (String key : properties.stringPropertyNames()) {
-            original = original.replaceAll("\\$\\{" + key + "}", properties.getProperty(key));
+            try {
+                original = original.replaceAll("\\$\\{" + key + "}", properties.getProperty(key));
+            } catch (IllegalArgumentException ignored) {
+                // No need to parse, it probably means a wrong regex which should be rare
+            }
         }
         return original;
     }
