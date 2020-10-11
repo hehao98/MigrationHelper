@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.data.woc.WocConfirmedMigration;
@@ -76,7 +77,7 @@ public class EvaluationService {
      * @return detailed evaluation result
      */
     public EvaluationResult evaluate(
-            Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result,
+            Map<Long, List<LibraryMigrationCandidate>> result,
             int maxK
     ) {
         EvaluationResult ret = new EvaluationResult();
@@ -91,7 +92,7 @@ public class EvaluationService {
                 .forEach(entry -> {
                     long fromId = entry.getKey();
                     LibraryGroupArtifact fromLib = groupArtifactService.getGroupArtifactById(fromId);
-                    List<DepSeqAnalysisService.LibraryMigrationCandidate> candidateList = entry
+                    List<LibraryMigrationCandidate> candidateList = entry
                             .getValue().stream()
                             .filter(candidate -> { // Filter out candidates under same groupId, is this necessary?
                                 LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
@@ -100,7 +101,7 @@ public class EvaluationService {
 
                     if (candidateList.isEmpty()) return;
 
-                    for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    for (LibraryMigrationCandidate candidate : candidateList) {
                         ret.correctnessMap.computeIfAbsent(candidate.fromId, k -> new HashMap<>());
                         ret.correctnessMap.get(candidate.fromId).put(candidate.toId, false);
                     }
@@ -109,7 +110,7 @@ public class EvaluationService {
                     if (groundTruth == null) return;
                     ret.rulesEvaluated += candidateList.size();
                     Set<Long> thisTruth = new HashSet<>();
-                    for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                    for (LibraryMigrationCandidate candidate : candidateList) {
                         if (groundTruth.contains(candidate.toId)) {
                             thisTruth.add(candidate.toId);
                             ret.correctnessMap.get(candidate.fromId).put(candidate.toId, true);
@@ -128,7 +129,7 @@ public class EvaluationService {
                             precision[k - 1] = precision[k - 2];
                             recall[k - 1] = recall[k - 2];
                         } else {
-                            DepSeqAnalysisService.LibraryMigrationCandidate candidate = candidateList.get(k - 1);
+                            LibraryMigrationCandidate candidate = candidateList.get(k - 1);
                             if (groundTruth.contains(candidate.toId)) {
                                 correct++;
                             }
@@ -177,13 +178,13 @@ public class EvaluationService {
 
     @Deprecated
     public void runRQ1(
-            Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
+            Map<Long, List<LibraryMigrationCandidate>> result
     ) throws IOException {
         FileWriter output = new FileWriter("evaluation/pic/RQ1-pomOnly.csv");
         output.write("fromLib,toLib,isTruth,patternSupport,patternSupportP,occurCount,hot,hotRank\n");
         Set<String> missing = new HashSet<>();
-        for (List<DepSeqAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
-            for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+        for (List<LibraryMigrationCandidate> candidateList : result.values()) {
+            for (LibraryMigrationCandidate candidate : candidateList) {
                 if (groundTruthMap.get(candidate.fromId) == null) {
                     missing.add(groupArtifactService.getGroupArtifactById(candidate.fromId).toString());
                     continue;
@@ -234,13 +235,13 @@ public class EvaluationService {
 
     @Deprecated
     public void runRQ3(
-            Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
+            Map<Long, List<LibraryMigrationCandidate>> result
     ) throws IOException {
         FileWriter output = new FileWriter("evaluation/pic/RQ3.csv");
         output.write("fromId,toId,isTruth,APISupport,APIRank0,patternSupport\n");
-        for (List<DepSeqAnalysisService.LibraryMigrationCandidate> candidateList : result.values()) {
+        for (List<LibraryMigrationCandidate> candidateList : result.values()) {
             boolean containsTruth = false;
-            for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+            for (LibraryMigrationCandidate candidate : candidateList) {
                 Set<Long> s = groundTruthMap.get(candidate.fromId);
                 if (s != null && s.contains(candidate.toId)) {
                     containsTruth = true;
@@ -248,7 +249,7 @@ public class EvaluationService {
                 }
             }
             if(!containsTruth) continue;
-            for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+            for (LibraryMigrationCandidate candidate : candidateList) {
                 boolean isTruth = groundTruthMap.get(candidate.fromId).contains(candidate.toId);
                 output.write(candidate.fromId+","+candidate.toId+","+isTruth+","+candidate.methodChangeCount +","+candidate.methodChangeSupportByMax +","+candidate.ruleCount +"\n");
             }
