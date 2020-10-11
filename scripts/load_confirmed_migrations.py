@@ -9,4 +9,4 @@ db = pymongo.MongoClient("mongodb://migration_helper:HeHMgt2020@da1.eecs.utk.edu
                            "?authSource=migration_helper").migration_helper
 
 migrations = pd.read_excel("../evaluation/manual/confirmed-migrations-all.xlsx")
-db.wocConfirmedMigrations.insert_many(migrations.to_dict("records"))
+db.wocConfirmedMigration.insert_many(migrations.to_dict("records"))
