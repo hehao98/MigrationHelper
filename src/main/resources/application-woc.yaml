@@ -56,8 +56,5 @@ migration-helper:
     extract-dependencies: false
     reverse-order: false
     random-order: false
-  dependency-change-pattern-analysis:
-    method-change-support-file: export/APISupport.csv
-    dependency-seq-file: export/RepositoryDepSeq.csv
   evaluation:
     ground-truth-file: evaluation/test-ground-truth.csv

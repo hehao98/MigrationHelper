@@ -1,5 +1,6 @@
 package edu.pku.migrationhelper.service;
 
+import com.beust.jcommander.ParameterException;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import org.slf4j.Logger;
