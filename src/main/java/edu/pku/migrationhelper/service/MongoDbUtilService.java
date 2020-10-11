@@ -1,6 +1,7 @@
 package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.CustomSequences;
+import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lib.LibraryVersion;
@@ -93,6 +94,13 @@ public class MongoDbUtilService {
         compoundIndex.put("versionNumber", 1);
         mongoTemplate.indexOps(LioProjectDependency.class)
                 .ensureIndex(new CompoundIndexDefinition(compoundIndex));
+
+        compoundIndex = new Document();
+        compoundIndex.put("fromId", 1);
+        compoundIndex.put("toId", 1);
+        compoundIndex.put("confidence", -1);
+        mongoTemplate.indexOps(LibraryMigrationCandidate.class)
+                .ensureIndex(new CompoundIndexDefinition(compoundIndex).unique());
     }
 
     public String getDbName() {
