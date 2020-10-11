@@ -40,8 +40,8 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Deprecated
-@Component
-@ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DataExportJob")
+// @Component
+// @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DataExportJob")
 public class DataExportJob implements CommandLineRunner {
 
     @Value("${migration-helper.woc.enabled}")

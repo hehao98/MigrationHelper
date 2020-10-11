@@ -13,8 +13,9 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import javax.sql.DataSource;
 
-@Configuration
-@MapperScan(value = "edu.pku.migrationhelper.mapper")
+// @Configuration
+// @MapperScan(value = "edu.pku.migrationhelper.mapper")
+@Deprecated
 public class DataSourceConfiguration {
 
     @Bean(name = "dataSource")

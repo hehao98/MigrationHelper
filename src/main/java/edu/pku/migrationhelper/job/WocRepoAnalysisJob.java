@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 @Deprecated
-@Component
-@ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocRepoAnalysisJob")
+// @Component
+// @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocRepoAnalysisJob")
 public class WocRepoAnalysisJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());

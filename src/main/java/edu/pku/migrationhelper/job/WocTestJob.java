@@ -21,8 +21,8 @@ import java.util.Objects;
 import java.util.Set;
 
 @Deprecated
-@Component
-@ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocTestJob")
+// @Component
+// @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocTestJob")
 public class WocTestJob {
 
     Logger LOG = LoggerFactory.getLogger(getClass());

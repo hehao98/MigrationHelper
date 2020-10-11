@@ -14,8 +14,8 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @Deprecated
-@Service
-@ConfigurationProperties(prefix = "migration-helper.woc-repository-analysis")
+// @Service
+// @ConfigurationProperties(prefix = "migration-helper.woc-repository-analysis")
 public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     public static class WocRepository extends AbstractRepository {

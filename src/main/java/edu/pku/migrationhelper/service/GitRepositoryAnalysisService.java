@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Deprecated
-@Service
+// @Service
 public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
 
     @Value("${migration-helper.git-repository-analysis.repository-path}")

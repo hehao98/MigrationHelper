@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Deprecated
-@Service
+// @Service
 public class MapperUtilService {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());

@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.util.List;
 
 @Deprecated
-@Component
-@ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocCommandLineJob")
+// @Component
+// @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "WocCommandLineJob")
 public class WocCommandLineJob implements CommandLineRunner {
 
     Logger LOG = LoggerFactory.getLogger(getClass());
