@@ -3,10 +3,7 @@ package edu.pku.migrationhelper.service;
 import edu.pku.migrationhelper.util.MathUtils;
 import edu.pku.migrationhelper.woc.WocHdbDriver;
 import edu.pku.migrationhelper.woc.WocObjectDriver;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -14,8 +11,8 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @Deprecated
-@Service
-@ConfigurationProperties(prefix = "migration-helper.woc-repository-analysis")
+// @Service
+// @ConfigurationProperties(prefix = "migration-helper.woc-repository-analysis")
 public class WocRepositoryAnalysisService extends RepositoryAnalysisService {
 
     public static class WocRepository extends AbstractRepository {

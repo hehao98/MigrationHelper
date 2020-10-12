@@ -1,24 +1,20 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
+import edu.pku.migrationhelper.data.woc.WocAPICount;
 import edu.pku.migrationhelper.data.woc.WocCommit;
 import edu.pku.migrationhelper.data.woc.WocDepSeq;
 import edu.pku.migrationhelper.data.woc.WocDepSeqItem;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
-import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import edu.pku.migrationhelper.repository.WocAPICountRepository;
 import edu.pku.migrationhelper.repository.WocCommitRepository;
 import edu.pku.migrationhelper.repository.WocDepSeqRepository;
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,39 +25,6 @@ public class DepSeqAnalysisService {
     public static final int DefaultMinPatternSupport = 0;
 
     public static final double DefaultMinMCSupportPercent = 0.1;
-
-    public static class LibraryMigrationCandidate {
-        public long fromId;
-        public long toId;
-        public int ruleCount = 0;               // Number of times a rule (fromLib, toLib) occur in dependency sequence
-        public int ruleCountSameCommit = 0;     // Number of times a rule (fromLib, toLib) occurs in one commit
-        public int methodChangeCount = 0;       // Number of times API modifications occur in data
-        public int libraryConcurrenceCount = 0; // Number of times l1 and l2 are used in same commit
-        public int maxRuleCount = 0;            // For all (fromLib, *) candidates, max value of RuleCount
-        public int maxRuleCountSameCommit = 0;  // For all (fromLib, *) candidates, max value of RuleCount in same commit
-        // public int maxRuleCountToLibSameCommit = 0; // For all (*, toLib) candidates, max value of RuleCount in sameCommit
-        public int maxMethodChangeCount = 0;    // For all (fromLib, *) candidates, max value of methodChangeCount
-        public double ruleSupportByTotal = 0;
-        public double ruleSupportByMax = 0;
-        public double ruleSupportByMaxSameCommit = 0;
-        public double methodChangeSupportByTotal = 0;
-        public double methodChangeSupportByMax = 0;
-        public double libraryConcurrenceSupport = 0;
-        public double positionSupport = 0;
-        public double commitDistanceSupport = 0;
-        public double commitMessageSupport = 0;
-        public double confidence = 0;
-        public double confidence2 = 0;
-        public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
-        public List<String[]> repoCommitList = new LinkedList<>();     // List<repoName, startCommitSHA, endCommitSHA, fileName>
-        public List<Integer> commitDistanceList = new LinkedList<>();
-        public List<String[]> possibleCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA, fileName>
-
-        public LibraryMigrationCandidate(long fromId, long toId) {
-            this.fromId = fromId;
-            this.toId = toId;
-        }
-    }
 
     public static class LibraryMigrationPattern {
         public long fromId;
@@ -91,13 +54,10 @@ public class DepSeqAnalysisService {
     private WocCommitRepository wocCommitRepository;
 
     @Autowired
+    private WocAPICountRepository wocAPICountRepository;
+
+    @Autowired
     private GroupArtifactService groupArtifactService;
-
-    @Value("${migration-helper.dependency-change-pattern-analysis.method-change-support-file}")
-    private String methodChangeSupportFile;
-
-    @Value("${migration-helper.dependency-change-pattern-analysis.dependency-seq-file}")
-    private String dependencySeqFile;
 
     private Map<Long, Map<Long, Integer>> methodChangeSupportMap;
 
@@ -109,39 +69,15 @@ public class DepSeqAnalysisService {
 
     private List<String> depSeqFileList;
 
-    // TODO avoid this after the mysql library is deprecated, this is extremely error prone!!!!
-    @Autowired
-    private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
-    @Autowired
-    private LibraryGroupArtifactMapper libraryGroupArtifactMapper;
-    private final Map<Long, Long> idCache = new HashMap<>();
-    private long libMysqlIdToMongoDbId(long mysqlId) {
-        if (mysqlId == 0) return 0;
-        if (idCache.containsKey(mysqlId)) return idCache.get(mysqlId);
-        LibraryGroupArtifact lib = libraryGroupArtifactMapper.findById(mysqlId);
-        long mongoId = libraryGroupArtifactRepository.findByGroupIdAndArtifactId(lib.getGroupId(), lib.getArtifactId()).get().getId();
-        idCache.put(mysqlId, mongoId);
-        return mongoId;
-    }
-
     @PostConstruct
     public void initializeMethodChangeSupportMap() throws IOException {
-        if (!new File(methodChangeSupportFile).isFile()) {
-            LOG.error("Cannot load method change support file, this service will not work properly");
-            return;
+        List<WocAPICount> wocAPICounts = wocAPICountRepository.findAll();
+        methodChangeSupportMap = new HashMap<>(10000000);
+        for (WocAPICount count : wocAPICounts) {
+            Long fromId = groupArtifactService.getIdByName(count.getFromLib());
+            Long toId = groupArtifactService.getIdByName(count.getToLib());
+            methodChangeSupportMap.computeIfAbsent(fromId, k -> new HashMap<>()).put(toId, (int) count.getCount());
         }
-        LOG.info("Initializing method change support map...");
-        BufferedReader reader = new BufferedReader(new FileReader(methodChangeSupportFile));
-        String line = reader.readLine();
-        methodChangeSupportMap = new HashMap<>(100000);
-        while((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",");
-            Long fromId = libMysqlIdToMongoDbId(Long.parseLong(attrs[0]));
-            Long toId = libMysqlIdToMongoDbId(Long.parseLong(attrs[1]));
-            Integer counter = Integer.parseInt(attrs[2]);
-            methodChangeSupportMap.computeIfAbsent(fromId, k -> new HashMap<>()).put(toId, counter);
-        }
-        reader.close();
     }
 
     @PostConstruct
@@ -185,11 +121,11 @@ public class DepSeqAnalysisService {
     }
 
     /**
-     * 依赖变更序列挖掘算法，从依赖变更序列中，挖掘库迁移规则
-     * @param fromIdLimit 挖掘出来的库迁移规则的原库限定范围，null表示不限定
-     * @param minPatternSupport 最小支持度值
-     * @param mcSupportLowerBound APISupport指标值中的最小值，范围[0,1]
-     * @return 挖掘出来的库迁移规则，Key是原库Id，Value是该原库拥有的所有库迁移规则列表，以推荐顺序排序
+     * The core algorithm for mining migration rules from dependency change sequences
+     * @param fromIdLimit The queries of source libraries
+     * @param minPatternSupport (Currently not used)
+     * @param mcSupportLowerBound The minimum value for API Support, range [0,1] default 0.1
+     * @return Ranked candidate migration rules indexed by library MongoDB ID
      */
     public Map<Long, List<LibraryMigrationCandidate>> miningLibraryMigrationCandidate(
             Set<Long> fromIdLimit,
@@ -234,7 +170,6 @@ public class DepSeqAnalysisService {
                             toId, k -> new LibraryMigrationCandidate(pattern.fromId, toId));
                     candidate.ruleCount++;
                     if (startEndCommit[0].equals(startEndCommit[1])) candidate.ruleCountSameCommit++;
-                    candidate.positionList.add(new Pair<>(position++, pattern.toIdList.size()));
                     candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1], fileName});
                     candidate.commitDistanceList.add(commitDistance);
                 }
@@ -287,14 +222,6 @@ public class DepSeqAnalysisService {
 
             // Compute all the necessary metrics
             for (LibraryMigrationCandidate candidate : candidateList) {
-                double positionSupport = 0;
-                double positionA = 1;
-                int positionB = 5;
-                for (Pair<Integer, Integer> position : candidate.positionList) {
-                    positionSupport += Math.pow((positionB + 1) / (double)(position.getKey() + positionB), positionA);
-                }
-                candidate.positionSupport = positionSupport / candidate.positionList.size();
-
                 candidate.commitDistanceSupport = 0;
                 for (Integer dis : candidate.commitDistanceList) {
                     candidate.commitDistanceSupport += Math.pow(1.0 / (double)(dis + 1), 2);
@@ -585,88 +512,5 @@ public class DepSeqAnalysisService {
                     && containAnyPart(endCommitMessage, fromLibParts)
                     && containAnyPart(endCommitMessage, removeKeywords);
         }
-    }
-
-    //@PostConstruct
-    @Deprecated
-    public void initializeRepositoryDepSeqOld() throws IOException {
-        if (!new File(dependencySeqFile).isFile()) {
-            LOG.error("Cannot load dependency sequence file, this service will not work properly");
-            return;
-        }
-        LOG.info("Initializing repository dependency sequence...");
-        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
-        String line = reader.readLine();
-        repositoryDepSeq = new LinkedList<>();
-        while ((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            String[] libIds = libIdString.split(";");
-            List<Long> libIdList = new ArrayList<>(libIds.length);
-            for (String libId : libIds) {
-                long id = Long.parseLong(libId);
-                if (id < 0) libIdList.add(-libMysqlIdToMongoDbId(-id));
-                else libIdList.add(libMysqlIdToMongoDbId(id));
-            }
-            repositoryDepSeq.add(libIdList);
-        }
-        reader.close();
-    }
-
-    //@PostConstruct
-    @Deprecated
-    public void initializeDepSeqCommitList() throws IOException {
-        if (!new File(dependencySeqFile).isFile()) {
-            LOG.error("Cannot load dependency sequence file, this service will not work properly");
-            return;
-        }
-        LOG.info("Initializing repository dependency sequence commit list...");
-        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
-        String line = reader.readLine();
-        depSeqCommitList = new LinkedList<>();
-        while ((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if (attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            String commitListString = attrs[7];
-            int len = commitListString.length();
-            int commitCount = len / 40;
-            List<String> commitList = new ArrayList<>(commitCount);
-            for (int i = 0; i < commitCount; i++) {
-                commitList.add(commitListString.substring(i * 40, i * 40 + 40));
-            }
-            depSeqCommitList.add(commitList);
-        }
-        reader.close();
-    }
-
-    //@PostConstruct
-    @Deprecated
-    public void initializeDepSeqRepoList() throws IOException {
-        if (!new File(dependencySeqFile).isFile()) {
-            LOG.error("Cannot load dependency sequence file, this service will not work properly");
-            return;
-        }
-        LOG.info("Initializing repository dependency sequence repository list...");
-        BufferedReader reader = new BufferedReader(new FileReader(dependencySeqFile));
-        String line = reader.readLine();
-        depSeqRepoList = new LinkedList<>();
-        while ((line = reader.readLine()) != null) {
-            String[] attrs = line.split(",", -1);
-            if(attrs.length < 3) {
-                System.out.println(line);
-            }
-            String libIdString = attrs[2]; // pomOnly
-            if ("".equals(libIdString)) continue;
-            depSeqRepoList.add(attrs[1]);
-        }
-        reader.close();
     }
 }

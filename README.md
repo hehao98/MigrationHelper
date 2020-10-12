@@ -116,10 +116,10 @@ We also rely on logging and exception handling for debugging.
 
 ## Database Configuration
 
-For local usage, you need to have a running MySQL server, and a running MongoDB server with the configurations specified in `src/main/resources/application-local.yaml`. Note that you need to have
+For local usage, you need to have a running MongoDB server with the configurations specified in `src/main/resources/application-local.yaml`.
 For World of Code usage, the servers should be already running on `da1.eecs.utk.edu`.
 
-**Currently we are undergoing an migration from MySQL to MongoDB. It is almost finished but some work still needs to be done in `DepSeqAnalysisService.java`, before we fully get rid of MySQL related code and the MySQL server.  All other MySQL related classes are deprecated with the `@Deprecated` tag.**
+**We have undergone a migration from MySQL to MongoDB. All MySQL related classes have a `@Deprecated` tag and will be removed in the future.**
 
 ### Start MongoDB Server on World of Code da1
 
@@ -131,7 +131,7 @@ nohup /da1_data/play/heh/mongodb/bin/mongod --auth --dbpath /da1_data/play/heh/m
     --bind_ip localhost,da1.eecs.utk.edu &
 ```
 
-### Start MySQL Server on World of Code da1
+### Start MySQL Server on World of Code da1 (No Longer in Use)
 
 Make sure the MySQL server is not already running. Use the `run.sh` at `/da1_data/play/heh/mysql`.
 
@@ -227,7 +227,7 @@ To get handy on this project, you will need some preliminary knowledge. Here we 
 
 2. **Basic knowledge of Spring**, especially what is IoC and why we use IoC. Spring is most powerful when building web applications, but we are only using its IoC features (`@Service`, `@Autowired`, etc) and database facilities (`@Mapper` for MySQL and `@Repository` for MongoDB). To understand them, I personally read through tutorials [here](https://www.liaoxuefeng.com/) and first few chapters of [Spring In Action](https://www.amazon.com/Spring-Action-Covers-4/dp/161729120X) to have a basic understanding of them. Refer to the Spring documentation if you want to know more about the database facilities.
 
-3. **Basic Knowledge of MySQL and MongoDB**. MongoDB is very simple to learn. Going through the official [documentation](https://docs.mongodb.com/manual/introduction/) will suffice. MySQL is a little bit complex and its documentation is not very good for beginners. I recommend this [book](https://book.douban.com/subject/24250054/) which tells you the basics of all SQL-like databases. It is also very simple and have a very good coverage for everything you need to know.
+3. **Basic Knowledge of MongoDB**. MongoDB is very simple to learn. Going through the official [documentation](https://docs.mongodb.com/manual/introduction/) will suffice. MySQL is a little bit complex and its documentation is not very good for beginners. I recommend this [book](https://book.douban.com/subject/24250054/) which tells you the basics of all SQL-like databases. It is also very simple and have a very good coverage for everything you need to know.
 
 4. **Basic Knowledge of Software Engineering Best Practices**. The importance of tests, code reviews, etc.
 

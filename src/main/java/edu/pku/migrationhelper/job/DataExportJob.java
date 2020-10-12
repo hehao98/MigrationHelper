@@ -26,9 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.io.*;
@@ -40,8 +38,8 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Deprecated
-@Component
-@ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DataExportJob")
+// @Component
+// @ConditionalOnProperty(name = "migration-helper.job.enabled", havingValue = "DataExportJob")
 public class DataExportJob implements CommandLineRunner {
 
     @Value("${migration-helper.woc.enabled}")

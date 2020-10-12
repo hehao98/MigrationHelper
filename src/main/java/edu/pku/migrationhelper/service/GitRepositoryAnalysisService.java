@@ -10,7 +10,6 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Deprecated
-@Service
+// @Service
 public class GitRepositoryAnalysisService extends RepositoryAnalysisService {
 
     @Value("${migration-helper.git-repository-analysis.repository-path}")

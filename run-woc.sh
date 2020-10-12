@@ -2,8 +2,8 @@ if [ "$1" != "CreateTableJob" ] && [ "$1" != "MongoDbInitializeJob" ] && [ "$1" 
    && [ "$1" != "DataExportJob" ] && [ "$1" != "LibraryRecommendJob" ] && [ "$1" != "LibraryUpgradeRecommendJob" ] \
    && [ "$1" != "TestJob" ]; then
   echo "Usage: run-woc.sh <Job Name> <Arg1> <Arg2> <Arg3> <Arg4>"
-  echo "Currently Supported Jobs: CreateTableJob, MongoDbInitializeJob, LibrariesIoImportJob, LioJarParseJob, "
-  echo "                          DataExportJob, LibraryRecommendJob, LibraryUpgradeRecommendJob, TestJob"
+  echo "Currently Supported Jobs: MongoDbInitializeJob, LibrariesIoImportJob, LioJarParseJob, "
+  echo "                          LibraryRecommendJob, LibraryUpgradeRecommendJob"
   echo "See README.md for usage examples"
   exit
 fi
