@@ -1,0 +1,102 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.lioRepository",
+    "required": [
+      "_id",
+      "hostType",
+      "nameWithOwner",
+      "description",
+      "fork",
+      "forkSourceNameWithOwner",
+      "createdTimestamp",
+      "updatedTimestamp",
+      "lastPushedTimestamp",
+      "homepageURL",
+      "mirrorURL",
+      "size",
+      "language",
+      "starsCount",
+      "forksCount",
+      "openIssuesCount",
+      "watchersCount",
+      "contributorsCount",
+      "readmeFilename",
+      "changeLogFilename",
+      "contributingGuidelinesFilename",
+      "licenseFilename",
+      "codeOfConductFilename"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "long"
+      },
+      "hostType": {
+        "bsonType": "string"
+      },
+      "nameWithOwner": {
+        "bsonType": "string"
+      },
+      "description": {
+        "bsonType": "string"
+      },
+      "fork": {
+        "bsonType": "bool"
+      },
+      "forkSourceNameWithOwner": {
+        "bsonType": "string"
+      },
+      "createdTimestamp": {
+        "bsonType": "string"
+      },
+      "updatedTimestamp": {
+        "bsonType": "string"
+      },
+      "lastPushedTimestamp": {
+        "bsonType": "string"
+      },
+      "homepageURL": {
+        "bsonType": "string"
+      },
+      "mirrorURL": {
+        "bsonType": "string"
+      },
+      "size": {
+        "bsonType": "long"
+      },
+      "language": {
+        "bsonType": "string"
+      },
+      "starsCount": {
+        "bsonType": "long"
+      },
+      "forksCount": {
+        "bsonType": "long"
+      },
+      "openIssuesCount": {
+        "bsonType": "long"
+      },
+      "watchersCount": {
+        "bsonType": "long"
+      },
+      "contributorsCount": {
+        "bsonType": "long"
+      },
+      "readmeFilename": {
+        "bsonType": "string"
+      },
+      "changeLogFilename": {
+        "bsonType": "string"
+      },
+      "contributingGuidelinesFilename": {
+        "bsonType": "string"
+      },
+      "licenseFilename": {
+        "bsonType": "string"
+      },
+      "codeOfConductFilename": {
+        "bsonType": "string"
+      }
+    }
+  }
+}

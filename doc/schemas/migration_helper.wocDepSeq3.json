@@ -1,0 +1,58 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.wocDepSeq3",
+    "required": [
+      "repoName",
+      "fileName",
+      "seq"
+    ],
+    "properties": {
+      "repoName": {
+        "bsonType": "string"
+      },
+      "fileName": {
+        "bsonType": "string"
+      },
+      "seq": {
+        "bsonType": "array",
+        "minItems": 0,
+        "items": {
+          "bsonType": "object",
+          "required": [
+            "oldBlob",
+            "newBlob",
+            "commit",
+            "changes",
+            "versionChanges"
+          ],
+          "properties": {
+            "oldBlob": {
+              "bsonType": "string"
+            },
+            "newBlob": {
+              "bsonType": "string"
+            },
+            "commit": {
+              "bsonType": "string"
+            },
+            "changes": {
+              "bsonType": "array",
+              "minItems": 0,
+              "items": {
+                "bsonType": "string"
+              }
+            },
+            "versionChanges": {
+              "bsonType": "array",
+              "minItems": 0,
+              "items": {
+                "bsonType": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

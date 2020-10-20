@@ -1,0 +1,60 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.wocConfirmedMigration",
+    "required": [
+      "fromLib",
+      "toLib",
+      "repoName",
+      "fileName",
+      "startCommit",
+      "endCommit",
+      "startCommitChanges",
+      "endCommitChanges",
+      "startCommitMessage",
+      "endCommitMessage",
+      "startCommitTime",
+      "endCommitTime"
+    ],
+    "properties": {
+      "fromLib": {
+        "bsonType": "string",
+        "pattern": ".*:.*"
+      },
+      "toLib": {
+        "bsonType": "string",
+        "pattern": ".*:.*"
+      },
+      "repoName": {
+        "bsonType": "string",
+        "pattern": ".*_.*"
+      },
+      "fileName": {
+        "bsonType": "string",
+        "pattern": ".*pom.xml$"
+      },
+      "startCommit": {
+        "bsonType": "string",
+        "maxLength": 40,
+        "minLength": 40
+      },
+      "endCommit": {
+        "bsonType": "string",
+        "maxLength": 40,
+        "minLength": 40
+      },
+      "startCommitMessage": {
+        "bsonType": ["string", "number"]
+      },
+      "endCommitMessage": {
+        "bsonType": ["string", "number"]
+      },
+      "startCommitTime": {
+        "bsonType": "date"
+      },
+      "endCommitTime": {
+        "bsonType": "date"
+      }
+    }
+  }
+}
