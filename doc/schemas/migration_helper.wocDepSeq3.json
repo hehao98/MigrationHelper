@@ -16,9 +16,7 @@
       },
       "seq": {
         "bsonType": "array",
-        "description": "The dependency change sequence.",
         "minItems": 0,
-        "uniqueItems": true,
         "items": {
           "bsonType": "object",
           "required": [
@@ -41,7 +39,6 @@
             "changes": {
               "bsonType": "array",
               "minItems": 0,
-              "uniqueItems": true,
               "items": {
                 "bsonType": "string"
               }
@@ -49,7 +46,6 @@
             "versionChanges": {
               "bsonType": "array",
               "minItems": 0,
-              "uniqueItems": true,
               "items": {
                 "bsonType": "string"
               }

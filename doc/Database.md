@@ -50,9 +50,20 @@ For full deployment (need to run recommendation for other libraries), you should
 
 ## Database Schema
 
-We use [JSON Schema](https://json-schema.org) to formally describe the format of each collection in our MongoDB database in the `schemas/` folder. The schema file can be directly copy pasted into MongoDB for scema validation. We also enforce all the database schema in the deployed MongoDB database. However, you need to manually add the schemas if you want to deploy your database using our dump. You can also refer to the Java code (`migration_helper.data` package) to check how they will be loaded as Java classes.
+We use [JSON Schema](https://json-schema.org) to formally describe the format of each collection in our MongoDB database in the `schemas/` folder. The schema file can be directly copy pasted into MongoDB for schema validation. We also enforce all the database schema in the deployed MongoDB database. However, you need to manually add the schemas if you want to deploy your database using our dump. 
 
-## Collections
+When reading this documentation, we strongly advise going through several examples using MongoDB Compass to understand the database schema. You can also refer to the Java code (`migration_helper.data` package) to check how they will be loaded as Java classes.
 
-* [migration_helper.wocDepSeq3](markdowns/migration_helper.wocDepSeq3). The core dependency change sequence data used in the paper.
+## Core Collections
+
+* [migration_helper.wocDepSeq3](markdowns/migration_helper.wocDepSeq3.md). The core dependency change sequence data used in the paper.
+* [migration_helper.wocConfirmedMigration](markdowns/migration_helper.wocConfirmedMigration.md). Manually confirmed ground truth migrations, including libraries, commits, and file changes.
+* [migration_helper.libraryMigrationCandidate](markdowns/migration_helper.libraryMigrationCandidate.md). Precomputed migration recommendation results for all Maven artifacts.
+* [migration_helper.lioRepository](markdowns/migration_helper.lioRepository.md). The full repository list from Libraries.io dataset 1.6.0 (released in 2020-01-12).
+* [migration_helper.lioProject](markdowns/migration_helper.lioProject.md). The Maven artifact list (unique group ID and artifact ID) from Libraries.io dataset 1.6.0 (released in 2020-01-12).
+* [migration_helper.libraryGroupArtifact](markdowns/migration_helper.libraryGroupArtifact.md). The Maven group ID and artifact ID list imported from Libraries.io. We use this collection, especially the `_id` field for historical reasons.
+
+## Additional Collections
+
+TODO
 
