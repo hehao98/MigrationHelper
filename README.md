@@ -1,6 +1,6 @@
 # MigrationHelper
 
-Welcome to the main repository for paper "Recommending Library Migration Targets via Mining Dependency Change Sequences."
+Welcome to the main repository for paper "A Multi-Metric Ranking Approach for Library Migration Recommendations."
 
 This repository contains everything for paper replication, some command-line utility tools, and a RESTful backend for our website demo.
 
