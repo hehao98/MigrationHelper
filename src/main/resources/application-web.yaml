@@ -1,0 +1,50 @@
+spring:
+  profiles: web
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/migration_helper
+
+logging:
+  config: classpath:log4j2.woc.yaml
+
+server:
+    port: 22568
+
+migration-helper:
+  woc:
+    enabled: false
+    object-enabled: false
+  thread-pool:
+    thread-count: 8
+    calc-thread-count: 2
+  library-identity:
+    maven-url-base: https://repo1.maven.org/maven2/
+    download-path: jar-download
+  repository-analysis:
+    pom-only: true
+  git-repository-analysis:
+    repository-path: git-repository
+  woc-repository-analysis:
+    p2cBase: /da0_data/basemaps/p2cFullR.
+    c2pcBase: /da0_data/basemaps/c2pcFullR.
+    c2bBase: /da0_data/basemaps/c2bFullR.
+    b2fBase: /da0_data/basemaps/b2fFullR.
+    c2taBase: /da0_data/basemaps/c2taFullR.
+    blobIndexBase: /fast/All.sha1o/sha1.blob_ # da4 only
+    commitIndexBase: /fast/All.sha1c/commit_ # da4 only
+    treeIndexBase: /fast/All.sha1c/tree_ # da4 only
+    blobContentBase: /data/All.blobs/blob_ # da4 only
+  woc-repo-analysis-job:
+    repository-list-file: evaluation/deprecated/repositories.csv
+  libraries-io-import:
+    project-with-repository-path: /home/heh/libraries-1.6.0-2020-01-12/projects_with_repository_fields-1.6.0-2020-01-12.csv
+    project-dependency-path: /home/heh/libraries-1.6.0-2020-01-12/dependencies-1.6.0-2020-01-12.csv
+    repository-path: /home/heh/libraries-1.6.0-2020-01-12/repositories-1.6.0-2020-01-12.csv
+    repository-dependency-path: /home/heh/libraries-1.6.0-2020-01-12/repository_dependencies-1.6.0-2020-01-12.csv
+  lio-jar-parse:
+    data-source: all
+    limit-count: 10000
+    extract-version-only: false
+    extract-dependencies: false
+    reverse-order: false
+    random-order: false

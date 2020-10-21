@@ -48,7 +48,7 @@ For those interested in implementation details of the paper, here are some start
 2. `src/LibraryIdentityService.java` downloads JARs from Maven, analyzes them and store the classes.
 3. `scripts/depseq_build3.py` implements dependency sequence construction on World of Code.
 
-## Replication and Deployment
+## Replication
 
 This repository contains all necessary code, configuration files, evaluation scripts and documentations to fully replicate this paper on any machine with World of Code access. You have to re-implement the module for dependency change sequence construction (`scripts/depseq_*.py`), if you want to replicate this paper by cloning from GitHub. The command-line utilities will only work with a deployed MongoDB server and you may have to modify database configuration files for a new deployment. We are currently finding somewhere to put on the whole MongoDB database dump (~100GB).
 
@@ -134,6 +134,19 @@ nohup /da1_data/play/heh/mongodb/bin/mongod --auth --dbpath /da1_data/play/heh/m
 ### Start MySQL Server on World of Code da1 (No Longer in Use)
 
 Make sure the MySQL server is not already running. Use the `run.sh` at `/da1_data/play/heh/mysql`.
+
+## Deployment as RESTful Web Service
+
+We have only deployed this project on Oracle JDK 1.8 and MongoDB 4.2.8+, so we advise to use the same versions. To deploy this project as a RESTful web service, first, restore the MongoDB database dump as described in `doc/Database.md`. Then, modify `src/main/java/resources/application-web.yaml` to match your MongoDB configuration, and the port you want to use. Finally, compile this project into a JAR file and run the following command.
+
+```shell script
+java -Dlog4j.configuration=mylog4j.properties \
+       -Dspoon.log.path=./spoon.log \
+       -Dspring.profiles.active=web \
+       -jar MigrationHelperJAR/migration-helper-1.0-SNAPSHOT.jar --web
+```
+
+Ensure that the Java process has at least 4 GB of available memory to use, or it will crash. 
 
 ## Usage Instructions on Command-Line
 

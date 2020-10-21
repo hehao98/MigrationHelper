@@ -11,9 +11,16 @@ import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfigu
         TransactionAutoConfiguration.class,
 })
 public class Application {
+
     public static void main(String[] args) {
-        SpringApplication springApplication = new SpringApplication(Application.class);
-        springApplication.setWebApplicationType(WebApplicationType.NONE);
-        springApplication.run(args);
+        if (args.length > 0 && args[0].equals("--web")) {
+            System.out.println("Running as Web server...");
+            SpringApplication.run(Application.class);
+        } else {
+            System.out.println("Running as command line tool...");
+            SpringApplication springApplication = new SpringApplication(Application.class);
+            springApplication.setWebApplicationType(WebApplicationType.NONE);
+            springApplication.run(args);
+        }
     }
 }
