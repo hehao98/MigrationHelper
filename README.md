@@ -8,7 +8,7 @@ This repository contains everything for paper replication, some command-line uti
 
 Despite our best effort in preserving anonymity here, reviewing materials here indeed poses a risk in revealing our identity. The source code may not be runnable due to package renaming and partial removals. Some too large data are not shared (e.g., the 100GB MongoDB dump). We will release all code and full data in the Camera Ready version of this repository. The following section provides some interesting destinations for you to look at.
 
-## For SANER 2021 Reviewers and Paper Readers
+## For SANER 2021 Paper Readers
 
 ### Web Demo
 
