@@ -3,6 +3,7 @@ package edu.pku.migrationhelper.service;
 import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.data.lio.LioProject;
+import edu.pku.migrationhelper.data.web.VersionControlReference;
 import edu.pku.migrationhelper.data.woc.WocConfirmedMigration;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
 import edu.pku.migrationhelper.repository.WocConfirmedMigrationRepository;
@@ -56,6 +57,8 @@ public class EvaluationService {
 
     private List<WocConfirmedMigration> migrations;
 
+    private Set<VersionControlReference> confirmedVersionControlRefs;
+
     private Map<Long, Set<Long>> groundTruthMap;
 
     @PostConstruct
@@ -63,10 +66,19 @@ public class EvaluationService {
         LOG.info("Initializing ground truth...");
         migrations = wocConfirmedMigrationRepository.findAll();
         groundTruthMap = new HashMap<>();
+        confirmedVersionControlRefs = new HashSet<>();
         for (WocConfirmedMigration migration : migrations) {
             long fromId = groupArtifactService.getIdByName(migration.getFromLib());
             long toId = groupArtifactService.getIdByName(migration.getToLib());
             groundTruthMap.computeIfAbsent(fromId, k -> new HashSet<>()).add(toId);
+            confirmedVersionControlRefs.add(new VersionControlReference(
+                    true,
+                    true,
+                    migration.getRepoName(),
+                    migration.getStartCommit(),
+                    migration.getEndCommit(),
+                    migration.getFileName()
+            ));
         }
     }
 
@@ -174,6 +186,17 @@ public class EvaluationService {
             out.printf("Top %2d: Precision = %.4f, Recall = %.4f, F-Measure = %.4f\n",
                     k, result.topKPrecision[k - 1], result.topKRecall[k - 1], result.topKFMeasure[k - 1]);
         }
+    }
+
+    public boolean isConfirmedMigration(String repoName, String startCommit, String endCommit, String fileName) {
+        return confirmedVersionControlRefs.contains(new VersionControlReference(
+                true,
+                true,
+                repoName,
+                startCommit,
+                endCommit,
+                fileName
+        ));
     }
 
     @Deprecated
