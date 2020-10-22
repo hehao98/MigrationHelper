@@ -14,7 +14,6 @@ import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.MathUtils;
-import javafx.util.Pair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -174,6 +173,7 @@ public class TestJob implements CommandLineRunner {
         }
         reader.close();
         FileWriter writer = new FileWriter("db/GAChangeInMethodChange-all.csv");
+        /*
         writer.write("fromId,toId,counter\n");
         List<Pair<Long, List<Pair<Long, Integer>>>> outputLines = new ArrayList<>(result.size());
         result.forEach((fromId, candidateMap) -> {
@@ -190,7 +190,7 @@ public class TestJob implements CommandLineRunner {
             }
         }
         writer.close();
-        LOG.info("Success");
+        LOG.info("Success");*/
     }
 
     public void calcGroundTruth2() throws Exception {
