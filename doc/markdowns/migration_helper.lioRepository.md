@@ -2,6 +2,10 @@
 
 This is the collection for storing all Java GitHub repositories we collect from the Libraries.io dataset.
 
+## Libraries.io Description
+
+A Libraries.io repository represents a publically accessible source code repository from either github.com, gitlab.com or bitbucket.org.
+
 ## Formal Schema
 
 ```json
