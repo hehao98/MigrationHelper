@@ -1,0 +1,56 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.wocCommit",
+    "required": ["_id", "timestamp", "message", "parents", "diffs", "error"],
+    "properties": {
+      "_id": {
+        "bsonType": "string",
+        "minLength": 40,
+        "maxLength": 40
+      },
+      "timestamp": {
+        "bsonType": "date"
+      },
+      "message": {
+        "bsonType": "string"
+      },
+      "parents": {
+        "bsonType": "array",
+        "maxItems": 2,
+        "uniqueItems": true,
+        "items": {
+          "bsonType": "string",
+          "minLength": 40,
+          "maxLength": 40
+        }
+      },
+      "diffs": {
+        "bsonType": "array",
+        "uniqueItems": true,
+        "items": {
+          "bsonType": "object",
+          "required": ["newBlob", "oldBlob", "filename"],
+          "properties": {
+            "newBlob": {
+              "bsonType": "string",
+              "minLength": 0,
+              "maxLength": 40
+            },
+            "oldBlob": {
+              "bsonType": "string",
+              "minLength": 0,
+              "maxLength": 40
+            },
+            "filename": {
+              "bsonType": "string"
+            }
+          }
+        }
+      },
+      "error": {
+        "bsonType": "bool"
+      }
+    }
+  }
+}

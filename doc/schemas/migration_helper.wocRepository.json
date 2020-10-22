@@ -1,0 +1,23 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.wocRepository",
+    "required": ["_id", "name", "commits"],
+    "properties": {
+      "_id": {
+        "bsonType": "long"
+      },
+      "name": {
+        "bsonType": "string"
+      },
+      "commits": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string",
+          "maxLength": 40,
+          "minLength": 40
+        }
+      }
+    }
+  }
+}

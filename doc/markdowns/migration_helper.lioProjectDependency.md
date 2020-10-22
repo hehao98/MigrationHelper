@@ -12,59 +12,59 @@ Almost all package managers dependencies will be from the same package manager, 
 
 ```json
 {
-    "$jsonSchema": {
-        "bsonType": "object",
-        "title": "migration_helper.lioProjectDependency",
-        "required": [
-            "_id",
-            "platform",
-            "projectName",
-            "projectId",
-            "versionNumber",
-            "versionId",
-            "dependencyName",
-            "dependencyPlatform",
-            "dependencyKind",
-            "optionalDependency",
-            "dependencyRequirements",
-            "dependencyProjectId"
-        ],
-        "properties": {
-            "_id": {
-                "bsonType": "long"
-            },
-            "platform": {
-                "bsonType": "string"
-            },
-            "projectName": {
-                "bsonType": "string"
-            },
-            "projectId": {
-                "bsonType": "long"
-            },
-            "versionNumber": {
-                "bsonType": "string"
-            },
-            "versionId": {
-                "bsonType": "long"
-            },
-            "dependencyName": {
-                "bsonType": "string"
-            },
-            "dependencyPlatform": {
-                "bsonType": "string"
-            },
-            "dependencyKind": {
-                "bsonType": "string"
-            },
-            "dependencyRequirements": {
-                "bsonType": "string"
-            },
-            "dependencyProjectId": {
-                "bsonType": "long"
-            }
-        }
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.lioProjectDependency",
+    "required": [
+      "_id",
+      "platform",
+      "projectName",
+      "projectId",
+      "versionNumber",
+      "versionId",
+      "dependencyName",
+      "dependencyPlatform",
+      "dependencyKind",
+      "optionalDependency",
+      "dependencyRequirements",
+      "dependencyProjectId"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "long"
+      },
+      "platform": {
+        "bsonType": "string"
+      },
+      "projectName": {
+        "bsonType": "string"
+      },
+      "projectId": {
+        "bsonType": "long"
+      },
+      "versionNumber": {
+        "bsonType": "string"
+      },
+      "versionId": {
+        "bsonType": "long"
+      },
+      "dependencyName": {
+        "bsonType": "string"
+      },
+      "dependencyPlatform": {
+        "bsonType": "string"
+      },
+      "dependencyKind": {
+        "bsonType": "string"
+      },
+      "dependencyRequirements": {
+        "bsonType": "string"
+      },
+      "dependencyProjectId": {
+        "bsonType": "long"
+      }
     }
+  }
 }
 ```
 

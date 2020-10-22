@@ -1,0 +1,36 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.wocPomBlob",
+    "required": ["_id", "dependencies", "error"],
+    "properties": {
+      "_id": {
+        "bsonType": "string",
+        "minLength": 40,
+        "maxLength": 40
+      },
+      "dependencies": {
+        "bsonType": "array",
+        "uniqueItems": true,
+        "items": {
+          "bsonType": "object",
+          "required": ["groupId", "artifactId", "version"],
+          "properties": {
+            "groupId": {
+              "bsonType": "string"
+            },
+            "artifactId": {
+              "bsonType": "string"
+            },
+            "version": {
+              "bsonType": "string"
+            }
+          }
+        }
+      },
+      "error": {
+        "bsonType": "bool"
+      }
+    }
+  }
+}

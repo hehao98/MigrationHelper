@@ -8,66 +8,66 @@ A Libraries.io repository dependency is where a dependency on a Project from a p
 
 ```json
 {
-    "$jsonSchema": {
-        "bsonType": "object",
-        "title": "migration_helper.lioRepositoryDependency",
-        "required": [
-            "_id",
-            "hostType",
-            "repositoryNameWithOwner",
-            "repositoryId",
-            "manifestPlatform",
-            "manifestFilePath",
-            "gitBranch",
-            "manifestKind",
-            "optional",
-            "dependencyProjectId",
-            "dependencyProjectName",
-            "dependencyRequirements",
-            "dependencyKind"
-        ],
-        "properties": {
-            "_id": {
-                "bsonType": "long"
-            },
-            "hostType": {
-                "bsonType": "string"
-            },
-            "repositoryNameWithOwner": {
-                "bsonType": "string"
-            },
-            "repositoryId": {
-                "bsonType": "string"
-            },
-            "manifestPlatform": {
-                "bsonType": "string"
-            },
-            "manifestFilePath": {
-                "bsonType": "string"
-            },
-            "gitBranch": {
-                "bsonType": "string"
-            },
-            "manifestKind": {
-                "bsonType": "string"
-            },
-            "optional": {
-                "bsonType": "bool"
-            },
-            "dependencyProjectId": {
-                "bsonType": "long"
-            },
-            "dependencyProjectName": {
-                "bsonType": "string"
-            },
-            "dependencyRequirements": {
-                "bsonType": "string"
-            },
-            "dependencyKind": {
-                "bsonType": "string"
-            }
-        }
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.lioRepositoryDependency",
+    "required": [
+      "_id",
+      "hostType",
+      "repositoryNameWithOwner",
+      "repositoryId",
+      "manifestPlatform",
+      "manifestFilePath",
+      "gitBranch",
+      "manifestKind",
+      "optional",
+      "dependencyProjectId",
+      "dependencyProjectName",
+      "dependencyRequirements",
+      "dependencyKind"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "long"
+      },
+      "hostType": {
+        "bsonType": "string"
+      },
+      "repositoryNameWithOwner": {
+        "bsonType": "string"
+      },
+      "repositoryId": {
+        "bsonType": "string"
+      },
+      "manifestPlatform": {
+        "bsonType": "string"
+      },
+      "manifestFilePath": {
+        "bsonType": "string"
+      },
+      "gitBranch": {
+        "bsonType": "string"
+      },
+      "manifestKind": {
+        "bsonType": "string"
+      },
+      "optional": {
+        "bsonType": "bool"
+      },
+      "dependencyProjectId": {
+        "bsonType": "long"
+      },
+      "dependencyProjectName": {
+        "bsonType": "string"
+      },
+      "dependencyRequirements": {
+        "bsonType": "string"
+      },
+      "dependencyKind": {
+        "bsonType": "string"
+      }
     }
+  }
 }
 ```
 
