@@ -1,5 +1,9 @@
 # migration_helper.lioProject
 
+## Libraries.io Description
+
+A Libraries.io project is the definition of a package available from one of the 37 Package Managers that it supports.
+
 ## Formal Schema
 
 ```json

@@ -12,14 +12,14 @@ mongodb://migration_helper:HeHMgt2020@da1.eecs.utk.edu:27020/migration_helper?au
 
 The database admin username is `myUserAdmin`. 
 
-## Database Dump and Deployment
+## Database Dump and Restore
 
 If you do not have access to World of Code, you can download the database dumps and deploy your own MongoDB server.
 
 Here is a utility script for dumping everything in the folder where the script is run.
 
 ```shell script
-for collection in wocDepSeq3 libraryMigrationCandidate wocConfirmedMigration classSignature classToLibraryVersion libraryVersionToClass libraryGroupArtifact libraryVersion libraryVersionToDependency lioProject lioProjectDependency lioRepository lioRepositoryDependency wocCommit wocPomBlob wocRepository
+for collection in wocDepSeq3 libraryMigrationCandidate wocConfirmedMigration classSignature classToLibraryVersion libraryVersionToClass libraryGroupArtifact libraryVersion libraryVersionToDependency lioProject lioProjectDependency lioRepository lioRepositoryDependency wocCommit wocPomBlob wocRepository wocAPICount customSequences
 do
     dumpfile=migration_helper.$collection.gz
     if [ -e $dumpfile ]
@@ -35,7 +35,7 @@ do
 done
 ```
 
-For minimal deployment (only use precomputed recommendation result), you can deploy the following collections. (They are also used for the demo web service.)
+For minimal deployment (only use precomputed recommendation result), you can deploy the following collections. You may need to modify the Java code a little bit to avoid missing data crashes. (I didn't have time to test about this)
 
 ```
 migration_helper.wocDepSeq3.gz
@@ -46,7 +46,16 @@ migration_helper.libraryMigrationCandidate.gz
 migration_helper.libraryGroupArtifact.gz
 ```
 
-For full deployment (need to run recommendation for other libraries), you should deploy every collection in this documentation and follow the general running instructions in this repository.
+For full deployment (need to run recommendation for other libraries, need to use library knowledge graph, repository data, etc), you should deploy every collection in this documentation and follow the general running instructions in this repository.
+
+Since all collections are dumped individually (to avoid too large files), you should restore them one by one using a command like this in the folder with all the dump files.
+
+```shell script
+for collection in wocDepSeq3 libraryMigrationCandidate wocConfirmedMigration classSignature classToLibraryVersion libraryVersionToClass libraryGroupArtifact libraryVersion libraryVersionToDependency lioProject lioProjectDependency lioRepository lioRepositoryDependency wocCommit wocPomBlob wocRepository wocAPICount customSequences
+do
+    mongorestore . --gzip --archive=migration_helper.$collection.gz
+done
+```
 
 ## Database Schema
 
@@ -65,5 +74,5 @@ When reading this documentation, we strongly advise going through several exampl
 
 ## Additional Collections
 
-TODO
-
+* [migration_helper.lioRepositoryDependency](markdowns/migration_helper.lioRepositoryDependency.md). The latest pom.xml dependencies information recored for each repository provided by the Libraries.io dataset.
+* [migration_helper.lioProjectDependency](markdowns/migration_helper.lioProjectDependency.md). The dependencies for each library version provided by the Libraries.io dataset. 
