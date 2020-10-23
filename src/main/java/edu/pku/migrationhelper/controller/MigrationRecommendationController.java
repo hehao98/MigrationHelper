@@ -1,6 +1,5 @@
 package edu.pku.migrationhelper.controller;
 
-import edu.pku.migrationhelper.assembler.MigrationRecommendationAssembler;
 import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.web.MigrationRecommendation;
 import edu.pku.migrationhelper.data.web.VersionControlReference;
@@ -10,9 +9,12 @@ import edu.pku.migrationhelper.service.GroupArtifactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.server.RepresentationModelAssembler;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,21 +44,22 @@ public class MigrationRecommendationController {
         this.evaluationService = evaluationService;
     }
 
-    public EntityModel<MigrationRecommendation> getOne(
+    @GetMapping("/recommend-one")
+    public EntityModel<MigrationRecommendation> getRecommendation(
             @RequestParam(name="fromLib") String fromLib,
             @RequestParam(name="toLib") String toLib
     ) {
         if (!groupArtifactService.exist(fromLib)) {
-            throw new IllegalArgumentException("fromLib " + fromLib + " does not exist");
+            throw new ResourceNotFoundException("fromLib " + fromLib + " does not exist");
         }
         if (!groupArtifactService.exist(toLib)) {
-            throw new IllegalArgumentException("fromLib " + toLib + " does not exist");
+            throw new ResourceNotFoundException("toLib " + toLib + " does not exist");
         }
 
         LibraryMigrationCandidate candidate = candidateRepository.findByFromIdAndToId(
               groupArtifactService.getIdByName(fromLib),
               groupArtifactService.getIdByName(toLib)
-        ).orElseThrow(() -> new IllegalArgumentException(
+        ).orElseThrow(() -> new ResourceNotFoundException(
                 String.format("Recommendation entry does not exist: fromId = %s, toLib = %s", fromLib, toLib)
         ));
         return assembler.toModel(fromLibraryMigrationCandidate(candidate));
@@ -72,7 +75,7 @@ public class MigrationRecommendationController {
             throw new IllegalArgumentException("pageNum must be greater than zero");
         }
         if (!groupArtifactService.exist(fromLib)) {
-            throw new IllegalArgumentException("fromLib " + fromLib + " does not exist");
+            throw new ResourceNotFoundException("fromLib " + fromLib + " does not exist");
         }
         if (pageSize >= 1024) {
             throw new IllegalArgumentException("pageSize too large, must < 1024");
@@ -132,5 +135,19 @@ public class MigrationRecommendationController {
                 candidate.methodChangeSupportByMax,
                 refs
         );
+    }
+
+    @Component
+    public static class MigrationRecommendationAssembler
+            implements RepresentationModelAssembler<MigrationRecommendation, EntityModel<MigrationRecommendation>>
+    {
+        @Override
+        public EntityModel<MigrationRecommendation> toModel(MigrationRecommendation rec) {
+            return new EntityModel<>(
+                    rec,
+                    linkTo(methodOn(MigrationRecommendationController.class).getRecommendation(
+                            rec.getFromLib(), rec.getToLib())).withSelfRel()
+            );
+        }
     }
 }
