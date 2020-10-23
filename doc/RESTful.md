@@ -14,7 +14,7 @@ http://migration-helper.net:22568/recommend?fromLib=something:non-existent&pageN
   "error": "404 Not Found",
   "message": "fromLib something:non-existent does not exist",
   "path": "/recommend",
-  "url": "http://migration-helper.net:22568/recommend?fromLib=something:non-existent&pageNum=0&pageSize=20"
+  "url": "http://migration-helper.net:22568/recommend?fromLib=something:non-existent&page=0&size=20"
 }
 ```
 
@@ -22,7 +22,7 @@ http://migration-helper.net:22568/recommend?fromLib=something:non-existent&pageN
 ## Query Migration Recommendations for a Library
 
 ```
-http://migration-helper.net:22568/recommend?fromLib=org.json:json&pageNum=0&pageSize=20
+http://migration-helper.net:22568/recommend?fromLib=org.json:json&page=0&size=20
 ```
 
 ## Query Related Repositories and Commits for a Source/Target Library Pair

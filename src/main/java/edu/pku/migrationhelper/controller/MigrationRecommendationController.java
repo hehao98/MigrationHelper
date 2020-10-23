@@ -68,8 +68,8 @@ public class MigrationRecommendationController {
     @GetMapping("/recommend")
     public PagedModel<EntityModel<MigrationRecommendation>> getRecommendation(
             @RequestParam(name="fromLib") String fromLib,
-            @RequestParam(name="pageNum") int pageNum,
-            @RequestParam(name="pageSize") int pageSize
+            @RequestParam(name="page") int pageNum,
+            @RequestParam(name="size") int pageSize
     ) {
         if (pageNum < 0) {
             throw new IllegalArgumentException("pageNum must be greater than zero");
