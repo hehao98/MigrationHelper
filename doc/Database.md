@@ -77,10 +77,10 @@ When reading this documentation, we strongly advise going through several exampl
 * [migration_helper.lioRepositoryDependency](markdowns/migration_helper.lioRepositoryDependency.md). The latest pom.xml dependencies information recored for each repository provided by the Libraries.io dataset.
 * [migration_helper.lioProjectDependency](markdowns/migration_helper.lioProjectDependency.md). The dependencies for each library version provided by the Libraries.io dataset. 
 * [migration_helper.libraryVersion](markdowns/migration_helper.libraryVersion.md). For each Maven artifact, the version information we retreive from Maven Central.
-* [migration_helper.libraryVersionToClass].
-* [migration_helper.libraryVersionToDependency].
-* [migration_helper.classSignature].
-* [migration_helper.classToLibraryVersion].
+* [migration_helper.libraryVersionToDependency](markdowns/migration_helper.libraryVersionToDependency.md). The dependency info for each artifact version that we retrieve from Maven Central. 
+* [migration_helper.classSignature]. 
+* [migration_helper.classToLibraryVersion]. 
+* [migration_helper.libraryVersionToClass]. 
 * [migration_helper.wocRepository](markdowns/migration_helper.wocRepository.md). Repository to commit mapping retrieved from World of Code. 
 * [migration_helper.wocCommit](markdowns/migration_helper.wocCommit.md). Information about all commits used in our study, including commit message, timestamp and diff blobs retrieved from World of Code.
 * [migration_helper.wocPomBlob](markdowns/migration_helper.wocPomBlob.md). Information abut all pom.xml blobs (i.e. full change history) used in our study, retrieved from World of Code.
