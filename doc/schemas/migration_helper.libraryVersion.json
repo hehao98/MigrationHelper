@@ -1,0 +1,22 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.libraryVersion",
+    "required": [
+      "_id",
+      "groupArtifactId",
+      "version",
+      "downloaded",
+      "parsed",
+      "parseError"
+    ],
+    "properties": {
+      "_id": { "bsonType": "long" },
+      "groupArtifactId": { "bsonType": "long" },
+      "version": { "bsonType": "string" },
+      "downloaded": { "bsonType": "bool" },
+      "parsed": { "bsonType": "bool" },
+      "parseError": { "bsonType": "bool" }
+    }
+  }
+}
