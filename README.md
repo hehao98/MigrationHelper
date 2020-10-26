@@ -8,7 +8,7 @@ This repository contains everything for paper replication, some command-line uti
 
 ### Web Demo
 
-A Web Demo is available at [this link](https://migration-helper.net/). 
+A Web Demo is available at [this link](http://migration-helper.net/). 
 
 Note that the Web Demo only stores a limited amount of data and is just a very simple conceptual prototype. We are still actively developing it to make it more mature and user-friendly.
 
