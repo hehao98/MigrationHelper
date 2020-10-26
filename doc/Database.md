@@ -78,9 +78,9 @@ When reading this documentation, we strongly advise going through several exampl
 * [migration_helper.lioProjectDependency](markdowns/migration_helper.lioProjectDependency.md). The dependencies for each library version provided by the Libraries.io dataset. 
 * [migration_helper.libraryVersion](markdowns/migration_helper.libraryVersion.md). For each Maven artifact, the version information we retreive from Maven Central.
 * [migration_helper.libraryVersionToDependency](markdowns/migration_helper.libraryVersionToDependency.md). The dependency info for each artifact version that we retrieve from Maven Central. 
-* [migration_helper.classSignature]. 
-* [migration_helper.classToLibraryVersion]. 
-* [migration_helper.libraryVersionToClass]. 
+* [migration_helper.classSignature](markdowns/migration_helper.classSignature.md). The collection that stores a compact representation of Java class APIs in the JARs download from Maven Central,
+* [migration_helper.classToLibraryVersion](markdowns/migration_helper.classToLibraryVersion.md). Maintains the mapping between a class and the library versions that the class has occurred.
+* [migration_helper.libraryVersionToClass](markdowns/migration_helper.libraryVersionToClass.md). Maintains the mapping between the classes that a library version has. 
 * [migration_helper.wocRepository](markdowns/migration_helper.wocRepository.md). Repository to commit mapping retrieved from World of Code. 
 * [migration_helper.wocCommit](markdowns/migration_helper.wocCommit.md). Information about all commits used in our study, including commit message, timestamp and diff blobs retrieved from World of Code.
 * [migration_helper.wocPomBlob](markdowns/migration_helper.wocPomBlob.md). Information abut all pom.xml blobs (i.e. full change history) used in our study, retrieved from World of Code.
