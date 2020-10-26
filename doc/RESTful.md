@@ -31,3 +31,9 @@ http://migration-helper.net:22568/recommend?fromLib=org.json:json&page=0&size=20
 http://migration-helper.net:22568/recommend-one?fromLib=org.json:json&toLib=com.google.code.gson:gson
 ```
 
+## Query Libraries.io Information of a Library
+
+```
+http://migration-helper.net:22568/library?lib=org.json:json
+```
+

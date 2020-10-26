@@ -1,9 +1,11 @@
 package edu.pku.migrationhelper.controller;
 
 import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
+import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.data.web.MigrationRecommendation;
 import edu.pku.migrationhelper.data.web.VersionControlReference;
 import edu.pku.migrationhelper.repository.LibraryMigrationCandidateRepository;
+import edu.pku.migrationhelper.repository.LioProjectRepository;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.GroupArtifactService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,6 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,17 +30,20 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 public class MigrationRecommendationController {
     private final LibraryMigrationCandidateRepository candidateRepository;
+    private final LioProjectRepository lioProjectRepository;
     private final MigrationRecommendationAssembler assembler;
     private final GroupArtifactService groupArtifactService;
     private final EvaluationService evaluationService;
 
     public MigrationRecommendationController(
             @Autowired LibraryMigrationCandidateRepository candidateRepository,
+            @Autowired LioProjectRepository lioProjectRepository,
             @Autowired MigrationRecommendationAssembler assembler,
             @Autowired GroupArtifactService groupArtifactService,
             @Autowired EvaluationService evaluationService
     ) {
         this.candidateRepository = candidateRepository;
+        this.lioProjectRepository = lioProjectRepository;
         this.assembler = assembler;
         this.groupArtifactService = groupArtifactService;
         this.evaluationService = evaluationService;
@@ -110,6 +114,13 @@ public class MigrationRecommendationController {
                 fromLib, recPage.getTotalPages() - 1, pageSize)).withRel("last");
 
         return new PagedModel<>(recs, metadata, self, first, next, last);
+    }
+
+    @GetMapping("/library")
+    public LioProject getLibraryInfo(@RequestParam(name="lib") String lib) {
+        return lioProjectRepository.findByName(lib).orElseThrow(
+                () -> new IllegalArgumentException(lib + " does not exist in our db")
+        );
     }
 
     private MigrationRecommendation fromLibraryMigrationCandidate(LibraryMigrationCandidate candidate) {
