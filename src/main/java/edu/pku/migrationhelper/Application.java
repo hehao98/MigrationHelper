@@ -32,7 +32,12 @@ public class Application {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("http://localhost:8080");
+                registry.addMapping("/**").allowedOrigins(
+                        "http://localhost:8080",
+                        "http://migration-helper.net",
+                        "http://migration-helper.org",
+                        "http://migration-helper.com"
+                );
             }
         };
     }
