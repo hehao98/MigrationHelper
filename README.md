@@ -4,7 +4,7 @@ Welcome to the main repository for paper "A Multi-Metric Ranking Approach for Li
 
 This repository contains everything for paper replication, some command-line utility tools, and a RESTful backend for our website demo.
 
-## For SANER 2021 Paper Readers
+## For Paper Readers
 
 ### Web Demo
 
