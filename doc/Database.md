@@ -84,3 +84,27 @@ When reading this documentation, we strongly advise going through several exampl
 * [migration_helper.wocRepository](markdowns/migration_helper.wocRepository.md). Repository to commit mapping retrieved from World of Code. 
 * [migration_helper.wocCommit](markdowns/migration_helper.wocCommit.md). Information about all commits used in our study, including commit message, timestamp and diff blobs retrieved from World of Code.
 * [migration_helper.wocPomBlob](markdowns/migration_helper.wocPomBlob.md). Information abut all pom.xml blobs (i.e. full change history) used in our study, retrieved from World of Code.
+
+## Extract Relevant Code Changes for a Migration
+
+In this section, I will describe how to extract relevant code changes for a specific library migration in our data. For example, suppose we want to extract relevant code changes for the migration from `org.json:json` to `com.google.code.gson:gson`, to get changes like the following (copied from [here](https://github.com/vmi/selenese-runner-java/commit/641ab94e7d014cdf4fd6a83554dcff57130143d3)).
+
+```java
+-import org.json.JSONObject;
++import com.google.gson.Gson;
+ import com.thoughtworks.selenium.SeleniumException;
+......
+             bindings.put("rule", ((JSMap<?, ?>) rule).unwrap());
+         else
+             bindings.put("rule", rule);
+-        String args = new JSONObject(rollupArgs).toString();
++        String args = new Gson().toJson(rollupArgs);
+```
+
+Note that, even if a commit is marked as migration commit, it is **because of the pom.xml changes and the commit messages, not because there are migration code changes**. We make this design choice because it is very hard to trace migration code changes and maybe for some migrations there is no code change at all. As a result, the migration commits in our data may not necessarily contain migration code changes, and you have to filter out the commits that do not have any migration code changes.
+
+We suggest using the following procedure to extract relevant code changes for a migration from library A (fromLib=A) to library (toLib=B).
+
+1. Query [migration_helper.wocConfirmedMigration](markdowns/migration_helper.wocConfirmedMigration.md) to retrieve all related commits that records a migration from library A to library B. If there is none, you can find related commits using [migration_helper.libraryMigrationCandidate](markdowns/migration_helper.libraryMigrationCandidate.md), although the results there are not guaranteed to be correct.
+2. (Optional) extend the related commits using [migration_helper.wocCommit](markdowns/migration_helper.wocCommit.md) and [migration_helper.wocRepository](markdowns/migration_helper.wocRepository.md). For each (repository, startCommit, endCommit), you can first retrieve all commits of the repository, and get all commits in between startCommit and endCommit by timestamp. You can also retrieve other commits in a given time interval (e.g. startCommit - one month, endCommit + one month), in case the code changes are performed in the commits before the startCommit or after the endCommit.
+3. For each commit retrieved above, you can get the commit diff and blob content using GitHub API, **because this database does not store any Java blob data**. For each of the Java file diffs, you can check whether the file uses any package from library A or library B using [migration_helper.libraryVersionToClass](markdowns/migration_helper.libraryVersionToClass.md) and [migration_helper.classSignature](markdowns/migration_helper.classSignature.md). If the old version of this Java file uses APIs from A and the new version uses APIs from B, you can then identify diff hunks that conduct the migration code changes, by mapping the references of APIs to line numbers, and choose the diff hunks that both the addition of B's API and removal of A's API are mapped to this hunk.
