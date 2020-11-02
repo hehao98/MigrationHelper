@@ -36,7 +36,8 @@ public class Application {
                         "http://localhost:8080",
                         "http://migration-helper.net",
                         "http://migration-helper.org",
-                        "http://migration-helper.com"
+                        "http://migration-helper.com",
+                        "https://asdf0717.github.io"
                 );
             }
         };
