@@ -101,6 +101,7 @@ public class MigrationRecommendationController {
 
         List<EntityModel<MigrationRecommendation>> recs = recPage.stream()
                 .map(this::fromLibraryMigrationCandidate)
+                .peek(x -> x.getRefs().clear()) // avoid too-large payload
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
 

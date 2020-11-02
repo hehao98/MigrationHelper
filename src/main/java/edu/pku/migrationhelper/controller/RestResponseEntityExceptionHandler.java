@@ -18,7 +18,7 @@ public class RestResponseEntityExceptionHandler
         extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = { IllegalArgumentException.class })
-    protected ResponseEntity<Object> handleIllegalArgument(
+    protected ResponseEntity<Object> handleBadRequest(
             RuntimeException ex, ServletWebRequest request) {
         Map<String, Object> response = getErrorResponse(
                 HttpStatus.BAD_REQUEST, ex.getMessage(),
@@ -30,7 +30,7 @@ public class RestResponseEntityExceptionHandler
     }
 
     @ExceptionHandler(value = { ResourceNotFoundException.class })
-    protected ResponseEntity<Object> handleResourceNotFound(
+    protected ResponseEntity<Object> handleNotFound(
             RuntimeException ex, ServletWebRequest request
     ) {
         Map<String, Object> response = getErrorResponse(
