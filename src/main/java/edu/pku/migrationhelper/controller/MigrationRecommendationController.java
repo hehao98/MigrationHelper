@@ -124,6 +124,16 @@ public class MigrationRecommendationController {
         );
     }
 
+    @GetMapping("/libraries-with-perfix")
+    public List<String> getLibrariesWithPrefix(@RequestParam(name="prefix") String prefix) {
+        return groupArtifactService.getNamesWithPrefix(prefix, 20);
+    }
+
+    @GetMapping("/libraries-similar")
+    public List<String> getLibrariesSimilar(@RequestParam(name="lib") String lib) {
+        return groupArtifactService.getMostSimilarNames(lib, 20);
+    }
+
     private MigrationRecommendation fromLibraryMigrationCandidate(LibraryMigrationCandidate candidate) {
         List<VersionControlReference> refs = candidate.possibleCommitList.stream()
                 .map(x -> new VersionControlReference(
