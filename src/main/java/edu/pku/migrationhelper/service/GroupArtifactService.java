@@ -2,16 +2,16 @@ package edu.pku.migrationhelper.service;
 
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import org.apache.commons.collections4.trie.PatriciaTrie;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class GroupArtifactService {
@@ -25,6 +25,10 @@ public class GroupArtifactService {
 
     private Map<String, Long> groupArtifactNameToId;
 
+    private PatriciaTrie<Long> groupArtifactTrie;
+
+    private PatriciaTrie<List<String>> namePartToNames;
+
     @PostConstruct
     public synchronized void initializeGroupArtifactCache() {
         LOG.info("Initializing group artifact cache...");
@@ -37,6 +41,13 @@ public class GroupArtifactService {
         }
         groupArtifactCache = Collections.unmodifiableMap(map);
         groupArtifactNameToId = Collections.unmodifiableMap(name2id);
+        groupArtifactTrie = new PatriciaTrie<>(groupArtifactNameToId);
+        namePartToNames = new PatriciaTrie<>();
+        for (String name : name2id.keySet()) {
+            for (String part : name.toLowerCase().split("[:\\-.]")) {
+                namePartToNames.computeIfAbsent(part, k -> new ArrayList<>()).add(name);
+            }
+        }
     }
 
     public LibraryGroupArtifact getGroupArtifactById(long id) {
@@ -61,5 +72,53 @@ public class GroupArtifactService {
             LOG.warn("{} does not exist in database", name);
             return -1;
         }
+    }
+
+    public List<String> getNamesWithPrefix(String prefix, int topK) {
+        return groupArtifactTrie.prefixMap(prefix).keySet().stream().limit(topK).collect(Collectors.toList());
+    }
+
+    public List<String> getMostSimilarNames(String name, int topK) {
+        Map<String, Long> map = new TreeMap<>(Comparator.reverseOrder());
+        for (String part : name.toLowerCase().split("[:\\-.]")) {
+            if (!namePartToNames.containsKey(part)) continue;
+            for (String lib : namePartToNames.get(part)) {
+                if (!map.containsKey(lib)) {
+                    map.put(lib, 1L);
+                } else {
+                    map.put(lib, map.get(lib) + 1);
+                }
+            }
+            for (List<String> libs : namePartToNames.prefixMap(part).values()) {
+                for (String lib : libs) {
+                    if (!map.containsKey(lib)) {
+                        map.put(lib, 1L);
+                    } else {
+                        map.put(lib, map.get(lib) + 1);
+                    }
+                }
+            }
+        }
+        return map.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(topK).map(Map.Entry::getKey)
+                .sorted(Comparator.comparing(s -> LevenshteinDistance.getDefaultInstance().apply(name, s)))
+                .collect(Collectors.toList());
+    }
+
+    public PatriciaTrie<Long> getGroupArtifactTrie() {
+        return groupArtifactTrie;
+    }
+
+    public void setGroupArtifactTrie(PatriciaTrie<Long> groupArtifactTrie) {
+        this.groupArtifactTrie = groupArtifactTrie;
+    }
+
+    public PatriciaTrie<List<String>> getNamePartToNames() {
+        return namePartToNames;
+    }
+
+    public void setNamePartToNames(PatriciaTrie<List<String>> namePartToNames) {
+        this.namePartToNames = namePartToNames;
     }
 }

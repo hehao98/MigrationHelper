@@ -101,6 +101,7 @@ public class MigrationRecommendationController {
 
         List<EntityModel<MigrationRecommendation>> recs = recPage.stream()
                 .map(this::fromLibraryMigrationCandidate)
+                .peek(x -> x.getRefs().clear()) // avoid too-large payload
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
 
@@ -121,6 +122,16 @@ public class MigrationRecommendationController {
         return lioProjectRepository.findByName(lib).orElseThrow(
                 () -> new IllegalArgumentException(lib + " does not exist in our db")
         );
+    }
+
+    @GetMapping("/libraries-with-perfix")
+    public List<String> getLibrariesWithPrefix(@RequestParam(name="prefix") String prefix) {
+        return groupArtifactService.getNamesWithPrefix(prefix, 20);
+    }
+
+    @GetMapping("/libraries-similar")
+    public List<String> getLibrariesSimilar(@RequestParam(name="lib") String lib) {
+        return groupArtifactService.getMostSimilarNames(lib, 20);
     }
 
     private MigrationRecommendation fromLibraryMigrationCandidate(LibraryMigrationCandidate candidate) {

@@ -1,7 +1,6 @@
 package service;
 
 import edu.pku.migrationhelper.data.lib.LibraryInfo;
-import edu.pku.migrationhelper.service.JarAnalysisService;
 import edu.pku.migrationhelper.service.MavenService;
 import org.junit.jupiter.api.Test;
 
