@@ -11,7 +11,7 @@ import edu.pku.migrationhelper.repository.WocDepSeqRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -47,6 +47,9 @@ public class DepSeqAnalysisService {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
 
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     @Autowired
     private WocDepSeqRepository depSeqRepository;
 
@@ -70,7 +73,11 @@ public class DepSeqAnalysisService {
     private List<String> depSeqFileList;
 
     @PostConstruct
-    public void initializeMethodChangeSupportMap() throws IOException {
+    public void initializeMethodChangeSupportMap() {
+        if (activeProfile.equals("web")) {
+            LOG.info("Skipping the initialization of this module to save memory usage...");
+            return;
+        }
         List<WocAPICount> wocAPICounts = wocAPICountRepository.findAll();
         methodChangeSupportMap = new HashMap<>(10000000);
         for (WocAPICount count : wocAPICounts) {
@@ -82,6 +89,10 @@ public class DepSeqAnalysisService {
 
     @PostConstruct
     public void initializeRepositoryDepSeq() {
+        if (activeProfile.equals("web")) {
+            LOG.info("Skipping the initialization of this module to save memory usage...");
+            return;
+        }
         LOG.info("Initializing repository dependency sequence...");
         repositoryDepSeq = new LinkedList<>();
         depSeqCommitList = new LinkedList<>();
