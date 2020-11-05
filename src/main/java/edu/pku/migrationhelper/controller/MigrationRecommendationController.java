@@ -124,7 +124,7 @@ public class MigrationRecommendationController {
         );
     }
 
-    @GetMapping("/libraries-with-perfix")
+    @GetMapping("/libraries-with-prefix")
     public List<String> getLibrariesWithPrefix(@RequestParam(name="prefix") String prefix) {
         return groupArtifactService.getNamesWithPrefix(prefix, 20);
     }
