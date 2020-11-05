@@ -17,6 +17,7 @@ public class GroupArtifactServiceTest {
         groupArtifactTrie.put("org.json:json", 0L);
         groupArtifactTrie.put("org.apache:junit", 1L);
         groupArtifactTrie.put("com.google.code.gson:gson", 1L);
+        groupArtifactTrie.put("com.xxx.yyy.zzz.www.gson:gson", 1L);
         groupArtifactTrie.put("com.google.collections:guava", 1L);
         PatriciaTrie<List<String>> namePartToNames = new PatriciaTrie<>();
         for (String name: groupArtifactTrie.keySet()) {
@@ -46,5 +47,6 @@ public class GroupArtifactServiceTest {
         l = service.getMostSimilarNames("com.googl.:hson", 10);
         assertEquals(l.get(0), "com.google.code.gson:gson");
         System.out.println(l);
+        System.out.println(service.getMostSimilarNames("com.googl.gson:hson", 10));
     }
 }

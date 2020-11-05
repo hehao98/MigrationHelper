@@ -82,13 +82,6 @@ public class GroupArtifactService {
         Map<String, Long> map = new TreeMap<>(Comparator.reverseOrder());
         for (String part : name.toLowerCase().split("[:\\-.]")) {
             if (!namePartToNames.containsKey(part)) continue;
-            for (String lib : namePartToNames.get(part)) {
-                if (!map.containsKey(lib)) {
-                    map.put(lib, 1L);
-                } else {
-                    map.put(lib, map.get(lib) + 1);
-                }
-            }
             for (List<String> libs : namePartToNames.prefixMap(part).values()) {
                 for (String lib : libs) {
                     if (!map.containsKey(lib)) {
@@ -101,8 +94,9 @@ public class GroupArtifactService {
         }
         return map.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(topK).map(Map.Entry::getKey)
+                .map(Map.Entry::getKey)
                 .sorted(Comparator.comparing(s -> LevenshteinDistance.getDefaultInstance().apply(name, s)))
+                .limit(topK)
                 .collect(Collectors.toList());
     }
 
