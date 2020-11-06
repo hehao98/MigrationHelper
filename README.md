@@ -14,14 +14,14 @@ A Web Demo is available at [this link](http://migration-helper.net/).
 
 We list where to find the migration dataset mentioned in the paper here.
 
-1. `evaluation/manual/ground-truth-all.xlsx`. List of all ground truth migration rules.
-2. `evaluation/manual/confirmed-migration-all.xlsx`. List of all confirmed migration commits.
+1. [evaluation/manual/ground-truth-all.xlsx](evaluation/manual/ground-truth-all.xlsx). List of all ground truth migration rules.
+2. [evaluation/manual/confirmed-migration-all.xlsx](evaluation/manual/ground-truth-all.xlsx). List of all confirmed migration commits.
 
 We also have some partial database dumps, including dependency change sequences, available [here](https://drive.google.com/drive/folders/1UBTp9betjAi6gSly4OmGvLwIl7AJvUfg). See the `doc/` folder for documentation about the MongoDB database.
 
 ### Recommendation Examples
 
-Please download `evaluation/recommend-output.csv` (~50MB) for all recommendation output in the 190 source libraries used in RQ1 and RQ2. For other recommendation example, you can either try the web demo above, or download dumped data in the Google Drive link mentioned above.
+Please download [evaluation/recommend-output.csv](evaluation/recommend-output.csv) (~50MB) for all recommendation output in the 190 source libraries used in RQ1 and RQ2. For other recommendation example, you can either try the web demo above, or download dumped data in the Google Drive link mentioned above.
 
 ### Evaluation
 
@@ -39,7 +39,7 @@ All the intermediate data during labelling of ground truth are also kept in this
 For those interested in implementation details of the paper, here are some starting points to look at:
 
 1. `src/.../DepSeqAnalysisService.java`  implements the core migration target recommendation algorithm.
-2. `src/LibraryIdentityService.java` downloads JARs from Maven, analyzes them and store the classes.
+2. `src/.../LibraryIdentityService.java` downloads JARs from Maven, analyzes them and store the classes.
 3. `scripts/depseq_build3.py` implements dependency sequence construction on World of Code.
 
 ## Replication
