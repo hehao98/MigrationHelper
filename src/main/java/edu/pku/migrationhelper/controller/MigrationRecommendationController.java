@@ -92,6 +92,11 @@ public class MigrationRecommendationController {
                 request
         );
 
+        if (!recPage.hasContent()) {
+            throw new ResourceNotFoundException(fromLib + " does not have any recommendation result at page "
+                    + pageNum + " with page size " + pageSize);
+        }
+
         PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(
                 recPage.getSize(),
                 recPage.getNumber(),
