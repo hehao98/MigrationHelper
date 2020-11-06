@@ -92,6 +92,11 @@ public class MigrationRecommendationController {
                 request
         );
 
+        if (!recPage.hasContent()) {
+            throw new ResourceNotFoundException(fromLib + " does not have any recommendation result at page "
+                    + pageNum + " with page size " + pageSize);
+        }
+
         PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(
                 recPage.getSize(),
                 recPage.getNumber(),
@@ -124,7 +129,7 @@ public class MigrationRecommendationController {
         );
     }
 
-    @GetMapping("/libraries-with-perfix")
+    @GetMapping("/libraries-with-prefix")
     public List<String> getLibrariesWithPrefix(@RequestParam(name="prefix") String prefix) {
         return groupArtifactService.getNamesWithPrefix(prefix, 20);
     }

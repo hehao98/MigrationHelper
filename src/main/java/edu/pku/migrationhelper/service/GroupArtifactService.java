@@ -1,7 +1,9 @@
 package edu.pku.migrationhelper.service;
 
+import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
 import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
+import edu.pku.migrationhelper.repository.LibraryMigrationCandidateRepository;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.slf4j.Logger;
@@ -21,12 +23,15 @@ public class GroupArtifactService {
     @Autowired
     private LibraryGroupArtifactRepository libraryGroupArtifactRepository;
 
+    @Autowired
+    private LibraryMigrationCandidateRepository libraryMigrationCandidateRepository;
+
     private Map<Long, LibraryGroupArtifact> groupArtifactCache;
 
     private Map<String, Long> groupArtifactNameToId;
 
+    // The trie only contains library with recommendation results, as an optimization
     private PatriciaTrie<Long> groupArtifactTrie;
-
     private PatriciaTrie<List<String>> namePartToNames;
 
     @PostConstruct
@@ -41,13 +46,20 @@ public class GroupArtifactService {
         }
         groupArtifactCache = Collections.unmodifiableMap(map);
         groupArtifactNameToId = Collections.unmodifiableMap(name2id);
-        groupArtifactTrie = new PatriciaTrie<>(groupArtifactNameToId);
+
+        Map<String, Long> nameWithRec2id = new HashMap<>(list.size());
+        for (LibraryMigrationCandidate candidate : libraryMigrationCandidateRepository.findAll()) {
+            String name = map.get(candidate.fromId).getGroupArtifactId();
+            nameWithRec2id.put(name, candidate.fromId);
+        }
+        groupArtifactTrie = new PatriciaTrie<>(nameWithRec2id);
         namePartToNames = new PatriciaTrie<>();
-        for (String name : name2id.keySet()) {
+        for (String name : nameWithRec2id.keySet()) {
             for (String part : name.toLowerCase().split("[:\\-.]")) {
                 namePartToNames.computeIfAbsent(part, k -> new ArrayList<>()).add(name);
             }
         }
+        LOG.info("{} libraries has recommendation results", nameWithRec2id.size());
     }
 
     public LibraryGroupArtifact getGroupArtifactById(long id) {
@@ -74,21 +86,20 @@ public class GroupArtifactService {
         }
     }
 
+    /**
+     * Only prefix libraries with recommendation results are returned
+     */
     public List<String> getNamesWithPrefix(String prefix, int topK) {
         return groupArtifactTrie.prefixMap(prefix).keySet().stream().limit(topK).collect(Collectors.toList());
     }
 
+    /**
+     * Only similar libraries with recommendation results are returned
+     */
     public List<String> getMostSimilarNames(String name, int topK) {
         Map<String, Long> map = new TreeMap<>(Comparator.reverseOrder());
         for (String part : name.toLowerCase().split("[:\\-.]")) {
             if (!namePartToNames.containsKey(part)) continue;
-            for (String lib : namePartToNames.get(part)) {
-                if (!map.containsKey(lib)) {
-                    map.put(lib, 1L);
-                } else {
-                    map.put(lib, map.get(lib) + 1);
-                }
-            }
             for (List<String> libs : namePartToNames.prefixMap(part).values()) {
                 for (String lib : libs) {
                     if (!map.containsKey(lib)) {
@@ -101,8 +112,9 @@ public class GroupArtifactService {
         }
         return map.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .limit(topK).map(Map.Entry::getKey)
+                .map(Map.Entry::getKey)
                 .sorted(Comparator.comparing(s -> LevenshteinDistance.getDefaultInstance().apply(name, s)))
+                .limit(topK)
                 .collect(Collectors.toList());
     }
 

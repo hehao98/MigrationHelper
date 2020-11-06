@@ -37,3 +37,15 @@ http://migration-helper.net:22568/recommend-one?fromLib=org.json:json&toLib=com.
 http://migration-helper.net:22568/library?lib=org.json:json
 ```
 
+## Query Top-20 Libraries with Prefix
+
+```
+http://www.migration-helper.net:22568/libraries-with-prefix?prefix=org.jso
+```
+
+## Query Top-20 Libraries with Similar Names (Edit Distance)
+
+```
+http://www.migration-helper.net:22568/libraries-similar?lib=org.gson
+```
+
