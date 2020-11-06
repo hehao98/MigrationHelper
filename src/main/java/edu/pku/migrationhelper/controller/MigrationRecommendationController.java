@@ -4,8 +4,10 @@ import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.lio.LioProject;
 import edu.pku.migrationhelper.data.web.MigrationRecommendation;
 import edu.pku.migrationhelper.data.web.VersionControlReference;
+import edu.pku.migrationhelper.data.woc.WocConfirmedMigration;
 import edu.pku.migrationhelper.repository.LibraryMigrationCandidateRepository;
 import edu.pku.migrationhelper.repository.LioProjectRepository;
+import edu.pku.migrationhelper.repository.WocConfirmedMigrationRepository;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.GroupArtifactService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,28 +33,34 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class MigrationRecommendationController {
     private final LibraryMigrationCandidateRepository candidateRepository;
     private final LioProjectRepository lioProjectRepository;
-    private final MigrationRecommendationAssembler assembler;
+    private final WocConfirmedMigrationRepository wocConfirmedMigrationRepository;
+    private final MigrationRecommendationAssembler migrationRecommendationAssembler;
+    private final ConfirmedMigrationAssembler confirmedMigrationAssembler;
     private final GroupArtifactService groupArtifactService;
     private final EvaluationService evaluationService;
 
     public MigrationRecommendationController(
             @Autowired LibraryMigrationCandidateRepository candidateRepository,
             @Autowired LioProjectRepository lioProjectRepository,
-            @Autowired MigrationRecommendationAssembler assembler,
+            @Autowired WocConfirmedMigrationRepository wocConfirmedMigrationRepository,
+            @Autowired MigrationRecommendationAssembler migrationRecommendationAssembler,
+            @Autowired ConfirmedMigrationAssembler confirmedMigrationAssembler,
             @Autowired GroupArtifactService groupArtifactService,
             @Autowired EvaluationService evaluationService
     ) {
         this.candidateRepository = candidateRepository;
         this.lioProjectRepository = lioProjectRepository;
-        this.assembler = assembler;
+        this.wocConfirmedMigrationRepository = wocConfirmedMigrationRepository;
+        this.migrationRecommendationAssembler = migrationRecommendationAssembler;
+        this.confirmedMigrationAssembler = confirmedMigrationAssembler;
         this.groupArtifactService = groupArtifactService;
         this.evaluationService = evaluationService;
     }
 
     @GetMapping("/recommend-one")
     public EntityModel<MigrationRecommendation> getRecommendation(
-            @RequestParam(name="fromLib") String fromLib,
-            @RequestParam(name="toLib") String toLib
+            @RequestParam(name = "fromLib") String fromLib,
+            @RequestParam(name = "toLib") String toLib
     ) {
         if (!groupArtifactService.exist(fromLib)) {
             throw new ResourceNotFoundException("fromLib " + fromLib + " does not exist");
@@ -62,19 +70,19 @@ public class MigrationRecommendationController {
         }
 
         LibraryMigrationCandidate candidate = candidateRepository.findByFromIdAndToId(
-              groupArtifactService.getIdByName(fromLib),
-              groupArtifactService.getIdByName(toLib)
+                groupArtifactService.getIdByName(fromLib),
+                groupArtifactService.getIdByName(toLib)
         ).orElseThrow(() -> new ResourceNotFoundException(
                 String.format("Recommendation entry does not exist: fromId = %s, toLib = %s", fromLib, toLib)
         ));
-        return assembler.toModel(fromLibraryMigrationCandidate(candidate));
+        return migrationRecommendationAssembler.toModel(fromLibraryMigrationCandidate(candidate));
     }
 
     @GetMapping("/recommend")
     public PagedModel<EntityModel<MigrationRecommendation>> getRecommendation(
-            @RequestParam(name="fromLib") String fromLib,
-            @RequestParam(name="page") int pageNum,
-            @RequestParam(name="size") int pageSize
+            @RequestParam(name = "fromLib") String fromLib,
+            @RequestParam(name = "page") int pageNum,
+            @RequestParam(name = "size") int pageSize
     ) {
         if (pageNum < 0) {
             throw new IllegalArgumentException("pageNum must be greater than zero");
@@ -107,7 +115,7 @@ public class MigrationRecommendationController {
         List<EntityModel<MigrationRecommendation>> recs = recPage.stream()
                 .map(this::fromLibraryMigrationCandidate)
                 .peek(x -> x.getRefs().clear()) // avoid too-large payload
-                .map(assembler::toModel)
+                .map(migrationRecommendationAssembler::toModel)
                 .collect(Collectors.toList());
 
         Link self = linkTo(methodOn(MigrationRecommendationController.class).getRecommendation(
@@ -123,20 +131,64 @@ public class MigrationRecommendationController {
     }
 
     @GetMapping("/library")
-    public LioProject getLibraryInfo(@RequestParam(name="lib") String lib) {
+    public LioProject getLibraryInfo(@RequestParam(name = "lib") String lib) {
         return lioProjectRepository.findByName(lib).orElseThrow(
                 () -> new IllegalArgumentException(lib + " does not exist in our db")
         );
     }
 
     @GetMapping("/libraries-with-prefix")
-    public List<String> getLibrariesWithPrefix(@RequestParam(name="prefix") String prefix) {
+    public List<String> getLibrariesWithPrefix(@RequestParam(name = "prefix") String prefix) {
         return groupArtifactService.getNamesWithPrefix(prefix, 20);
     }
 
     @GetMapping("/libraries-similar")
-    public List<String> getLibrariesSimilar(@RequestParam(name="lib") String lib) {
+    public List<String> getLibrariesSimilar(@RequestParam(name = "lib") String lib) {
         return groupArtifactService.getMostSimilarNames(lib, 20);
+    }
+
+    @GetMapping("/confirmed-migration")
+    public EntityModel<WocConfirmedMigration> getConfirmedMigration(
+            @RequestParam(name = "id") String id
+    ) {
+        WocConfirmedMigration migration = wocConfirmedMigrationRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                String.format("The ground truth recommendation id = %s does not exist", id)
+        ));
+        return confirmedMigrationAssembler.toModel(migration);
+    }
+
+    @GetMapping("/confirmed-migrations")
+    public PagedModel<EntityModel<WocConfirmedMigration>> getConfirmedMigrations(
+            @RequestParam(name = "page") int pageNum,
+            @RequestParam(name = "size") int pageSize
+    ) {
+        PageRequest request = PageRequest.of(pageNum, pageSize);
+        Page<WocConfirmedMigration> recPage = wocConfirmedMigrationRepository.findAll(request);
+        if (!recPage.hasContent()) {
+            throw new ResourceNotFoundException("No confirmed migration data at page "
+                    + pageNum + " with page size " + pageSize);
+        }
+        PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(
+                recPage.getSize(),
+                recPage.getNumber(),
+                recPage.getTotalElements(),
+                recPage.getTotalPages()
+        );
+        List<EntityModel<WocConfirmedMigration>> recs = recPage.stream()
+                .map(confirmedMigrationAssembler::toModel)
+                .collect(Collectors.toList());
+
+        Link self = linkTo(methodOn(MigrationRecommendationController.class).getConfirmedMigrations(
+                pageNum, pageSize)).withSelfRel();
+        Link first = linkTo(methodOn(MigrationRecommendationController.class).getConfirmedMigrations(
+                0, pageSize)).withRel("first");
+        Link next = linkTo(methodOn(MigrationRecommendationController.class).getConfirmedMigrations(
+                (pageNum + 1) % recPage.getTotalPages(), pageSize)).withRel("next");
+        Link last = linkTo(methodOn(MigrationRecommendationController.class).getConfirmedMigrations(
+                recPage.getTotalPages() - 1, pageSize)).withRel("last");
+
+        return new PagedModel<>(recs, metadata, self, first, next, last);
     }
 
     private MigrationRecommendation fromLibraryMigrationCandidate(LibraryMigrationCandidate candidate) {
@@ -146,8 +198,8 @@ public class MigrationRecommendationController {
                         true,
                         x[0], x[1], x[2], x[3]))
                 .sorted((a, b) -> Integer.compare(
-                        (b.isConfirmed() ? 1 : 0) * 10 +  (b.isPossible() ? 1 : 0),
-                        (a.isConfirmed() ? 1 : 0) * 10 +  (a.isPossible() ? 1 : 0)
+                        (b.isConfirmed() ? 1 : 0) * 10 + (b.isPossible() ? 1 : 0),
+                        (a.isConfirmed() ? 1 : 0) * 10 + (a.isPossible() ? 1 : 0)
                 )).collect(Collectors.toList());
 
         return new MigrationRecommendation(
@@ -167,14 +219,26 @@ public class MigrationRecommendationController {
 
     @Component
     public static class MigrationRecommendationAssembler
-            implements RepresentationModelAssembler<MigrationRecommendation, EntityModel<MigrationRecommendation>>
-    {
+            implements RepresentationModelAssembler<MigrationRecommendation, EntityModel<MigrationRecommendation>> {
         @Override
         public EntityModel<MigrationRecommendation> toModel(MigrationRecommendation rec) {
             return new EntityModel<>(
                     rec,
                     linkTo(methodOn(MigrationRecommendationController.class).getRecommendation(
                             rec.getFromLib(), rec.getToLib())).withSelfRel()
+            );
+        }
+    }
+
+    @Component
+    public static class ConfirmedMigrationAssembler
+            implements RepresentationModelAssembler<WocConfirmedMigration, EntityModel<WocConfirmedMigration>> {
+        @Override
+        public EntityModel<WocConfirmedMigration> toModel(WocConfirmedMigration rec) {
+            return new EntityModel<>(
+                    rec,
+                    linkTo(methodOn(MigrationRecommendationController.class)
+                            .getConfirmedMigration(rec.getId())).withSelfRel()
             );
         }
     }

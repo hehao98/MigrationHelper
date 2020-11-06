@@ -49,3 +49,16 @@ http://www.migration-helper.net:22568/libraries-with-prefix?prefix=org.jso
 http://www.migration-helper.net:22568/libraries-similar?lib=org.gson
 ```
 
+## Query all Ground Truth Migration Data
+
+```
+http://www.migration-helper.net:22568/confirmed-migrations?page=0&size=100
+```
+
+## Query one Ground Truth Migration Data Entry
+
+```
+http://www.migration-helper.net:22568/confirmed-migration?id=5f82c42dcb69b9d520bdfd1a
+```
+
+
