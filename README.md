@@ -27,7 +27,7 @@ Please download [evaluation/recommend-output.csv](evaluation/recommend-output.cs
 
 The evaluation results are all put in the `evaluation/` folder. Not that the RQs are an earlier formulation different from that in paper. Therefore, we list where to find evaluation results in the paper here.
 
-1. For labelling of ground truth used in RQ1 and RQ2, see `evaluation/rq1_*.ipynb`, `evaluation/manual/confirmed-migrations-*.xlsx`, and [evaluation/ground-truth.xlsx](evaluation/ground-truth.xlsx)`.
+1. For labelling of ground truth used in RQ1 and RQ2, see `evaluation/rq1_*.ipynb`, `evaluation/manual/confirmed-migrations-*.xlsx`, and [evaluation/ground-truth.xlsx](evaluation/ground-truth.xlsx).
 2. For RQ1, see [evaluation/rq2_metrics.ipynb](evaluation/rq2_metrics.ipynb).
 3. For RQ2, see [evaluation/rq3_ranking.ipynb](evaluation/rq3_ranking.ipynb) and [evaluation/rq4_generalize.ipynb](evaluation/rq4_generalize.ipynb).
 
