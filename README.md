@@ -15,7 +15,7 @@ A Web Demo is available at [this link](http://migration-helper.net/).
 We list where to find the migration dataset mentioned in the paper here.
 
 1. [evaluation/manual/ground-truth-all.xlsx](evaluation/manual/ground-truth-all.xlsx). List of all ground truth migration rules.
-2. [evaluation/manual/confirmed-migration-all.xlsx](evaluation/manual/confirmed-migration-all.xlsx). List of all confirmed migration commits.
+2. [evaluation/manual/confirmed-migrations-all.xlsx](evaluation/manual/confirmed-migrations-all.xlsx). List of all confirmed migration commits.
 
 We also have some partial database dumps, including dependency change sequences, available [here](https://drive.google.com/drive/folders/1UBTp9betjAi6gSly4OmGvLwIl7AJvUfg). See the `doc/` folder for documentation about the MongoDB database.
 
