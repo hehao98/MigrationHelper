@@ -14,7 +14,6 @@ import edu.pku.migrationhelper.repository.WocConfirmedMigrationRepository;
 import edu.pku.migrationhelper.repository.WocCommitRepository;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.GroupArtifactService;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,8 +78,9 @@ public class MigrationRecommendationController {
     ) {
         accessLogRepository.save(new AccessLog(
                 httpServletRequest.getRequestURL().toString() + "?" + httpServletRequest.getQueryString(),
-                httpServletRequest.getRemoteAddr())
-        );
+                httpServletRequest.getRemoteAddr(),
+                new Date()
+        ));
         if (!groupArtifactService.exist(fromLib)) {
             throw new ResourceNotFoundException("fromLib " + fromLib + " does not exist");
         }
@@ -105,8 +106,9 @@ public class MigrationRecommendationController {
     ) {
         accessLogRepository.save(new AccessLog(
                 httpServletRequest.getRequestURL().toString() + "?" + httpServletRequest.getQueryString(),
-                httpServletRequest.getRemoteAddr())
-        );
+                httpServletRequest.getRemoteAddr(),
+                new Date()
+        ));
         if (pageNum < 0) {
             throw new IllegalArgumentException("pageNum must be greater than zero");
         }
@@ -170,8 +172,9 @@ public class MigrationRecommendationController {
                                       HttpServletRequest httpServletRequest) {
         accessLogRepository.save(new AccessLog(
                 httpServletRequest.getRequestURL().toString() + "?" + httpServletRequest.getQueryString(),
-                httpServletRequest.getRemoteAddr())
-        );
+                httpServletRequest.getRemoteAddr(),
+                new Date()
+        ));
         List<String> SHAs = Arrays.asList(commitSHAs.split(","));
         return wocCommitRepository.findAllById(SHAs);
     }
