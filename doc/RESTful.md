@@ -49,3 +49,8 @@ http://www.migration-helper.net:22568/libraries-with-prefix?prefix=org.jso
 http://www.migration-helper.net:22568/libraries-similar?lib=org.gson
 ```
 
+## Query commits with diffs and commit messages
+
+```
+http://www.migration-helper.net:22568/commits?shas=d49bc6eb1bf8dc3ef7966466521d28a0054ecc63,d7d4a0305e6b681e97e79b0510ca0b7570f2ed00,633d6ea38defe9d14849d4e135fb8d77a4206302
+```
