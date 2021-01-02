@@ -1,0 +1,33 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.libraryVersionToDependency",
+    "required": [
+      "_id",
+      "groupId",
+      "artifactId",
+      "version",
+      "hasError",
+      "dependencies"
+    ],
+    "properties": {
+      "_id": { "bsonType": "long" },
+      "groupId": { "bsonType": "string" },
+      "artifactId": { "bsonType": "string" },
+      "version": { "bsonType": "string" },
+      "hasError": { "bsonType": "bool" },
+      "dependencies": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "object",
+          "required": ["groupId", "artifactId", "version"],
+          "properties": {
+            "groupId": { "bsonType": "string" },
+            "artifactId": { "bsonType": "string" },
+            "version": { "bsonType": "string" }
+          }
+        }
+      }
+    }
+  }
+}

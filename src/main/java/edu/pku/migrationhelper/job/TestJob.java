@@ -1,6 +1,8 @@
 package edu.pku.migrationhelper.job;
 
-import edu.pku.migrationhelper.data.*;
+import edu.pku.migrationhelper.data.CommitInfo;
+import edu.pku.migrationhelper.data.MethodChangeOld;
+import edu.pku.migrationhelper.data.RepositoryDepSeq;
 import edu.pku.migrationhelper.data.api.ClassSignature;
 import edu.pku.migrationhelper.data.api.MethodSignatureOld;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
@@ -12,7 +14,6 @@ import edu.pku.migrationhelper.repository.ClassSignatureRepository;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
 import edu.pku.migrationhelper.util.MathUtils;
-import javafx.util.Pair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,11 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -171,6 +173,7 @@ public class TestJob implements CommandLineRunner {
         }
         reader.close();
         FileWriter writer = new FileWriter("db/GAChangeInMethodChange-all.csv");
+        /*
         writer.write("fromId,toId,counter\n");
         List<Pair<Long, List<Pair<Long, Integer>>>> outputLines = new ArrayList<>(result.size());
         result.forEach((fromId, candidateMap) -> {
@@ -187,7 +190,7 @@ public class TestJob implements CommandLineRunner {
             }
         }
         writer.close();
-        LOG.info("Success");
+        LOG.info("Success");*/
     }
 
     public void calcGroundTruth2() throws Exception {

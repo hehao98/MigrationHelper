@@ -1,0 +1,113 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.libraryMigrationCandidate",
+    "required": [
+      "fromId",
+      "toId",
+      "ruleCount",
+      "ruleCountSameCommit",
+      "methodChangeCount",
+      "libraryConcurrenceCount",
+      "maxRuleCount",
+      "maxRuleCountSameCommit",
+      "maxMethodChangeCount",
+      "ruleSupportByTotal",
+      "ruleSupportByMax",
+      "ruleSupportByMaxSameCommit",
+      "methodChangeSupportByTotal",
+      "methodChangeSupportByMax",
+      "libraryConcurrenceSupport",
+      "commitDistanceSupport",
+      "commitMessageSupport",
+      "confidence",
+      "repoCommitList",
+      "commitDistanceList",
+      "possibleCommitList"
+    ],
+    "properties": {
+      "fromId": {
+        "bsonType": "long"
+      },
+      "toId": {
+        "bsonType": "long"
+      },
+      "ruleCount": {
+        "bsonType": "int"
+      },
+      "ruleCountSameCommit": {
+        "bsonType": "int"
+      },
+      "methodChangeCount": {
+        "bsonType": "int"
+      },
+      "libraryConcurrenceCount": {
+        "bsonType": "int"
+      },
+      "maxRuleCount": {
+        "bsonType": "int"
+      },
+      "maxRuleCountSameCommit": {
+        "bsonType": "int"
+      },
+      "maxMethodChangeCount": {
+        "bsonType": "int"
+      },
+      "ruleSupportByTotal": {
+        "bsonType": "double"
+      },
+      "ruleSupportByMax": {
+        "bsonType": "double"
+      },
+      "ruleSupportByMaxSameCommit": {
+        "bsonType": "double"
+      },
+      "methodChangeSupportByTotal": {
+        "bsonType": "double"
+      },
+      "methodChangeSupportByMax": {
+        "bsonType": "double"
+      },
+      "libraryConcurrenceSupport": {
+        "bsonType": "double"
+      },
+      "commitDistanceSupport": {
+        "bsonType": "double"
+      },
+      "commitMessageSupport": {
+        "bsonType": "double"
+      },
+      "confidence": {
+        "bsonType": "double"
+      },
+      "repoCommitList": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "bsonType": "string"
+          }
+        }
+      },
+      "commitDistanceList": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "int"
+        }
+      },
+      "possibleCommitList": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "bsonType": "string"
+          }
+        }
+      }
+    }
+  }
+}

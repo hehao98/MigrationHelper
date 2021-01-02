@@ -1,0 +1,107 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.classSignature",
+    "required": [
+      "_id",
+      "className",
+      "flags",
+      "superClassName",
+      "superClassId",
+      "interfaceNames",
+      "interfaceIds",
+      "methods",
+      "fields"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "string",
+        "maxLength": 40,
+        "minLength": 40
+      },
+      "className": {
+        "bsonType": "string"
+      },
+      "flags": {
+        "bsonType": "long"
+      },
+      "superClassName": {
+        "bsonType": "string"
+      },
+      "superClassId": {
+        "bsonType": "string",
+        "maxLength": 40,
+        "minLength": 40
+      },
+      "interfaceNames": {
+        "bsonType": "array",
+        "items": { "bsonType": "string" }
+      },
+      "interfaceIds": {
+        "bsonType": "array",
+        "items": {
+          "bsonType": "string",
+          "minLength": 40,
+          "maxLength": 40
+        }
+      },
+      "methods": {
+        "bsonType": "object",
+        "required": [
+          "flag",
+          "type",
+          "name",
+          "annotations",
+          "parameters",
+          "exceptions"
+        ],
+        "properties": {
+          "flag": { "bsonType": "long" },
+          "type": { "bsonType": "string" },
+          "name": { "bsonType": "string" },
+          "annotations": {
+            "bsonType": "object",
+            "required": ["className", "isRuntimeVisible", "valuePairs"],
+            "properties": {
+              "className": { "bsonType": "string" },
+              "isRuntimeVisible": { "bsonType": "bool" },
+              "valuePairs": {
+                "bsonType": "array",
+                "items": { "bsonType": "string" }
+              }
+            }
+          },
+          "parameters": {
+            "bsonType": "array",
+            "items": { "bsonType": "string" }
+          },
+          "exceptions": {
+            "bsonType": "array",
+            "items": { "bsonType": "string" }
+          }
+        }
+      },
+      "fields": {
+        "bsonType": "object",
+        "required": ["flag", "type", "name", "annotations"],
+        "properties": {
+          "flag": { "bsonType": "long" },
+          "type": { "bsonType": "string" },
+          "name": { "bsonType": "string" },
+          "annotations": {
+            "bsonType": "object",
+            "required": ["className", "isRuntimeVisible", "valuePairs"],
+            "properties": {
+              "className": { "bsonType": "string" },
+              "isRuntimeVisible": { "bsonType": "bool" },
+              "valuePairs": {
+                "bsonType": "array",
+                "items": { "bsonType": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

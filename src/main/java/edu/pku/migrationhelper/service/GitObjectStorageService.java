@@ -6,7 +6,6 @@ import edu.pku.migrationhelper.mapper.BlobInfoMapper;
 import edu.pku.migrationhelper.mapper.CommitInfoMapper;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Deprecated
 // @Service

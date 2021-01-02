@@ -1,16 +1,13 @@
 package edu.pku.migrationhelper.service;
 
-import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.woc.WocAPICount;
 import edu.pku.migrationhelper.data.woc.WocCommit;
 import edu.pku.migrationhelper.data.woc.WocDepSeq;
 import edu.pku.migrationhelper.data.woc.WocDepSeqItem;
-import edu.pku.migrationhelper.mapper.LibraryGroupArtifactMapper;
-import edu.pku.migrationhelper.repository.LibraryGroupArtifactRepository;
 import edu.pku.migrationhelper.repository.WocAPICountRepository;
 import edu.pku.migrationhelper.repository.WocCommitRepository;
 import edu.pku.migrationhelper.repository.WocDepSeqRepository;
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,39 +25,6 @@ public class DepSeqAnalysisService {
     public static final int DefaultMinPatternSupport = 0;
 
     public static final double DefaultMinMCSupportPercent = 0.1;
-
-    public static class LibraryMigrationCandidate {
-        public long fromId;
-        public long toId;
-        public int ruleCount = 0;               // Number of times a rule (fromLib, toLib) occur in dependency sequence
-        public int ruleCountSameCommit = 0;     // Number of times a rule (fromLib, toLib) occurs in one commit
-        public int methodChangeCount = 0;       // Number of times API modifications occur in data
-        public int libraryConcurrenceCount = 0; // Number of times l1 and l2 are used in same commit
-        public int maxRuleCount = 0;            // For all (fromLib, *) candidates, max value of RuleCount
-        public int maxRuleCountSameCommit = 0;  // For all (fromLib, *) candidates, max value of RuleCount in same commit
-        // public int maxRuleCountToLibSameCommit = 0; // For all (*, toLib) candidates, max value of RuleCount in sameCommit
-        public int maxMethodChangeCount = 0;    // For all (fromLib, *) candidates, max value of methodChangeCount
-        public double ruleSupportByTotal = 0;
-        public double ruleSupportByMax = 0;
-        public double ruleSupportByMaxSameCommit = 0;
-        public double methodChangeSupportByTotal = 0;
-        public double methodChangeSupportByMax = 0;
-        public double libraryConcurrenceSupport = 0;
-        public double positionSupport = 0;
-        public double commitDistanceSupport = 0;
-        public double commitMessageSupport = 0;
-        public double confidence = 0;
-        public double confidence2 = 0;
-        public List<Pair<Integer, Integer>> positionList = new LinkedList<>();
-        public List<String[]> repoCommitList = new LinkedList<>();     // List<repoName, startCommitSHA, endCommitSHA, fileName>
-        public List<Integer> commitDistanceList = new LinkedList<>();
-        public List<String[]> possibleCommitList = new LinkedList<>(); // List<repoName, startCommitSHA, endCommitSHA, fileName>
-
-        public LibraryMigrationCandidate(long fromId, long toId) {
-            this.fromId = fromId;
-            this.toId = toId;
-        }
-    }
 
     public static class LibraryMigrationPattern {
         public long fromId;
@@ -85,6 +46,9 @@ public class DepSeqAnalysisService {
     }
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     @Autowired
     private WocDepSeqRepository depSeqRepository;
@@ -109,7 +73,11 @@ public class DepSeqAnalysisService {
     private List<String> depSeqFileList;
 
     @PostConstruct
-    public void initializeMethodChangeSupportMap() throws IOException {
+    public void initializeMethodChangeSupportMap() {
+        if (activeProfile.equals("web")) {
+            LOG.info("Skipping the initialization of this module to save memory usage...");
+            return;
+        }
         List<WocAPICount> wocAPICounts = wocAPICountRepository.findAll();
         methodChangeSupportMap = new HashMap<>(10000000);
         for (WocAPICount count : wocAPICounts) {
@@ -121,6 +89,10 @@ public class DepSeqAnalysisService {
 
     @PostConstruct
     public void initializeRepositoryDepSeq() {
+        if (activeProfile.equals("web")) {
+            LOG.info("Skipping the initialization of this module to save memory usage...");
+            return;
+        }
         LOG.info("Initializing repository dependency sequence...");
         repositoryDepSeq = new LinkedList<>();
         depSeqCommitList = new LinkedList<>();
@@ -209,7 +181,6 @@ public class DepSeqAnalysisService {
                             toId, k -> new LibraryMigrationCandidate(pattern.fromId, toId));
                     candidate.ruleCount++;
                     if (startEndCommit[0].equals(startEndCommit[1])) candidate.ruleCountSameCommit++;
-                    candidate.positionList.add(new Pair<>(position++, pattern.toIdList.size()));
                     candidate.repoCommitList.add(new String[]{repoName, startEndCommit[0], startEndCommit[1], fileName});
                     candidate.commitDistanceList.add(commitDistance);
                 }
@@ -262,14 +233,6 @@ public class DepSeqAnalysisService {
 
             // Compute all the necessary metrics
             for (LibraryMigrationCandidate candidate : candidateList) {
-                double positionSupport = 0;
-                double positionA = 1;
-                int positionB = 5;
-                for (Pair<Integer, Integer> position : candidate.positionList) {
-                    positionSupport += Math.pow((positionB + 1) / (double)(position.getKey() + positionB), positionA);
-                }
-                candidate.positionSupport = positionSupport / candidate.positionList.size();
-
                 candidate.commitDistanceSupport = 0;
                 for (Integer dis : candidate.commitDistanceList) {
                     candidate.commitDistanceSupport += Math.pow(1.0 / (double)(dis + 1), 2);

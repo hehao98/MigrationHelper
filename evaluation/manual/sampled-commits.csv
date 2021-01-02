@@ -1,0 +1,101 @@
+commit,hasAPIChange,notes
+384be7c81ca6f99e075fdb4cb9313bcfaa05e5b2,no,only pom.xml change in this commit
+a3c30c18e2c2df277c2576925b434ba737d128b0,yes,
+45734bfcc53b3296e7d36b1083527abaa8badebe,no,"logging library, change pom.xml files, configuration files and uploaded jars"
+028c96326a871871e65a4f51ad8bc5c21ef20fcc,yes,
+88ecb0f30a285b00f6a66565d29fed395e9326a5,no,"pom.xml change in this commit, and one line of test change that does not seem relevant"
+83dee0d9d99188b74653b27ab45f583f2b09be14,yes,
+7d699e6b3581f55ecf1ae9c5cf85e848cc8ccb8f,no,"only pom.xml change in this commit, is major version upgrade"
+3dcd22dd850b3182a1f14d9cc94d19a15b2b15cf,yes,
+33c3c8fd096fc796d4c8606d5aa8df5a8a9a3047,yes,
+9d9973d4c8316040fca28a60baed9d80e0785640,no,only pom.xml change in this commit
+8f4c874a894de7729b16ed0e2afe346896698f83,no,"database migration, no need to change code"
+a52ffb338390fb61fea9eaf8765b1095d366c674,no,only pom.xml change in this commit
+af3282f2e2b84551767e860f4415f248218e006c,yes,
+26775eb61b0161de990f1bb5339aa9e12c5a5606,no,only pom.xml change in this commit
+8c068ce5034a8606c0d67a4aebed39e69b7a4a61,no,"pom.xml, jar and config changes"
+7f63f23001e270efe3682f2c54bd37c33b1e4a7f,yes,
+59f37ddf2874daa31842519ac454bbea2d4f3e29,yes,
+acc8699adc4a276c15987a1712bd390b2d55632d,no,some tests changed but not the testing api
+c6c1fa2786145ee80f93e0493bcd9a307f2f654d,no,only add new APIs and does not remove old APIs
+772b9d9064b567cf979c58b12f1ded803714b681,yes,
+7258fab116b1a681568234b9d4849bb91fac0913,yes,
+c1c568817db4564cd249430bb6dc9b3dc3718de8,no,only remove old APIs but do not add any new APIs
+71e67a4fb4f53204b4607b4abab64c5004ef2297,yes,
+466ab6caaf7d5d5bdf2197943aed6f8e071db0e4,no,change RPC services only requires changing configuration files
+6feb1e5bc87873222ea0381e15d6be223050e926,no,only configuration file changed
+21a1ed83f0ec879f6ef973c82d51e147be208ad6,no,only configuration file changed
+81b8d755ecb25b166a6a7ead1eff2e379fa98b45,yes,
+86a47fb3c27b30b9f0ed28a9dcc43242a3810b18,yes,
+f9c25f9c082007364d3a73475b192ee661425ea8,yes,
+4f38bc97c1061d2c770e90c98ee3f625c7e56e33,no,only pom.xml change in this commit
+ba63daa69ad4629bb4bb1385efa5477dc291f03a,yes,
+3580c6127290af7366c7960218633dbbea4aad5f,no,only pom.xml change in this commit
+41a108ba590540ff3cedac082508aa7a6fbe8971,no,only pom.xml change in this commit
+a5b30484f9d16cb5b33cd338c64175f82211f876,yes,
+b30e3cc8a9dfd8e01e4d81b1b7deed8f258c76e0,no,only remove old APIs but do not add any new APIs
+3a6e33343f0ac7573706418dbd2b503ff2cad8f3,no,"only configuration file changed, connection pool"
+1fb696d58446cb134fa78d73afb51fc7bc3175ff,no,
+48a5d9fc360edb08770a35e09487fbb0eea662af,no,"only configuration file changed, persistence library"
+6353c34363c4c3e0bc7a540efdd778d80d3d0079,no,"only pom.xml change in this commit, is upgrade"
+7981e3a55094cda095db3491d788c9c119b3845b,yes,
+821b06a38bc13e188f3cbd6ecf91e32fc8eddc91,no,entire classes are removed and new classes using the new APIs are added
+472b88b559fc82b16ae7e8151d97b5c6038a8f59,no,"change bundles, only pom.xml change in this commit "
+451fc8a72341642ad383dc9c7d514751691b8fa9,no,only pom.xml change in this commit
+b072740abec72774645d94a0e6527692def2dfb5,yes,
+49f29d91bedc2b305c35138ccaba85d07bcdce4e,no,only pom.xml change in this commit
+7afd8e65704127f5cf9d4265cb62558dfbc6553c,no,only pom.xml change in this commit
+495e439a835a84bd45cb75baac03b3241bca59f4,yes,
+f97f52c50273455fb0ec4353126636653c761fb4,yes,
+589a99aa7a6477c693f4088e86a5181b9afb45a1,yes,
+4c03d34cf2b1a78946e6e657a0db4869cae25f15,no,only configuration file changed
+c0b1ef1fcf26eeef6ab8b7f0f50aee0046547a24,unknown,commits deleted from GitHub
+94a5fd0ae29f29787a1ba8ebeb60fd7cc1cee96f,yes,
+3ca079343d3443a899a7d2757cc96fe49ed0ff33,yes,
+4c5df3cee945ac3e07a5f36ea4baa7f7dabfef5b,no,only pom.xml change in this commit
+d07b30a421d75ad1d00a78d087e40907e9e894ac,yes,
+7d94e83f0753203925235e85e3432089c30b76f6,yes,
+c4cffec426469641b6652f9ffb1b5b34f7639329,yes,
+1ad0c3697b0614e63de7976cc450fcdf17f380fe,yes,
+f572c4b80e2bef91f582ed5b535c4ba695d63a2d,yes,
+30f8c8a987c98e6952cf2d3cafe507ebbfe153b9,yes,
+b8617ffab0e38f1a921dfbe383289968b80cf2a6,no,entire classes are removed and new classes using the new APIs are added
+855d17178e2c07387cdeeae5dac8c4af5e01e399,yes,
+3538200e5557d84c90479ead6c103432108b382a,no,it is a minor version upgrade (but it changed groupId:artifactId¡­) thus classified as a migration
+d6c72fb0587d45aca7268c1a3c00301cffae47ef,no,only configuration file changed
+25c1522a1b9ac9a63b054253f96d7071bdf28b06,yes,
+7890489093db5a6b6d167db73263ef3c7363c482,yes,
+5165723ea1c393a149c0f95e6613ad1db75e17d0,yes,
+f2455edd3967e83082cc5cb4e00839cd651abfbb,no,only pom.xml change in this commit
+b8ad34b83a1bd546222da6232ac55e8700f92736,no,only pom.xml change in this commit
+aa3b7d0f2e1800333d0ee092712a2fee421e7454,no,only pom.xml change in this commit
+956e6401a9d4554e0980c7c2e3dd6a4797bb34b2,no,only pom.xml change in this commit
+a002e792840172831c18724b3fe5edf1fb88b86d,no,only configuration file changed
+c33b8af8cd258f8dc112db81ee1e4e3018a9fc22,yes,
+edc1b10610884bdbed13c43a18d14ce0243b2e58,yes,
+5a66acc87619a2d6dd3e01876ca58cc740be320b,no,
+e57ec81b031b9572ea8359a14a1b33bbc96e5a13,unknown,commits deleted from GitHub
+6ac770f4ecfff07ddcb7fc341747e0be3f0ad9a0,unknown,commits deleted from GitHub
+5a76897b0ec179f10362b4b0de447b7c48bfc989,unknown,commits deleted from GitHub
+4c20cd8cd48aeeb7b33d626f6b0e8583d98f0c0b,no,only remove old APIs but do not add any new APIs
+e37f2a75dba6cf3dc1f5b0461008946e71875328,no,only pom.xml change in this commit
+751b78cac780cf786227b2d948e771277900e63b,no,only remove old APIs but do not add any new APIs
+6277568e43971f89dcfee1a34d5f81e85438745d,yes,
+8b520f75fa1c2ff2ec89a9a68a3bfcd043a34433,no,has irrelevant code changes
+484638e055bf041ce6444863b08d5fb86e3ebf50,yes,
+448616313a1e7e354503a897f81473990a1fa0b3,no,only pom.xml change in this commit
+7112b9543af8d198503e213af9487a106093bae4,no,"only configuration file changes, jdbc"
+ec9b497d4eadd8ba1e73c077c9958abd2d30a2d4,no,only add new dependency
+673f64754ab9a7a76c9ee0d0933cd83b50f8a77d,yes,
+0d638d02c051094ce1e8532e83449735cf6ae2f4,yes,
+ee00bf12df24101c4e6fa2595e5dd4d39801d5ab,yes,
+99e9499639e994dd4a1a333b75401ea1027c34d0,no,only pom.xml change in this commit
+ed473e272dfa369de771358a3c6a9b1075dd3d43,yes,
+5c67cfb9248f61fd65295b30c3765cf6351fe414,no,only pom.xml change in this commit
+af278fccc7050dab7ddaaf9d794991f62f8312df,yes,
+30e1d4ce2cbc975b4f8d64666b3f2d6aa6c612ea,no,only pom.xml change in this commit
+ed62abb1bf4b7adc0b02a65c19c855cf07a3320f,no,has code changes but not API changes
+9f998d61915d0673ccd4c0a166f3245ccaf85430,no,"only configuration file changed, redis"
+3e6224ff777a931513be6f7047e34c48d694d00d,yes,
+38c4bb99c9539eb738cd1206fb288a1a8043316d,yes,
+d40e63774b86f226cbd900343bbf5a4cc61261ff,yes,

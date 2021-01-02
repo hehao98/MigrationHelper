@@ -7,9 +7,11 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MavenServiceTest {
 
@@ -50,5 +52,18 @@ public class MavenServiceTest {
             }
         }
         assertTrue(hasJUnit);
+
+        // Test property parsing and missing field handling
+        pomFile = new File(Objects.requireNonNull(
+                getClass().getClassLoader().getResource("pom.xml")).toURI());
+        fis = new FileInputStream(pomFile);
+        content = new byte[(int) pomFile.length()];
+        len = fis.read(content);
+        assertEquals(len, content.length);
+        libraryInfoList = mavenService.analyzePom(new String(content));
+        assertTrue(libraryInfoList.size() > 0);
+        assertEquals(libraryInfoList.get(0).version, "");
+        assertEquals(libraryInfoList.get(1).version, "2.2.2.RELEASE");
+        System.out.println(libraryInfoList);
     }
 }

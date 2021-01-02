@@ -2,8 +2,6 @@ package edu.pku.migrationhelper.data.api;
 
 import com.google.common.collect.Sets;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 

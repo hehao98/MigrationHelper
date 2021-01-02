@@ -14,7 +14,6 @@ import edu.pku.migrationhelper.repository.LibraryVersionRepository;
 import edu.pku.migrationhelper.repository.LibraryVersionToClassRepository;
 import edu.pku.migrationhelper.service.*;
 import edu.pku.migrationhelper.util.JsonUtils;
-import javafx.util.Pair;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -26,9 +25,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.io.*;
@@ -453,6 +450,7 @@ public class DataExportJob implements CommandLineRunner {
         }
 
         outputLine(writer, "fromId", "toId", "counter");
+        /*
         List<Pair<Long, List<Pair<Long, Long>>>> outputLines = new ArrayList<>(result.size());
         result.forEach((fromId, candidateMap) -> {
             List<Pair<Long, Long>> candidateList = new ArrayList<>(candidateMap.size());
@@ -466,7 +464,7 @@ public class DataExportJob implements CommandLineRunner {
             for (Pair<Long, Long> subLine : outputLine.getValue()) {
                 outputLine(writer, fromId, subLine.getKey(), subLine.getValue());
             }
-        }
+        }*/
     }
 
     public void exportApiMapping(FileWriter libraryWriter, String... args) throws IOException {

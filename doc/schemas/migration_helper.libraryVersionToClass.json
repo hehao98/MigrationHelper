@@ -1,0 +1,23 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "migration_helper.libraryVersionToClass",
+    "required": ["_id", "groupId", "artifactId", "version", "classIds"],
+    "properties": {
+      "_id": { "bsonType": "long" },
+      "groupId": { "bsonType": "string" },
+      "artifactId": { "bsonType": "string" },
+      "version": { "bsonType": "string" },
+      "classIds": {
+        "bsonType": "array",
+        "uniqueItems": true,
+        "minItems": 1,
+        "items": {
+          "bsonType": "string",
+          "minLength": 40,
+          "maxLength": 40
+        }
+      }
+    }
+  }
+}

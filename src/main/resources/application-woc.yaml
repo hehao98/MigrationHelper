@@ -56,5 +56,3 @@ migration-helper:
     extract-dependencies: false
     reverse-order: false
     random-order: false
-  evaluation:
-    ground-truth-file: evaluation/test-ground-truth.csv

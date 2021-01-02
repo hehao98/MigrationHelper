@@ -3,23 +3,25 @@ package edu.pku.migrationhelper.job;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+import edu.pku.migrationhelper.data.LibraryMigrationCandidate;
 import edu.pku.migrationhelper.data.lib.LibraryGroupArtifact;
+import edu.pku.migrationhelper.repository.LibraryMigrationCandidateRepository;
 import edu.pku.migrationhelper.service.DepSeqAnalysisService;
 import edu.pku.migrationhelper.service.EvaluationService;
 import edu.pku.migrationhelper.service.GroupArtifactService;
+import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVFormat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -47,11 +49,17 @@ public class LibraryRecommendJob implements CommandLineRunner {
     @Autowired
     private EvaluationService evaluationService;
 
-    @Parameter(names = {"-q", "--query-file"}, required = true)
-    public String queryFile;
+    @Autowired
+    private LibraryMigrationCandidateRepository libraryMigrationCandidateRepository;
 
-    @Parameter(names = {"-o", "--output-file",}, required = true)
-    public String outputFile;
+    @Parameter(names = {"-q", "--query-file"}, required = true)
+    public String queryFile = null;
+
+    @Parameter(names = {"-o", "--output-file",})
+    public String outputFile = null;
+
+    @Parameter(names = {"--save-to-mongodb"})
+    public boolean saveToMongoDB = false;
 
     @Parameter(names = {"-e", "--evaluate"})
     public boolean evaluate = false;
@@ -68,15 +76,16 @@ public class LibraryRecommendJob implements CommandLineRunner {
             parser.usage();
             System.exit(SpringApplication.exit(context, () -> -1));
         }
-        LOG.info("Read libraries from {} and output results to {}, evaluate = {}, outputRepoCommit = {}",
-                queryFile, outputFile, evaluate, outputRepoCommit);
+
+        LOG.info("Read libraries from {} and output results to {}, evaluate = {}, outputRepoCommit = {}, saveToMongoDB = {}",
+                queryFile, outputFile, evaluate, outputRepoCommit, saveToMongoDB);
 
         List<LibraryGroupArtifact> queryList = readLibraryFromQueryFile();
         Set<Long> fromIdLimit = new HashSet<>();
         queryList.forEach(e -> fromIdLimit.add(e.getId()));
 
         LOG.info("Generating recommendation result...");
-        Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result =
+        Map<Long, List<LibraryMigrationCandidate>> result =
                 depSeqAnalysisService.miningLibraryMigrationCandidate(fromIdLimit);
 
         EvaluationService.EvaluationResult evaluationResult = null;
@@ -84,17 +93,29 @@ public class LibraryRecommendJob implements CommandLineRunner {
             LOG.info("Doing evaluation...");
             evaluationResult = evaluationService.evaluate(result, 20);
             evaluationService.printEvaluationResult(evaluationResult, System.out);
-            // LOG.info("Running RQ1...");
-            // evaluationService.runRQ1(result);
-            // LOG.info("Running RQ2...");
-            // evaluationService.runRQ2();
-            // LOG.info("Running RQ3...");
-            // evaluationService.runRQ3(result);
         }
 
-        LOG.info("Writing results to csv...");
-        outputCsv(queryList, result, evaluationResult);
-        if (outputRepoCommit != null) outputRelatedRepoAndCommit(result);
+        if (outputFile != null) {
+            LOG.info("Writing recommendation results to {}", outputFile);
+            outputCsv(queryList, result, evaluationResult);
+        }
+        if (outputRepoCommit != null) {
+            LOG.info("Writing recommendation commits to {}", outputRepoCommit);
+            outputRelatedRepoAndCommit(result);
+        }
+        if (saveToMongoDB) {
+            int savedEntries = 0;
+            int totalEntries = 0;
+            LOG.info("Saving recommendation results to MongoDB...");
+            for (long fromId : result.keySet()) {
+                totalEntries += result.get(fromId).size();
+                if (!libraryMigrationCandidateRepository.findByFromId(fromId).isEmpty())
+                    continue;
+                libraryMigrationCandidateRepository.saveAll(result.get(fromId));
+                savedEntries += result.get(fromId).size();
+            }
+            LOG.info("{} migration candidates and {} are saved (others already exists)", totalEntries, savedEntries);
+        }
 
         LOG.info("Success");
         System.exit(SpringApplication.exit(context, () -> 0));
@@ -153,18 +174,17 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
     private void outputCsv(
             List<LibraryGroupArtifact> queryList,
-            Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> recommendationResult,
+            Map<Long, List<LibraryMigrationCandidate>> recommendationResult,
             EvaluationService.EvaluationResult evaluationResult
     ) {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputFile), CSVFormat.DEFAULT)) {
             printer.printRecord("fromLib", "toLib", "confidence", "confidence2",
                     "ruleCountSameCommit", "ruleCount", "ruleFreqSameCommit", "ruleFreq",
-                    "concurrence", "concurrenceAdjustment", "positionSupport", "commitDistance", "methodChangeCount",
-                    "apiSupport",
-                    "possibleCommitCount", "commitMessageSupport");
+                    "concurrence", "concurrenceAdjustment", "commitDistance", "methodChangeCount",
+                    "apiSupport", "possibleCommitCount", "commitMessageSupport");
             for (LibraryGroupArtifact fromLib : queryList) {
                 Long fromId = fromLib.getId();
-                List<DepSeqAnalysisService.LibraryMigrationCandidate>
+                List<LibraryMigrationCandidate>
                         candidateList = recommendationResult.get(fromId);
                 if (candidateList == null) continue;
 
@@ -176,7 +196,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
 
                 if(candidateList.isEmpty()) continue;
 
-                for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                for (LibraryMigrationCandidate candidate : candidateList) {
                     LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                     // String isCorrect = evaluationResult == null ?
                              // "unknown" : evaluationResult.correctnessMap.get(fromId).get(candidate.toId).toString();
@@ -187,7 +207,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
                             candidate.ruleSupportByMaxSameCommit, candidate.ruleSupportByMax,
                             candidate.libraryConcurrenceCount,
                             candidate.libraryConcurrenceSupport,
-                            candidate.positionSupport, candidate.commitDistanceSupport,
+                            candidate.commitDistanceSupport,
                             candidate.methodChangeCount,
                             candidate.methodChangeSupportByMax,
                             candidate.possibleCommitList.size(),
@@ -200,7 +220,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
     }
 
     private void outputRelatedRepoAndCommit(
-            Map<Long, List<DepSeqAnalysisService.LibraryMigrationCandidate>> result
+            Map<Long, List<LibraryMigrationCandidate>> result
     ) throws IOException {
         FileWriter writer = new FileWriter(outputRepoCommit);
         writer.write("fromLib,toLib,repoCommits,possibleCommits\n");
@@ -213,7 +233,7 @@ public class LibraryRecommendJob implements CommandLineRunner {
                     }).collect(Collectors.toList());
             if (candidateList.isEmpty()) return;
             try {
-                for (DepSeqAnalysisService.LibraryMigrationCandidate candidate : candidateList) {
+                for (LibraryMigrationCandidate candidate : candidateList) {
                     writer.write(fromLib.getGroupArtifactId());
                     LibraryGroupArtifact toLib = groupArtifactService.getGroupArtifactById(candidate.toId);
                     writer.write(",");

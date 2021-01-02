@@ -1,6 +1,0 @@
-# Ignore too large CSVs in this folder
-libs-all.csv
-recommendation-libs.csv
-recommendation-libs-all.csv
-commits-libs.csv
-commits-libs-all.csv
