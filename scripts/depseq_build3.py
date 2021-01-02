@@ -33,7 +33,7 @@ def construct_blob_seq(commits, pom_paths):
     return blob_seq
 
 
-def try_add_blob(blob_sha):
+def try_add_blob(blob_sha, db):
     if blob_sha == "":
         return
     if db.wocPomBlob.find_one({"_id": blob_sha}) is not None:
@@ -67,7 +67,7 @@ def try_add_blob(blob_sha):
         db.wocPomBlob.insert_one(pom)
 
 
-def get_all_blobs(blob_shas):
+def get_all_blobs(blob_shas, db):
     blob_shas = list(blob_shas)
     n = 1000
     all_blobs = dict()
@@ -108,9 +108,11 @@ def construct_dep_seq(pom_paths, blob_seq, all_blobs):
             }
             change["changes"].extend("+" + lib for lib in new_libs - old_libs)
             change["changes"].extend("-" + lib for lib in old_libs - new_libs)
+            change["versionChanges"].extend("+" + lib + " " + new_libs2ver[lib] for lib in new_libs - old_libs)
+            change["versionChanges"].extend("-" + lib + " " + old_libs2ver[lib] for lib in old_libs - new_libs)
             for lib in new_libs & old_libs:
                 if old_libs2ver[lib] != new_libs2ver[lib]:
-                    change["versionChanges"].append("{} {}->{}".format(lib, old_libs2ver[lib], new_libs2ver[lib]))
+                    change["versionChanges"].append(" {} {}->{}".format(lib, old_libs2ver[lib], new_libs2ver[lib]))
             if len(change["changes"]) == 0 and len(change["versionChanges"]) == 0:
                 continue
             dep_seq[path].append(change)
@@ -153,9 +155,9 @@ def build_depseq(woc_repo):
     for path in blob_seq:
         for blob_sha, commit_sha, old_blob_sha in blob_seq[path]:
             blob_shas.update([blob_sha, old_blob_sha])
-            try_add_blob(blob_sha)
-            try_add_blob(old_blob_sha)
-    all_blobs = get_all_blobs(blob_shas)
+            try_add_blob(blob_sha, db)
+            try_add_blob(old_blob_sha, db)
+    all_blobs = get_all_blobs(blob_shas, db)
     logging.info("{} blob shas in total, {} errors".format(len(blob_shas), 
         len([b for sha, b in all_blobs.items() if b["error"]])))
 
@@ -184,16 +186,16 @@ if __name__ == "__main__":
 
     logging.info("Start!")
 
-    db = pymongo.MongoClient("mongodb://migration_helper:HeHMgt2020@da1.eecs.utk.edu:27020/migration_helper"
+    db2 = pymongo.MongoClient("mongodb://migration_helper:HeHMgt2020@da1.eecs.utk.edu:27020/migration_helper"
                            "?authSource=migration_helper").migration_helper
-    db.wocDepSeq3.create_index([("repoName", pymongo.ASCENDING), ("fileName", pymongo.ASCENDING)], unique=True)
+    db2.wocDepSeq3.create_index([("repoName", pymongo.ASCENDING), ("fileName", pymongo.ASCENDING)], unique=True)
     
     #for woc_repo in db.wocRepository.find():
     #    build_depseq(woc_repo)
     
     pool = multiprocessing.Pool(4)
     results = []
-    for woc_repo in db.wocRepository.find():
+    for woc_repo in db2.wocRepository.find():
         results.append(pool.apply_async(build_depseq, (woc_repo,)))
     for result in results:
         result.get()

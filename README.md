@@ -33,13 +33,19 @@ The evaluation results are all put in the `evaluation/` folder. Not that the RQs
 
 All the intermediate data during labelling of ground truth are also kept in this folder.
 
-### Implementation Details for the Paper
+### Implementation Details
 
 For those interested in implementation details of the paper, here are some starting points to look at:
 
 1. [src/.../DepSeqAnalysisService.java](src/main/java/edu/pku/migrationhelper/service/DepSeqAnalysisService.java)  implements the core migration target recommendation algorithm.
 2. [src/.../LibraryIdentityService.java](src/main/java/edu/pku/migrationhelper/service/LibraryIdentityService.java) downloads JARs from Maven, analyzes them and store the classes.
 3. [scripts/depseq_build3.py](scripts/depseq_build3.py) implements dependency sequence construction on World of Code.
+
+## Supplementary Materials
+
+### Manual API Change Analysis Result of 100 Random Sampled Migration Commits
+
+### Complete Table of Precision, Recall, NDCG and MRR
 
 ## Development
 
