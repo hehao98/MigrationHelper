@@ -45,7 +45,9 @@ For those interested in implementation details of the paper, here are some start
 
 ### Manual API Change Analysis of 100 Random Sampled Migration Commits
 
-### Complete Table of Precision, Recall, NDCG and MRR
+Detailed annotations can be found in [evaluation/manual/sampled-commits.csv](evaluation/manual/sampled-commits.csv).
+
+### Complete Table of Precision, Recall, NDCG, MRR and F-Measure
 
 #### Summary
 
