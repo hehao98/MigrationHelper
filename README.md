@@ -72,85 +72,85 @@ Our Approach                  : Precision@1 = 0.6870, MRR = 0.7918, Recall@5 = 0
 
 ```
 MRR-C/P = 0.8565813287461487/0.8565813287461487
-Top   1: Precision = 0.7947, Recall = 0.1953, NDCG = 0.7947
-Top   2: Precision = 0.6614, Recall = 0.3234, NDCG = 0.7836
-Top   3: Precision = 0.5583, Recall = 0.4088, NDCG = 0.7669
-Top   4: Precision = 0.4907, Recall = 0.4787, NDCG = 0.7640
-Top   5: Precision = 0.4374, Recall = 0.5330, NDCG = 0.7611
-Top   6: Precision = 0.3912, Recall = 0.5718, NDCG = 0.7580
-Top   7: Precision = 0.3584, Recall = 0.6106, NDCG = 0.7594
-Top   8: Precision = 0.3351, Recall = 0.6520, NDCG = 0.7639
-Top   9: Precision = 0.3146, Recall = 0.6882, NDCG = 0.7690
-Top  10: Precision = 0.2918, Recall = 0.7089, NDCG = 0.7702
-Top  20: Precision = 0.1849, Recall = 0.8939, NDCG = 0.8123
+Top   1: Precision = 0.7947, Recall = 0.1953, NDCG = 0.7947, F-Measure = 0.3136
+Top   2: Precision = 0.6614, Recall = 0.3234, NDCG = 0.7836, F-Measure = 0.4344
+Top   3: Precision = 0.5583, Recall = 0.4088, NDCG = 0.7669, F-Measure = 0.4720
+Top   4: Precision = 0.4907, Recall = 0.4787, NDCG = 0.7640, F-Measure = 0.4846
+Top   5: Precision = 0.4374, Recall = 0.5330, NDCG = 0.7611, F-Measure = 0.4805
+Top   6: Precision = 0.3912, Recall = 0.5718, NDCG = 0.7580, F-Measure = 0.4645
+Top   7: Precision = 0.3584, Recall = 0.6106, NDCG = 0.7594, F-Measure = 0.4517
+Top   8: Precision = 0.3351, Recall = 0.6520, NDCG = 0.7639, F-Measure = 0.4427
+Top   9: Precision = 0.3146, Recall = 0.6882, NDCG = 0.7690, F-Measure = 0.4318
+Top  10: Precision = 0.2918, Recall = 0.7089, NDCG = 0.7702, F-Measure = 0.4134
+Top  20: Precision = 0.1849, Recall = 0.8939, NDCG = 0.8123, F-Measure = 0.3064
 ```
 
 #### Result of Teyton et al. 2013 (t = 0) on GT2014
 
 ```
-MRR-C/P = 0.7177737092794126/0.7256631558654647
-Top   1: Precision = 0.6421, Recall = 0.1578, NDCG = 0.6421
-Top   2: Precision = 0.5000, Recall = 0.2445, NDCG = 0.6009
-Top   3: Precision = 0.4223, Recall = 0.3092, NDCG = 0.5874
-Top   4: Precision = 0.3753, Recall = 0.3661, NDCG = 0.5831
-Top   5: Precision = 0.3386, Recall = 0.4127, NDCG = 0.5800
-Top   6: Precision = 0.3142, Recall = 0.4592, NDCG = 0.5837
-Top   7: Precision = 0.2908, Recall = 0.4955, NDCG = 0.5852
-Top   8: Precision = 0.2753, Recall = 0.5356, NDCG = 0.5936
-Top   9: Precision = 0.2578, Recall = 0.5640, NDCG = 0.5990
-Top  10: Precision = 0.2439, Recall = 0.5925, NDCG = 0.6048
-Top  20: Precision = 0.1517, Recall = 0.7335, NDCG = 0.6376
+MRR-C/P = 0.7172956537340605/0.7227737800081314
+Top   1: Precision = 0.6526, Recall = 0.1604, NDCG = 0.6526, F-Measure = 0.2575
+Top   2: Precision = 0.4868, Recall = 0.2380, NDCG = 0.5893, F-Measure = 0.3197
+Top   3: Precision = 0.4134, Recall = 0.3027, NDCG = 0.5761, F-Measure = 0.3495
+Top   4: Precision = 0.3714, Recall = 0.3622, NDCG = 0.5764, F-Measure = 0.3667
+Top   5: Precision = 0.3344, Recall = 0.4075, NDCG = 0.5713, F-Measure = 0.3673
+Top   6: Precision = 0.3142, Recall = 0.4592, NDCG = 0.5793, F-Measure = 0.3731
+Top   7: Precision = 0.2916, Recall = 0.4968, NDCG = 0.5829, F-Measure = 0.3675
+Top   8: Precision = 0.2753, Recall = 0.5356, NDCG = 0.5894, F-Measure = 0.3636
+Top   9: Precision = 0.2584, Recall = 0.5653, NDCG = 0.5957, F-Measure = 0.3547
+Top  10: Precision = 0.2417, Recall = 0.5873, NDCG = 0.5987, F-Measure = 0.3425
+Top  20: Precision = 0.1506, Recall = 0.7283, NDCG = 0.6344, F-Measure = 0.2496
 ```
 
 #### Result of Teyton et al. 2013 (t = 0.002) on GT2014
 
 ```
-MRR-C/P = 0.728420312957656/0.7336841482214912
-Top   1: Precision = 0.6703, Recall = 0.1604, NDCG = 0.6703
-Top   2: Precision = 0.5125, Recall = 0.2393, NDCG = 0.6358
-Top   3: Precision = 0.4592, Recall = 0.3131, NDCG = 0.6480
-Top   4: Precision = 0.4073, Recall = 0.3609, NDCG = 0.6476
-Top   5: Precision = 0.3726, Recall = 0.4049, NDCG = 0.6520
-Top   6: Precision = 0.3509, Recall = 0.4476, NDCG = 0.6620
-Top   7: Precision = 0.3301, Recall = 0.4799, NDCG = 0.6698
-Top   8: Precision = 0.3171, Recall = 0.5149, NDCG = 0.6805
-Top   9: Precision = 0.3033, Recall = 0.5395, NDCG = 0.6871
-Top  10: Precision = 0.2897, Recall = 0.5576, NDCG = 0.6909
-Top  20: Precision = 0.2123, Recall = 0.6404, NDCG = 0.7160
+MRR-C/P = 0.7221139810907252/0.7301255641023083
+Top   1: Precision = 0.6595, Recall = 0.1578, NDCG = 0.6595, F-Measure = 0.2547
+Top   2: Precision = 0.5125, Recall = 0.2393, NDCG = 0.6297, F-Measure = 0.3263
+Top   3: Precision = 0.4459, Recall = 0.3040, NDCG = 0.6309, F-Measure = 0.3615
+Top   4: Precision = 0.4044, Recall = 0.3583, NDCG = 0.6387, F-Measure = 0.3800
+Top   5: Precision = 0.3655, Recall = 0.3972, NDCG = 0.6412, F-Measure = 0.3807
+Top   6: Precision = 0.3489, Recall = 0.4450, NDCG = 0.6551, F-Measure = 0.3911
+Top   7: Precision = 0.3310, Recall = 0.4812, NDCG = 0.6661, F-Measure = 0.3922
+Top   8: Precision = 0.3108, Recall = 0.5045, NDCG = 0.6688, F-Measure = 0.3846
+Top   9: Precision = 0.2960, Recall = 0.5265, NDCG = 0.6745, F-Measure = 0.3790
+Top  10: Precision = 0.2816, Recall = 0.5420, NDCG = 0.6777, F-Measure = 0.3706
+Top  20: Precision = 0.2110, Recall = 0.6365, NDCG = 0.7063, F-Measure = 0.3169
 ```
 
 #### Result of Teyton et al. 2013 (t = 0.015) on GT2014
 
 ```
 MRR-C/P = 0.8862573099415206/0.8862573099415206
-Top   1: Precision = 0.8737, Recall = 0.1074, NDCG = 0.8737
-Top   2: Precision = 0.7820, Recall = 0.1345, NDCG = 0.8722
-Top   3: Precision = 0.7405, Recall = 0.1514, NDCG = 0.8771
-Top   4: Precision = 0.7209, Recall = 0.1604, NDCG = 0.8826
-Top   5: Precision = 0.7111, Recall = 0.1656, NDCG = 0.8832
-Top   6: Precision = 0.7043, Recall = 0.1695, NDCG = 0.8845
-Top   7: Precision = 0.7000, Recall = 0.1721, NDCG = 0.8857
-Top   8: Precision = 0.6995, Recall = 0.1746, NDCG = 0.8877
-Top   9: Precision = 0.6974, Recall = 0.1759, NDCG = 0.8909
-Top  10: Precision = 0.6904, Recall = 0.1759, NDCG = 0.8909
-Top  20: Precision = 0.6766, Recall = 0.1759, NDCG = 0.8909
+Top   1: Precision = 0.8737, Recall = 0.1074, NDCG = 0.8737, F-Measure = 0.1912
+Top   2: Precision = 0.7820, Recall = 0.1345, NDCG = 0.8696, F-Measure = 0.2296
+Top   3: Precision = 0.7468, Recall = 0.1527, NDCG = 0.8796, F-Measure = 0.2535
+Top   4: Precision = 0.7209, Recall = 0.1604, NDCG = 0.8832, F-Measure = 0.2624
+Top   5: Precision = 0.7111, Recall = 0.1656, NDCG = 0.8840, F-Measure = 0.2686
+Top   6: Precision = 0.7043, Recall = 0.1695, NDCG = 0.8853, F-Measure = 0.2732
+Top   7: Precision = 0.7000, Recall = 0.1721, NDCG = 0.8864, F-Measure = 0.2762
+Top   8: Precision = 0.6943, Recall = 0.1734, NDCG = 0.8864, F-Measure = 0.2774
+Top   9: Precision = 0.6974, Recall = 0.1759, NDCG = 0.8916, F-Measure = 0.2810
+Top  10: Precision = 0.6904, Recall = 0.1759, NDCG = 0.8916, F-Measure = 0.2804
+Top  20: Precision = 0.6766, Recall = 0.1759, NDCG = 0.8916, F-Measure = 0.2793
 ```
 
 #### Result of Alrubaye et al. 2019 (RS >= 0.6 and AS > 0) on GT2014
 
 ```
 MRR-C/P = 0.9411764705882353/0.9411764705882353
-Top   1: Precision = 0.9412, Recall = 0.0414, NDCG = 0.9412
-Top   2: Precision = 0.9250, Recall = 0.0479, NDCG = 0.9412
-Top   3: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top   4: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top   5: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top   6: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top   7: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top   8: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top   9: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top  10: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
-Top  20: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412
+Top   1: Precision = 0.9412, Recall = 0.0414, NDCG = 0.9412, F-Measure = 0.0793
+Top   2: Precision = 0.9250, Recall = 0.0479, NDCG = 0.9412, F-Measure = 0.0910
+Top   3: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top   4: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top   5: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top   6: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top   7: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top   8: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top   9: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top  10: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
+Top  20: Precision = 0.9268, Recall = 0.0492, NDCG = 0.9412, F-Measure = 0.0934
 ```
 
 #### Result of Our Approach on GT2020
