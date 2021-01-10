@@ -35,66 +35,6 @@
 % 2. 对于论文内容的次要评论和提示，直接留下注释即可
 % 3. 对于需要用等宽字体的场合，使用\Code命令
 
-% 关于Reviewer的concern以及我的修改意见
-
-% Reviewer 1
-
-%- The proposed approach is evaluated in terms of MRR, Precision@1, NDCG@10, and Recall@20. 
-% RQ2结果添加了补充说明，和说明GitHub网页里有更多数据的脚注
-
-%- More information needs to be given in the paper as to whether the labellers are familiar with the libraries that they label, and what they need to do if they are not familiar with those libraries. 
-% 添加了细节描述
-
-%- Ideally, data labelling should be done by two independent annotators and an inter-rater agreement score should be computed
-% inter-rater agreement score这些估计是算不了了...准备不管这个
-
-%- The GT2014 dataset is relabeled. I wonder are there differences between the original labels and the new labels? More information can be provided. 
-% 写了，ta没看到
-
-%- Ideally, more baselines should be included in Table IV (in addition to Teyton et al.'). 
-% RQ2添加了脚注，在GitHub的网页里补充更多的数据
-
-%- The Recall@20 of the proposed approach on the GT2020 dataset is substantially better than the result for the GT2014 dataset. More information needs to be given on why this is the case. 
-% 写了，ta没看到
-
-% Our initial deployment in an industry setting obtains positive feedback
-% 换成个更具体的描述
-
-% - Message support metric is currently done via keyword matching. A more sophisticated approach leveraging the advances of NLP would be better and may improve the performance further.
-% 已经写在Limitation里了
-
-% Reviewer 2
-
-% #1 How do you make sure the selected target by your approach is optimal? In the section of Introduction, you said one of the projects in this problem domain is some optimal decisions may be missed. But your approach extract candidates from a corpus of software projects, how can you make sure you can get the optimal decision from these studied projects. Please verify this.
-% Intro里补充说明一个rationale："ensure optimal through crowd of wisdom”，在Construt Validity里补充说明我们指标的局限性
-
-% #2 “If the confidence values of some candidate rules are the same, we further sort them using other metrics.”, what other metrics?
-% 补充by RS.
-
-% #3 The authors introduce 4 metrics and provide the definitions of them, but didn’t tell the rationales. That is, whether these 4 metrics can really indicate the quality of migration.
-% 在Construt Validity里补充说明我们指标的局限性 %%%zhmh: 这里说的不是局限性，是需要justify它们的合理性
-
-% Reviewer 3
-
-% My first concern of this paper is the way the authors decided to frame existing studies
-% ta是不是搞错了我们引的文章？因为这两个作者确实也有method-level的文章，但是我比对的都是他们其他的library-level的文章。在Background加个脚注强调一下
-% 我明白了，他应该是Mohamed Wiem Mkaouer，他就是在说他的学生Alrubaye的那篇，那篇也有method level的功能，但我比的是library level
-
-% While the paper is generally well written, sometimes with all the numbers reported it becomes harder to follow. I understand that the authors want to showcase the details of their work, but trying to summarize is that a collection in a table like the one in table two, with giving a concise description would be appropriate as well.
-% Implementation里有表格，所以全部删掉了，Evaluation我觉得没必要改了吧...不然实在没空间
-
-% I find the number 243; 152 candidate rules to be extremely high. The authors did not explain exactly how they come up with this number, as they keep saying that they queried the database. I find this number to be extremely high and certainly contains over 99% of false positives, as shown later using the ground truth, so why generating such large number? Is it going to be fed to all approaches for comparison?
-% 在Evaluation - Ground Truth加了尾注解释一下
-
-% In page 5, The authors use a minimum threshold for their API support metric. The argument behind using it is that keeping the value to zero may trigger a lot of false positives in case the migration does not require any changes at the source code level. I found the explanation to this threshold really weird because the authors say that it may happen when developers perform source code changes of the APIs outside of the migration segment, but this is impossible because of dependency is that needs to be added and removed in order for them to be able to use the API, so that argument is invalid. As for the second argument, it would be typical for a library upgrade not to need any further changes at the source code level, unless there are breaking changes. Otherwise, based on the definition of the authors, an existing studies, it would be almost impossible to perform a migration without changing the APIs and replacing the methods of the old library with the methods of the new library. I think a better rationale for the choice of the threshold needs to be added.
-% 感觉ta有一点点误解，这个最小值设定并不是trigger一堆false positives，而是会过滤掉一小部分true positive；然后，我认为他提出的假设太理想了，实际的数据并没有他设想的那么“理想”。因此我补充了一个实验，采样100个真实的库迁移commit说明检测不到code change的比例，以及加一些补充说明：这个minimum threshold是由于一些Java开发中特定的一些原因（pom.xml配置）和git中的数据问题（开发中pom.xml变更不一定同步）带来的，因此不管怎样这个minimum threshold make this metrics more robust
-
-% but some evaluation decisions made by the authors may need to be further explained and justified. For instance the choice of top 20 recommendations, and the existence in more than 10 repositories, etc. These come as magic numbers, it is better to have some rational or heuristic behind such a choice.
-% 加了一点解释
-
-% 我觉得没有必要在我们的方法里过于强调Crowd of wisdom，因为这个rationale不是我们的贡献，是已有研究的贡献，Reviewer2只是没有get到这一点；应该在背景里介绍或强调
-% 我们的贡献主要是在准确度上
-
 \title{A Multi-Metric Ranking Approach for Library Migration Recommendations}
 
 \author{\IEEEauthorblockN{Hao He\IEEEauthorrefmark{1}\IEEEauthorrefmark{2},
