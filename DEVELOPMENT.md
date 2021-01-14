@@ -75,7 +75,7 @@ Make sure MongoDB server is not already running. Run the following command.
 
 ```shell script
 nohup /da1_data/play/heh/mongodb/bin/mongod --auth --dbpath /da1_data/play/heh/mongodb/data \
-    --logpath /da1_data/play/heh/mongodb/db.log --fork --port 27020 --wiredTigerCacheSizeGB 100 \
+    --logpath /da1_data/play/heh/mongodb/db.log --fork --port 27020 --wiredTigerCacheSizeGB 20 \
     --bind_ip localhost,da1.eecs.utk.edu &
 ```
 
