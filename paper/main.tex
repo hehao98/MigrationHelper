@@ -41,7 +41,6 @@
 Yulin Xu\IEEEauthorrefmark{1}, Yixiao Ma\IEEEauthorrefmark{1},
 Yifei Xu\IEEEauthorrefmark{1}, Guangtai Liang\IEEEauthorrefmark{2},
 and Minghui Zhou\IEEEauthorrefmark{1}\textsuperscript{\textsection}}
-%%%zhmh: minghui zhou need to be marked as corresponding author, otherwise the paper is not counted as credits
 
 \IEEEauthorblockA{\IEEEauthorrefmark{1}Department of Computer Science and
 Technology, Peking University, Beijing, China\\
@@ -147,7 +146,6 @@ Our experimental evaluations show that the metrics are effective to help identif
 Our approach has been deployed in a proprietary 3rd-party library management tool to recommend migration targets for libraries in the deny list.
 %We also extend the migration dataset in Teyton et al.~\cite{2014JournalOfSysAndSoft-Teyton-Study} with both new migration rules and latest migration commits for existing rules, resulting in a total of 1,384 migration rules in 3,340 commits from 1,313 repositories. The new migration dataset can be used to facilitate further research in library migration.
 
-%%%%below can be ignored, 因为事实上上文都已经说清楚了. 留作强调也可以
 We make the following contributions in this study:
 \begin{enumerate}
     \item formulate the library migration recommendation problem as a \textit{mining} and \textit{ranking} problem, 
@@ -532,7 +530,7 @@ ask the second research question:
     % \item RQ3: What is the performance of our approach on another set of queries?
 %\end{itemize}
 
-\subsection{Ground Truth} %%%可以把两个dataset的建立都放在这个section嘛? 这样整体逻辑逻辑会清晰和简单些。ground truth下两个subsection, 一个ground truth recovered from existing work, 一个ground truth newly retrieved from 500 popular projects
+\subsection{Ground Truth}
 \label{subsec:ground-truth}
 
 We use two ground truth datasets for different evaluation purposes. 
@@ -601,7 +599,7 @@ Both percentages are higher than the reported percentage in \cite{2014JournalOfS
 
 To answer RQ1, we plot survival functions for the confidence value of the approach in \cite{2012WCRE-Teyton-Mining},
 the four proposed metrics, and the final confidence value of our approach, respectively. For metric $M$, its survival function is defined as $y=P(M\ge x)$, where $P()$ is the probability function.
-We estimate the probabilities using GT2014, for both ground truth rules $R_t$ and other candidate rules $R_c-R_t$ %%%where did you define "other candidate rules"? 就是后面的公式给出定义呀 R_c-R_t,
+We estimate the probabilities using GT2014, for both ground truth rules $R_t$ and other candidate rules $R_c-R_t$,
 in Figure~\ref{fig:dist}. 
 We can observe in Figure~\ref{fig:dist} that ground truth rules generally have significantly higher probability of survival for all metrics, indicating the effectiveness of each metric.
 We can also observe that any filtering threshold $x$ will result in either significant ground truth losses or undesirable survival of many other candidate rules due to their much larger quantity.
