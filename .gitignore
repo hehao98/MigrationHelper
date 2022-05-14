@@ -6,7 +6,7 @@ target
 .gradle
 /bin/
 /lib/
-export/
+# export/
 test_output/
 tempdata/
 /build/
