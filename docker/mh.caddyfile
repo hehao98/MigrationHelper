@@ -1,0 +1,14 @@
+# Define the site address
+:80
+
+# Define a named matcher for the paths that should be proxied
+@proxyPaths {
+    path /library* /libraries* /commits* /confirmed* /recommend*
+}
+
+# Use the named matcher in the reverse_proxy directive
+reverse_proxy @proxyPaths mh:22568
+
+# Serve static files for all other requests
+root * /usr/share/caddy
+file_server

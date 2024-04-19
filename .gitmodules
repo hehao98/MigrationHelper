@@ -1,3 +1,6 @@
 [submodule "scripts/oscar"]
 	path = scripts/oscar
 	url = https://github.com/ssc-oscar/oscar.py.git
+[submodule "web"]
+	path = web
+	url = https://github.com/hehao98/MigrationHelperFrontend/
