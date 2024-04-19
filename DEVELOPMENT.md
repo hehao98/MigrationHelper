@@ -1,5 +1,30 @@
 # Development
 
+## Deploy
+
+We strongly recommend deploying this tool on Docker. To begin, you need to have the following:
+
+1. A x86-64 Linux machine with at least 4 GB of memory and 8 GB of disk space.
+2. Docker installed on the machine. Refer to the [official documentation](https://docs.docker.com/get-docker/) for installation instructions.
+
+To deploy this tool, first clone this repository and navigate to the `docker` directory of this repository. Then, run the following command:
+
+```shell
+docker-compose up -d
+```
+
+You may check the logs using the following command:
+
+```shell
+docker-compose logs -f --tail 100
+```
+
+To stop:
+
+```shell
+docker-compose down
+```
+
 ## Compile
 
 ### Local
