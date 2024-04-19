@@ -18,6 +18,8 @@ COPY pom.xml .
 COPY src ./src
 COPY 3rd ./3rd
 
+# Replace localhost with mongo
+RUN sed -i 's/localhost/mongo/g' /app/src/main/resources/application-web.yaml
 # Build the project
 RUN mvn clean package -DskipTests
 
@@ -40,10 +42,6 @@ RUN rm /tmp/jre-8u361-linux-x64.tar.gz && rm -rf /usr/lib/jvm/jre1.8.0_361/*src.
 WORKDIR /app
 COPY --from=build /app/target/migration-helper-1.0-SNAPSHOT.jar /app/migration-helper.jar
 
-# Copy properties files
-COPY ./src/main/resources /app/src/main/resources
-# Replace localhost with mongo
-RUN sed -i 's/localhost/mongo/g' /app/src/main/resources/application-web.yaml
 
 # Run the JAR file
 CMD ["java", "-Xms4g", "-Xmx5g", "-Dlog4j.configuration=mylog4j.properties", "-Dspoon.log.path=./spoon.log", "-Dspring.profiles.active=web", "-jar", "migration-helper.jar", "--web"]
